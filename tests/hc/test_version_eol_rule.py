@@ -18,7 +18,7 @@ EOL_VERSION = [6, 3, 0]
 
 
 def test_eol_version():
-    rule = VersionEOLRule(EOL_VERSION)
+    rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with EOL version
     result = rule.apply(EOL_BUILD_INFO, result_template={"host": "localhost"})
@@ -30,7 +30,7 @@ def test_eol_version():
 
 
 def test_upd_version():
-    rule = VersionEOLRule(EOL_VERSION)
+    rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with up-to-date version
     result = rule.apply(UPD_BUILD_INFO, result_template={"host": "localhost"})
@@ -38,7 +38,7 @@ def test_upd_version():
 
 
 def test_rapid_version():
-    rule = VersionEOLRule(EOL_VERSION)
+    rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with rapid release version
     result = rule.apply(RAPID_BUILD_INFO, result_template={"host": "localhost"})
@@ -54,7 +54,7 @@ def test_rapid_version():
 
 
 def test_dev_version():
-    rule = VersionEOLRule(EOL_VERSION)
+    rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with development release version
     result = rule.apply(DEV_BUILD_INFO, result_template={"host": "localhost"})

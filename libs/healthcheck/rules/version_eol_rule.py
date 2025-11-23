@@ -5,9 +5,9 @@ from libs.version import Version
 
 
 class VersionEOLRule(BaseRule):
-    def __init__(self, eol_version: list = None):
-        super().__init__(eol_version)
-        self._eol_version = Version(eol_version)
+    def __init__(self, thresholds: list = None):
+        super().__init__(thresholds)
+        self._eol_version = Version(thresholds.get("eol_version", [6, 3, 0]))
 
     def apply(self, data: object, result_template=None) -> object:
         """Check if the given build info represents a version that is end-of-life (EOL).

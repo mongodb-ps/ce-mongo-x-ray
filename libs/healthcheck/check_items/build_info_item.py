@@ -13,7 +13,7 @@ class BuildInfoItem(BaseItem):
         self._name = "Build Information"
         self._description = "Collects & review server build information.\n\n"
         self._description += "- Whether the server is running a supported version.\n"
-        self._version_eol_rule = VersionEOLRule(self._config.get("eol_version", [6, 3, 0]))
+        self._version_eol_rule = VersionEOLRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
