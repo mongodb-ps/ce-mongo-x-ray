@@ -1,4 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
+from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from libs.healthcheck.shared import SEVERITY
 from libs.version import Version
 
@@ -21,33 +22,41 @@ class VersionEOLRule(BaseRule):
         version = Version(data.get("versionArray", [0, 0, 0]))
         # Check if the version is below EOL version
         if version < self._eol_version:
+            issue_id = ISSUE.EOL_VERSION_USED
             test_results.append(
                 template
                 | {
+                    "id": issue_id,
                     "severity": SEVERITY.HIGH,
-                    "title": "Server Version EOL",
-                    "description": f"Server version {version} is below EOL version {self._eol_version}. Consider upgrading to the latest version.",
+                    "title": ISSUE_MSG_MAP[issue_id]["title"],
+                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
+                        version=version, eol_version=self._eol_version
+                    ),
                 }
             )
         # Check if rapid releases are being used
         if 5 <= version.major_version <= 7 and version.minor_version != 0:
+            issue_id = ISSUE.RAPID_RELEASE_VERSION_USED
             test_results.append(
                 template
                 | {
+                    "id": issue_id,
                     "severity": SEVERITY.MEDIUM,
-                    "title": "Rapid Release Version Detected",
-                    "description": f"Server version {version} is a unsupported rapid release version. Consider using release versions for better stability and support.",
+                    "title": ISSUE_MSG_MAP[issue_id]["title"],
+                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(version=version),
                 }
             )
         # Check if development releases are being used
         if version.major_version >= 8 or version.major_version <= 4:
             if version.minor_version % 2 != 0:
+                issue_id = ISSUE.DEVELOPMENT_RELEASE_VERSION_USED
                 test_results.append(
                     template
                     | {
+                        "id": issue_id,
                         "severity": SEVERITY.MEDIUM,
-                        "title": "Development Release Version Detected",
-                        "description": f"Server version {version} appears to be a development release. Consider using stable release versions for production environments.",
+                        "title": ISSUE_MSG_MAP[issue_id]["title"],
+                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(version=version),
                     }
                 )
         return test_results
