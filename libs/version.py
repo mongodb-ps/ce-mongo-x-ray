@@ -51,8 +51,25 @@ class Version:
             return True
         return False
 
+    @property
     def to_compatibility_str(self) -> str:
         return f"{self.version_array[0]}.{self.version_array[1]}"
+
+    @property
+    def major_version(self) -> int:
+        return self.version_array[0]
+
+    @property
+    def minor_version(self) -> int:
+        return self.version_array[1]
+
+    @property
+    def patch_version(self) -> int:
+        return self.version_array[2]
+
+    @property
+    def build_version(self) -> int:
+        return self.version_array[3]
 
     @staticmethod
     def parse(version_str):
