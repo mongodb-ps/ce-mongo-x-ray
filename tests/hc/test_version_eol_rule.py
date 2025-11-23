@@ -1,4 +1,4 @@
-from libs.healthcheck.issues import ISSUE
+from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from libs.healthcheck.rules.version_eol_rule import VersionEOLRule
 from libs.healthcheck.shared import SEVERITY
 
@@ -49,7 +49,7 @@ def test_rapid_version():
     assert result[0]["host"] == "localhost"
     assert result[1]["id"] == ISSUE.RAPID_RELEASE_VERSION_USED
     assert result[1]["severity"] == SEVERITY.MEDIUM
-    assert result[1]["title"] == "Rapid Release Version Detected"
+    assert result[1]["title"] == ISSUE_MSG_MAP[ISSUE.RAPID_RELEASE_VERSION_USED]["title"]
     assert result[1]["host"] == "localhost"
 
 
@@ -60,5 +60,5 @@ def test_dev_version():
     result = rule.apply(DEV_BUILD_INFO, result_template={"host": "localhost"})
     assert result[0]["id"] == ISSUE.DEVELOPMENT_RELEASE_VERSION_USED
     assert result[0]["severity"] == SEVERITY.MEDIUM
-    assert result[0]["title"] == "Development Release Version Detected"
+    assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.DEVELOPMENT_RELEASE_VERSION_USED]["title"]
     assert result[0]["host"] == "localhost"

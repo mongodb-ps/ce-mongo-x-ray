@@ -1,6 +1,5 @@
-from libs.healthcheck.issues import ISSUE
+from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from libs.healthcheck.rules.rs_status_rule import RSStatusRule
-from libs.healthcheck.rules.version_eol_rule import VersionEOLRule
 from libs.healthcheck.shared import SEVERITY
 from bson import Timestamp
 
@@ -55,7 +54,7 @@ def test_no_primary():
     assert result is not None
     assert result[0]["id"] == ISSUE.NO_PRIMARY
     assert result[0]["severity"] == SEVERITY.HIGH
-    assert result[0]["title"] == "No Primary"
+    assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.NO_PRIMARY]["title"]
     assert result[0]["host"] == "cluster"
 
 
@@ -67,7 +66,7 @@ def test_unhealthy_member():
     assert result is not None
     assert result[0]["id"] == ISSUE.UNHEALTHY_MEMBER
     assert result[0]["severity"] == SEVERITY.HIGH
-    assert result[0]["title"] == "Unhealthy Member"
+    assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.UNHEALTHY_MEMBER]["title"]
     assert result[0]["host"] == "localhost:30018"
 
 
@@ -79,7 +78,7 @@ def test_initializing_member():
     assert result is not None
     assert result[0]["id"] == ISSUE.INITIALIZING_MEMBER
     assert result[0]["severity"] == SEVERITY.LOW
-    assert result[0]["title"] == "Initializing Member"
+    assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.INITIALIZING_MEMBER]["title"]
     assert result[0]["host"] == "localhost:30018"
 
 
@@ -92,7 +91,7 @@ def test_lagged_member():
     assert len(result) == 2
     assert result[0]["id"] == ISSUE.DELAYED_MEMBER
     assert result[0]["severity"] == SEVERITY.HIGH
-    assert result[0]["title"] == "High Replication Lag"
+    assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.DELAYED_MEMBER]["title"]
     assert result[0]["host"] == "localhost:30019"
 
 
