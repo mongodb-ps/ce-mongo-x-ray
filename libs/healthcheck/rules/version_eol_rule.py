@@ -1,4 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
+from libs.healthcheck.shared import SEVERITY
 from libs.version import Version
 
 
@@ -23,7 +24,7 @@ class VersionEOLRule(BaseRule):
             test_results.append(
                 template
                 | {
-                    "severity": "HIGH",
+                    "severity": SEVERITY.HIGH,
                     "title": "Server Version EOL",
                     "description": f"Server version {version} is below EOL version {self._eol_version}. Consider upgrading to the latest version.",
                 }
@@ -33,7 +34,7 @@ class VersionEOLRule(BaseRule):
             test_results.append(
                 template
                 | {
-                    "severity": "MEDIUM",
+                    "severity": SEVERITY.MEDIUM,
                     "title": "Rapid Release Version Detected",
                     "description": f"Server version {version} is a unsupported rapid release version. Consider using release versions for better stability and support.",
                 }
@@ -44,7 +45,7 @@ class VersionEOLRule(BaseRule):
                 test_results.append(
                     template
                     | {
-                        "severity": "MEDIUM",
+                        "severity": SEVERITY.MEDIUM,
                         "title": "Development Release Version Detected",
                         "description": f"Server version {version} appears to be a development release. Consider using stable release versions for production environments.",
                     }
