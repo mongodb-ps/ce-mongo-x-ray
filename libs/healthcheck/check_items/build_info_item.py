@@ -2,7 +2,7 @@
 
 from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.version_eol_rule import VersionEOLRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY, discover_nodes, enum_all_nodes, enum_result_items
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import yellow
 from libs.version import Version
 

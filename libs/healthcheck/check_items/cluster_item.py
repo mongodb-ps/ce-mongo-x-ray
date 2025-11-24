@@ -5,7 +5,6 @@ from libs.healthcheck.rules.rs_status_rule import RSStatusRule
 from libs.healthcheck.rules.shard_mongos_rule import ShardMongosRule
 from libs.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
-    SEVERITY,
     MEMBER_STATE,
     enum_all_nodes,
     discover_nodes,

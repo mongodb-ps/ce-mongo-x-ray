@@ -51,7 +51,6 @@ class Version:
             return True
         return False
 
-    @property
     def to_compatibility_str(self) -> str:
         return f"{self.version_array[0]}.{self.version_array[1]}"
 

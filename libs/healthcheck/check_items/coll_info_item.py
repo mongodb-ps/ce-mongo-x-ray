@@ -7,7 +7,6 @@ from libs.healthcheck.rules.data_size_rule import DataSizeRule
 from libs.healthcheck.rules.fragmentation_rule import FragmentationRule
 from libs.healthcheck.rules.op_latency_rule import OpLatencyRule
 from libs.healthcheck.shared import (
-    SEVERITY,
     MAX_MONGOS_PING_LATENCY,
     discover_nodes,
     enum_all_nodes,
