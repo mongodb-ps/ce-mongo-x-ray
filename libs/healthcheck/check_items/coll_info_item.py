@@ -4,6 +4,7 @@ This module defines a checklist item for collecting and reviewing collection sta
 
 from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.data_size_rule import DataSizeRule
+from libs.healthcheck.rules.fragmentation_rule import FragmentationRule
 from libs.healthcheck.shared import (
     SEVERITY,
     MAX_MONGOS_PING_LATENCY,
@@ -24,6 +25,7 @@ class CollInfoItem(BaseItem):
         self._description += "- Whether collections and indexes are fragmented.\n"
         self._description += "- Whether operation latency exceeds thresholds.\n"
         self._data_size_rule = DataSizeRule(config)
+        self._fragmentation_rule = FragmentationRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -74,8 +76,6 @@ class CollInfoItem(BaseItem):
             self.append_test_results(test_result)
             return test_result, raw_result
 
-        fragmentation_ratio = self._config.get("fragmentation_ratio", 0.5)
-
         def func_overview(host, stats, **kwargs):
             test_result, _ = self._data_size_rule.apply(stats, {"host": host})
             return test_result, stats
@@ -83,42 +83,8 @@ class CollInfoItem(BaseItem):
         def func_node(host, stats, **kwargs):
             ns = stats["ns"]
             test_result = []
-            # Check for fragmentation
-            storage_stats = stats.get("storageStats", {})
-            storage_size = storage_stats["storageSize"]
-            coll_reusable = storage_stats["wiredTiger"]["block-manager"]["file bytes available for reuse"]
-            coll_frag = round(coll_reusable / storage_size if storage_size else 0, 4)
-            if coll_frag > fragmentation_ratio:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Collection Fragmentation",
-                        "description": f"Collection `{ns}` has a higher fragmentation: `{coll_frag:.2%}` than threshold `{fragmentation_ratio:.2%}`.",
-                    }
-                )
-            index_frags = []
-            for index_name, s in storage_stats["indexDetails"].items():
-                reusable = s["block-manager"]["file bytes available for reuse"]
-                total_size = s["block-manager"]["file size in bytes"]
-                fragmentation = round(reusable / total_size if total_size > 0 else 0, 4)
-                index_frags.append(
-                    {
-                        "indexName": index_name,
-                        "reusable": reusable,
-                        "totalSize": total_size,
-                        "fragmentation": fragmentation,
-                    }
-                )
-                if fragmentation > fragmentation_ratio:
-                    test_result.append(
-                        {
-                            "host": host,
-                            "severity": SEVERITY.MEDIUM,
-                            "title": "High Index Fragmentation",
-                            "description": f"Collection `{ns}` index `{index_name}` has a higher index fragmentation: `{fragmentation:.2%}` than threshold `{fragmentation_ratio:.2%}`.",
-                        }
-                    )
+            result_1, frag_data = self._fragmentation_rule.apply(stats, {"host": host})
+            test_result.extend(result_1)
             # Check operation latency
             latency_stats = stats.get("latencyStats", {})
             reads, writes, commands, transactions = (
@@ -180,21 +146,16 @@ class CollInfoItem(BaseItem):
                         "description": f"Collection `{ns}` has a higher average transaction latency `{avg_t_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
                     }
                 )
-            return test_result, {
+            return test_result, frag_data | {
                 "ns": ns,
-                "collFragmentation": {
-                    "reusable": coll_reusable,
-                    "totalSize": storage_size,
-                    "fragmentation": coll_frag,
-                },
-                "indexFragmentation": index_frags,
+                "stats": stats,
+            } | {
                 "latencyStats": {
                     "reads_latency": avg_r_latency,
                     "writes_latency": avg_w_latency,
                     "commands_latency": avg_c_latency,
                     "transactions_latency": avg_t_latency,
                 },
-                "stats": stats,
             }
 
         nodes = discover_nodes(client, parsed_uri)

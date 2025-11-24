@@ -2,13 +2,16 @@ import enum
 
 
 class ISSUE(enum.Enum):
+    # Build Info Issues
     EOL_VERSION_USED = 100
     RAPID_RELEASE_VERSION_USED = 101
     DEVELOPMENT_RELEASE_VERSION_USED = 102
+    # Replica Set Issues
     NO_PRIMARY = 200
     UNHEALTHY_MEMBER = 201
     INITIALIZING_MEMBER = 202
     DELAYED_MEMBER = 203
+    # Replica Set Configuration Issues
     INSUFFICIENT_VOTING_MEMBERS = 300
     EVEN_VOTING_MEMBERS = 301
     DELAYED_VOTING_MEMBER = 302
@@ -16,12 +19,18 @@ class ISSUE(enum.Enum):
     DELAYED_NON_HIDDEN_MEMBER = 304
     DELAYED_SECONDARY_MEMBER = 305
     ARBITER_MEMBER = 306
+    # Sharded Cluster Issues
     IRRESPONSIVE_MONGOS = 400
     NO_ACTIVE_MONGOS = 401
     SINGLE_MONGOS = 402
-    OPLOG_WINDOW_TOO_SMALL = 403
-    COLLECTION_TOO_LARGE = 500
-    AVG_OBJECT_SIZE_TOO_LARGE = 501
+    # Oplog Issues
+    OPLOG_WINDOW_TOO_SMALL = 500
+    # Data Size Issues
+    COLLECTION_TOO_LARGE = 600
+    AVG_OBJECT_SIZE_TOO_LARGE = 601
+    # Fragmentation Issues
+    HIGH_COLLECTION_FRAGMENTATION = 700
+    HIGH_INDEX_FRAGMENTATION = 701
 
 
 ISSUE_MSG_MAP = {
@@ -104,5 +113,13 @@ ISSUE_MSG_MAP = {
     ISSUE.AVG_OBJECT_SIZE_TOO_LARGE: {
         "title": "Average Object Size Too Large",
         "description": "Collection `{ns}` has an average object size of `{avg_obj_size_kb} KB`, which exceeds the recommended maximum of `{obj_size_kb} KB`. Consider optimizing your data schema.",
+    },
+    ISSUE.HIGH_COLLECTION_FRAGMENTATION: {
+        "title": "High Collection Fragmentation",
+        "description": "Collection `{ns}` has a high fragmentation ratio of `{fragmentation:.2%}`.",
+    },
+    ISSUE.HIGH_INDEX_FRAGMENTATION: {
+        "title": "High Index Fragmentation",
+        "description": "Collection `{ns}` index `{index_name}` has a high fragmentation ratio of `{fragmentation:.2%}`.",
     },
 }
