@@ -5,6 +5,7 @@ This module defines a checklist item for collecting and reviewing collection sta
 from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.data_size_rule import DataSizeRule
 from libs.healthcheck.rules.fragmentation_rule import FragmentationRule
+from libs.healthcheck.rules.op_latency_rule import OpLatencyRule
 from libs.healthcheck.shared import (
     SEVERITY,
     MAX_MONGOS_PING_LATENCY,
@@ -26,6 +27,7 @@ class CollInfoItem(BaseItem):
         self._description += "- Whether operation latency exceeds thresholds.\n"
         self._data_size_rule = DataSizeRule(config)
         self._fragmentation_rule = FragmentationRule(config)
+        self._op_latency_rule = OpLatencyRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -77,86 +79,21 @@ class CollInfoItem(BaseItem):
             return test_result, raw_result
 
         def func_overview(host, stats, **kwargs):
+            # Check data size
             test_result, _ = self._data_size_rule.apply(stats, {"host": host})
             return test_result, stats
 
         def func_node(host, stats, **kwargs):
             ns = stats["ns"]
             test_result = []
+            # Check fragmentation
             result_1, frag_data = self._fragmentation_rule.apply(stats, {"host": host})
             test_result.extend(result_1)
             # Check operation latency
-            latency_stats = stats.get("latencyStats", {})
-            reads, writes, commands, transactions = (
-                latency_stats["reads"],
-                latency_stats["writes"],
-                latency_stats["commands"],
-                latency_stats["transactions"],
-            )
-            r_latency, w_latency, c_latency, t_latency = (
-                reads["latency"],
-                writes["latency"],
-                commands["latency"],
-                transactions["latency"],
-            )
-            r_ops, w_ops, c_ops, t_ops = (
-                reads["ops"],
-                writes["ops"],
-                commands["ops"],
-                transactions["ops"],
-            )
-            avg_r_latency = r_latency / r_ops if r_ops > 0 else 0
-            avg_w_latency = w_latency / w_ops if w_ops > 0 else 0
-            avg_c_latency = c_latency / c_ops if c_ops > 0 else 0
-            avg_t_latency = t_latency / t_ops if t_ops > 0 else 0
-            op_latency_ms = self._config.get("op_latency_ms", 100)
-            if avg_r_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Read Latency",
-                        "description": f"Collection `{ns}` has a higher average read latency `{avg_r_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_w_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Write Latency",
-                        "description": f"Collection `{ns}` has a higher average write latency `{avg_w_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_c_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Command Latency",
-                        "description": f"Collection `{ns}` has a higher average command latency `{avg_c_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_t_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Transaction Latency",
-                        "description": f"Collection `{ns}` has a higher average transaction latency `{avg_t_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            return test_result, frag_data | {
-                "ns": ns,
-                "stats": stats,
-            } | {
-                "latencyStats": {
-                    "reads_latency": avg_r_latency,
-                    "writes_latency": avg_w_latency,
-                    "commands_latency": avg_c_latency,
-                    "transactions_latency": avg_t_latency,
-                },
-            }
+            result_2, latency_data = self._op_latency_rule.apply(stats, {"host": host})
+            test_result.extend(result_2)
+
+            return test_result, frag_data | latency_data | {"ns": ns, "stats": stats}
 
         nodes = discover_nodes(client, parsed_uri)
         result = enum_all_nodes(

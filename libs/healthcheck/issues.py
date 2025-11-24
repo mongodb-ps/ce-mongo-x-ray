@@ -31,6 +31,11 @@ class ISSUE(enum.Enum):
     # Fragmentation Issues
     HIGH_COLLECTION_FRAGMENTATION = 700
     HIGH_INDEX_FRAGMENTATION = 701
+    # Latency Issues
+    HIGH_READ_LATENCY = 800
+    HIGH_WRITE_LATENCY = 801
+    HIGH_COMMAND_LATENCY = 802
+    HIGH_TRANSACTION_LATENCY = 803
 
 
 ISSUE_MSG_MAP = {
@@ -121,5 +126,21 @@ ISSUE_MSG_MAP = {
     ISSUE.HIGH_INDEX_FRAGMENTATION: {
         "title": "High Index Fragmentation",
         "description": "Collection `{ns}` index `{index_name}` has a high fragmentation ratio of `{fragmentation:.2%}`.",
+    },
+    ISSUE.HIGH_READ_LATENCY: {
+        "title": "High Read Latency",
+        "description": "Collection `{ns}` has a higher average read latency `{avg_r_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
+    },
+    ISSUE.HIGH_WRITE_LATENCY: {
+        "title": "High Write Latency",
+        "description": "Collection `{ns}` has a higher average write latency `{avg_w_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
+    },
+    ISSUE.HIGH_COMMAND_LATENCY: {
+        "title": "High Command Latency",
+        "description": "Collection `{ns}` has a higher average command latency `{avg_c_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
+    },
+    ISSUE.HIGH_TRANSACTION_LATENCY: {
+        "title": "High Transaction Latency",
+        "description": "Collection `{ns}` has a higher average transaction latency `{avg_t_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
     },
 }
