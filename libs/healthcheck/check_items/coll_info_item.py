@@ -3,6 +3,7 @@ This module defines a checklist item for collecting and reviewing collection sta
 """
 
 from libs.healthcheck.check_items.base_item import BaseItem
+from libs.healthcheck.rules.data_size_rule import DataSizeRule
 from libs.healthcheck.shared import (
     SEVERITY,
     MAX_MONGOS_PING_LATENCY,
@@ -22,6 +23,7 @@ class CollInfoItem(BaseItem):
         self._description += "- Whether collections are big enough for sharding.\n"
         self._description += "- Whether collections and indexes are fragmented.\n"
         self._description += "- Whether operation latency exceeds thresholds.\n"
+        self._data_size_rule = DataSizeRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -72,52 +74,10 @@ class CollInfoItem(BaseItem):
             self.append_test_results(test_result)
             return test_result, raw_result
 
-        obj_size_bytes = self._config.get("obj_size_kb", 32) * 1024
         fragmentation_ratio = self._config.get("fragmentation_ratio", 0.5)
-        collection_size_gb = self._config.get("collection_size_gb", 2048) * 1024**3
 
         def func_overview(host, stats, **kwargs):
-            test_result = []
-            ns = stats["ns"]
-            storage_stats = stats.get("storageStats", {})
-            del storage_stats["indexDetails"]
-            del storage_stats["wiredTiger"]
-            # Check for large collection size
-            if storage_stats.get("size", 0) > collection_size_gb:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Large Collection Size",
-                        "description": f"Collection `{ns}` has size `{storage_stats.get('size', 0) / 1024**3} GB` larger than `{collection_size_gb / 1024**3} GB`. Consider sharding.",
-                    }
-                )
-            # Check for average object size
-            if storage_stats.get("avgObjSize", 0) > obj_size_bytes:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Large Object Size",
-                        "description": f"Collection `{ns}` has average object size `{storage_stats.get('avgObjSize', 0) / 1024} KB` larger than `{obj_size_bytes / 1024} KB`. Consider optimizing your data schema.",
-                    }
-                )
-
-            # Check index:size ratio
-            total_index_size = storage_stats.get("totalIndexSize", 0)
-            data_size = storage_stats.get("size", 0)
-            threshold = self._config.get("index_size_ratio", 0.2)
-            ratio = total_index_size / data_size if data_size > 0 else 0
-            if ratio > threshold:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Index Storage Ratio",
-                        "description": f"Collection `{ns}` has an `index:data` ratio of `{ratio:.2%}` which is higher than the threshold of `{threshold:.2%}`. Consider optimizing your indexes.",
-                    }
-                )
-
+            test_result, _ = self._data_size_rule.apply(stats, {"host": host})
             return test_result, stats
 
         def func_node(host, stats, **kwargs):

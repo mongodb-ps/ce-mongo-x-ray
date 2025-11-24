@@ -20,6 +20,8 @@ class ISSUE(enum.Enum):
     NO_ACTIVE_MONGOS = 401
     SINGLE_MONGOS = 402
     OPLOG_WINDOW_TOO_SMALL = 403
+    COLLECTION_TOO_LARGE = 500
+    AVG_OBJECT_SIZE_TOO_LARGE = 501
 
 
 ISSUE_MSG_MAP = {
@@ -94,5 +96,13 @@ ISSUE_MSG_MAP = {
     ISSUE.OPLOG_WINDOW_TOO_SMALL: {
         "title": "Oplog Window Too Small",
         "description": "`Replica set oplog window is `{retention_hours}` hours, below the recommended minimum `{oplog_window_threshold}` hours.",
+    },
+    ISSUE.COLLECTION_TOO_LARGE: {
+        "title": "Collection Too Large",
+        "description": "Collection `{ns}` has size `{size_gb} GB`, which exceeds the recommended maximum of `{collection_size_gb} GB`. Consider sharding the collection.",
+    },
+    ISSUE.AVG_OBJECT_SIZE_TOO_LARGE: {
+        "title": "Average Object Size Too Large",
+        "description": "Collection `{ns}` has an average object size of `{avg_obj_size_kb} KB`, which exceeds the recommended maximum of `{obj_size_kb} KB`. Consider optimizing your data schema.",
     },
 }
