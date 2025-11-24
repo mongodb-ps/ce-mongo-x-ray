@@ -19,6 +19,7 @@ class ISSUE(enum.Enum):
     IRRESPONSIVE_MONGOS = 400
     NO_ACTIVE_MONGOS = 401
     SINGLE_MONGOS = 402
+    OPLOG_WINDOW_TOO_SMALL = 403
 
 
 ISSUE_MSG_MAP = {
@@ -89,5 +90,9 @@ ISSUE_MSG_MAP = {
     ISSUE.SINGLE_MONGOS: {
         "title": "Single Mongos",
         "description": "Only one mongos `{host}` is available in the cluster. No failover is possible.",
+    },
+    ISSUE.OPLOG_WINDOW_TOO_SMALL: {
+        "title": "Oplog Window Too Small",
+        "description": "`Replica set oplog window is `{retention_hours}` hours, below the recommended minimum `{oplog_window_threshold}` hours.",
     },
 }

@@ -4,7 +4,7 @@ from libs.healthcheck.shared import MEMBER_STATE, SEVERITY
 
 
 class RSStatusRule(BaseRule):
-    def apply(self, data: object, result_template=None) -> object:
+    def apply(self, data: dict, result_template=None) -> tuple:
         """Check the replica set status for any issues.
 
         Args:
@@ -88,4 +88,4 @@ class RSStatusRule(BaseRule):
                             ),
                         }
                     )
-        return result
+        return result, data

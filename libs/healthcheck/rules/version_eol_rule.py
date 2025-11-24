@@ -5,11 +5,7 @@ from libs.version import Version
 
 
 class VersionEOLRule(BaseRule):
-    def __init__(self, thresholds: list = None):
-        super().__init__(thresholds)
-        self._eol_version = Version(thresholds.get("eol_version", [6, 3, 0]))
-
-    def apply(self, data: object, result_template=None) -> object:
+    def apply(self, data: dict, result_template=None) -> tuple:
         """Check if the given build info represents a version that is end-of-life (EOL).
 
         Args:
@@ -20,8 +16,9 @@ class VersionEOLRule(BaseRule):
         test_results = []
         template = result_template or {}
         version = Version(data.get("versionArray", [0, 0, 0]))
+        eol_version = Version(self._thresholds.get("eol_version", [6, 3, 0]))
         # Check if the version is below EOL version
-        if version < self._eol_version:
+        if version < eol_version:
             issue_id = ISSUE.EOL_VERSION_USED
             test_results.append(
                 template
@@ -30,7 +27,7 @@ class VersionEOLRule(BaseRule):
                     "severity": SEVERITY.HIGH,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        version=version, eol_version=self._eol_version
+                        version=version, eol_version=eol_version
                     ),
                 }
             )
@@ -59,4 +56,4 @@ class VersionEOLRule(BaseRule):
                         "description": ISSUE_MSG_MAP[issue_id]["description"].format(version=version),
                     }
                 )
-        return test_results
+        return test_results, data

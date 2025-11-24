@@ -4,7 +4,7 @@ from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 
 
 class RSConfigRule(BaseRule):
-    def apply(self, data: object, result_template=None) -> object:
+    def apply(self, data: dict, result_template=None) -> tuple:
         """Check the replica set configuration for any issues.
 
         Args:
@@ -115,4 +115,4 @@ class RSConfigRule(BaseRule):
                         ),
                     }
                 )
-        return result
+        return result, data

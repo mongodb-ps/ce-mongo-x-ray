@@ -8,5 +8,5 @@ class BaseRule(ABC):
         self._thresholds = thresholds
 
     @abstractmethod
-    def apply(self, data, result_template=None):
+    def apply(self, data: dict, result_template=None) -> tuple:
         raise NotImplementedError("Subclasses must implement the apply method")

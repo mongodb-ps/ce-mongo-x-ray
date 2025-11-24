@@ -31,22 +31,22 @@ MONGOS_NO_ACTIVE = [
 
 def test_irresponsive_mongos():
     rule = ShardMongosRule()
-    results = rule.apply(MONGOS_IRRESPONSIVE)
+    results, _ = rule.apply(MONGOS_IRRESPONSIVE)
     assert len(results) == 2
     assert results[0]["id"] == ISSUE.IRRESPONSIVE_MONGOS
     assert results[0]["severity"] == SEVERITY.LOW
     assert results[0]["title"] == ISSUE_MSG_MAP[ISSUE.IRRESPONSIVE_MONGOS]["title"]
     assert results[0]["host"] == "M-QTFH0WFXLG:30028"
-
     assert results[1]["id"] == ISSUE.SINGLE_MONGOS
     assert results[1]["severity"] == SEVERITY.HIGH
     assert results[1]["title"] == ISSUE_MSG_MAP[ISSUE.SINGLE_MONGOS]["title"]
     assert results[1]["host"] == "cluster"
+    assert _ == MONGOS_IRRESPONSIVE
 
 
 def test_no_active_mongos():
     rule = ShardMongosRule()
-    results = rule.apply(MONGOS_NO_ACTIVE)
+    results, _ = rule.apply(MONGOS_NO_ACTIVE)
     assert len(results) == 2
 
     assert results[0]["id"] == ISSUE.IRRESPONSIVE_MONGOS
@@ -58,3 +58,4 @@ def test_no_active_mongos():
     assert results[1]["severity"] == SEVERITY.HIGH
     assert results[1]["title"] == ISSUE_MSG_MAP[ISSUE.NO_ACTIVE_MONGOS]["title"]
     assert results[1]["host"] == "cluster"
+    assert _ == MONGOS_NO_ACTIVE

@@ -4,7 +4,7 @@ from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 
 
 class ShardMongosRule(BaseRule):
-    def apply(self, data: object, result_template=None) -> object:
+    def apply(self, data: dict, result_template=None) -> tuple:
         """Check the sharded cluster mongos nodes for any issues.
 
         Args:
@@ -59,4 +59,4 @@ class ShardMongosRule(BaseRule):
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(host=active_mongos[0]),
                 }
             )
-        return test_result
+        return test_result, data
