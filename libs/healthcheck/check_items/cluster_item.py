@@ -97,7 +97,8 @@ class ClusterItem(BaseItem):
                 "serverStatus": server_status,
                 "firstOplogEntry": first_oplog,
                 "lastOplogEntry": last_oplog,
-            }
+            },
+            result_template={"host": node["host"]},
         )
 
         self.append_test_results(test_result)
