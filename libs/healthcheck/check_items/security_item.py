@@ -19,7 +19,7 @@ class SecurityItem(BaseItem):
         self._description += "- Whether the bind IP is too permissive.\n"
         self._description += "- Whether the default port is used.\n"
         self._description += "- Whether auditing is enabled.\n"
-        self._description += "- Whether encryption at rest is enabled.\n"
+        self._description += "- Whether encryption at rest is enabled and properly configured.\n"
         self._security_rule = SecurityRule(config)
 
     def test(self, *args, **kwargs):
@@ -39,7 +39,7 @@ class SecurityItem(BaseItem):
                 )
                 return None, None
             raw_result = client.admin.command("getCmdLineOpts")
-            test_result = self._security_rule.apply(raw_result, extra_info={"host": host})
+            test_result, _ = self._security_rule.apply(raw_result, extra_info={"host": host})
             self.append_test_results(test_result)
 
             return test_result, raw_result
