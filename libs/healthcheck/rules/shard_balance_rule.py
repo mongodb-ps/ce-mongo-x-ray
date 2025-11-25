@@ -1,5 +1,6 @@
 from libs.healthcheck.rules.base_rule import BaseRule
 from libs.healthcheck.issues import ISSUE, create_issue
+from libs.utils import format_size
 
 
 class ShardBalanceRule(BaseRule):
@@ -16,6 +17,7 @@ class ShardBalanceRule(BaseRule):
         Returns:
             tuple: (list of issues found, list of parsed data)
         """
+        shards = kwargs.get("extra_info", {}).get("shards", [])
         ns = data["ns"]
         test_results = []
         shard_stats = {
@@ -31,7 +33,7 @@ class ShardBalanceRule(BaseRule):
             for s_name, s in data["shards"].items()
         }
         # Check if collection is imbalanced.
-        sizes = [stats.get("size", 0) for stats in shard_stats.values()]
+        sizes = [shard_stats.get(s_name, {}).get("size", 0) for s_name in shards]
         max_size = max(sizes)
         min_size = min(sizes)
         if max_size > min_size * (1 + self._imbalance_percentage):
@@ -40,7 +42,7 @@ class ShardBalanceRule(BaseRule):
                 host="cluster",
                 params={
                     "ns": ns,
-                    "size_diff": f"{(max_size - min_size) / 1024 / 1024:.2f}",
+                    "size_diff": format_size(max_size - min_size),
                     "imbalance_percentage": self._imbalance_percentage * 100,
                 },
             )

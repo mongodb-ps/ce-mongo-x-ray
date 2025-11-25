@@ -34,6 +34,7 @@ class ShardKeyItem(BaseItem):
         def func_sh_cluster(name, node, **kwargs):
             client = node["client"]
             collections = list(client.config.collections.find({"_id": {"$ne": "config.system.sessions"}}))
+            shards = [doc["_id"] for doc in client.config.shards.find()]
             test_result = []
             raw_result = {"shardedCollections": collections, "stats": {}}
             for c in collections:
@@ -44,7 +45,7 @@ class ShardKeyItem(BaseItem):
                 # Gather sharding stats
                 db_name, coll_name = ns.split(".")
                 stats = client[db_name].command("collStats", coll_name)
-                result2, parsed_data = self._shard_balance_rule.apply(stats)
+                result2, parsed_data = self._shard_balance_rule.apply(stats, extra_info={"shards": shards})
                 test_result.extend(result2)
                 raw_result["stats"][ns] = parsed_data
 

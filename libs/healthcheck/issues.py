@@ -369,7 +369,7 @@ ISSUE_MSG_MAP = {
         "id": ISSUE.IMBALANCED_SHARDING,
         "severity": SEVERITY.MEDIUM,
         "title": "Imbalanced Sharding",
-        "description": "Collection `{ns}` is imbalanced across shards. The difference between the largest and smallest shard {size_diff} MB is more than {imbalance_percentage:.2f}%.",
+        "description": "Collection `{ns}` is imbalanced across shards. The size difference between the largest and smallest shard is {size_diff} and is more than {imbalance_percentage:.2f}%.",
     },
 }
 
