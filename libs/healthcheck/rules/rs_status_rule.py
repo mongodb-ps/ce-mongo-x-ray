@@ -11,7 +11,7 @@ class RSStatusRule(BaseRule):
             data (object): The result from `replSetGetStatus` command.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
-            list: A list of replica set status check results.
+            tuple: (list of issues found, list of parsed data)
         """
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         result = []

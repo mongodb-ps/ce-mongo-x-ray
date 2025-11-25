@@ -12,7 +12,7 @@ class VersionEOLRule(BaseRule):
             data (object): The result from `buildInfo` command.
             extra_info (dict): Additional information such as host.
         Returns:
-            list: A list of EOL check results.
+            tuple: (list of issues found, list of parsed data)
         """
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_results = []

@@ -11,7 +11,7 @@ class RSConfigRule(BaseRule):
             data (object): The replica set configuration data.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
-            list: A list of replica set configuration check results.
+            tuple: (list of issues found, list of parsed data)
         """
         result = []
         set_name = data["config"]["_id"]

@@ -11,7 +11,7 @@ class ShardMongosRule(BaseRule):
             data (object): The sharded cluster status data.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
-            list: A list of sharded cluster mongos check results.
+            tuple: (list of issues found, list of parsed data)
         """
         test_result = []
         active_mongos = []

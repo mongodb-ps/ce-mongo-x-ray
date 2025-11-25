@@ -15,7 +15,7 @@ class FragmentationRule(BaseRule):
             data (object): The collStats data.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
-            list: A list of fragmentation check results.
+            tuple: (list of issues found, list of parsed data)
         """
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         ns = data["ns"]
