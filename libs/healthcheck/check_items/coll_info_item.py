@@ -3,8 +3,10 @@ This module defines a checklist item for collecting and reviewing collection sta
 """
 
 from libs.healthcheck.check_items.base_item import BaseItem
+from libs.healthcheck.rules.data_size_rule import DataSizeRule
+from libs.healthcheck.rules.fragmentation_rule import FragmentationRule
+from libs.healthcheck.rules.op_latency_rule import OpLatencyRule
 from libs.healthcheck.shared import (
-    SEVERITY,
     MAX_MONGOS_PING_LATENCY,
     discover_nodes,
     enum_all_nodes,
@@ -22,6 +24,9 @@ class CollInfoItem(BaseItem):
         self._description += "- Whether collections are big enough for sharding.\n"
         self._description += "- Whether collections and indexes are fragmented.\n"
         self._description += "- Whether operation latency exceeds thresholds.\n"
+        self._data_size_rule = DataSizeRule(config)
+        self._fragmentation_rule = FragmentationRule(config)
+        self._op_latency_rule = OpLatencyRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -72,170 +77,22 @@ class CollInfoItem(BaseItem):
             self.append_test_results(test_result)
             return test_result, raw_result
 
-        obj_size_bytes = self._config.get("obj_size_kb", 32) * 1024
-        fragmentation_ratio = self._config.get("fragmentation_ratio", 0.5)
-        collection_size_gb = self._config.get("collection_size_gb", 2048) * 1024**3
-
         def func_overview(host, stats, **kwargs):
-            test_result = []
-            ns = stats["ns"]
-            storage_stats = stats.get("storageStats", {})
-            del storage_stats["indexDetails"]
-            del storage_stats["wiredTiger"]
-            # Check for large collection size
-            if storage_stats.get("size", 0) > collection_size_gb:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Large Collection Size",
-                        "description": f"Collection `{ns}` has size `{storage_stats.get('size', 0) / 1024**3} GB` larger than `{collection_size_gb / 1024**3} GB`. Consider sharding.",
-                    }
-                )
-            # Check for average object size
-            if storage_stats.get("avgObjSize", 0) > obj_size_bytes:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Large Object Size",
-                        "description": f"Collection `{ns}` has average object size `{storage_stats.get('avgObjSize', 0) / 1024} KB` larger than `{obj_size_bytes / 1024} KB`. Consider optimizing your data schema.",
-                    }
-                )
-
-            # Check index:size ratio
-            total_index_size = storage_stats.get("totalIndexSize", 0)
-            data_size = storage_stats.get("size", 0)
-            threshold = self._config.get("index_size_ratio", 0.2)
-            ratio = total_index_size / data_size if data_size > 0 else 0
-            if ratio > threshold:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Index Storage Ratio",
-                        "description": f"Collection `{ns}` has an `index:data` ratio of `{ratio:.2%}` which is higher than the threshold of `{threshold:.2%}`. Consider optimizing your indexes.",
-                    }
-                )
-
+            # Check data size
+            test_result, _ = self._data_size_rule.apply(stats, extra_info={"host": host})
             return test_result, stats
 
         def func_node(host, stats, **kwargs):
             ns = stats["ns"]
             test_result = []
-            # Check for fragmentation
-            storage_stats = stats.get("storageStats", {})
-            storage_size = storage_stats["storageSize"]
-            coll_reusable = storage_stats["wiredTiger"]["block-manager"]["file bytes available for reuse"]
-            coll_frag = round(coll_reusable / storage_size if storage_size else 0, 4)
-            if coll_frag > fragmentation_ratio:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Collection Fragmentation",
-                        "description": f"Collection `{ns}` has a higher fragmentation: `{coll_frag:.2%}` than threshold `{fragmentation_ratio:.2%}`.",
-                    }
-                )
-            index_frags = []
-            for index_name, s in storage_stats["indexDetails"].items():
-                reusable = s["block-manager"]["file bytes available for reuse"]
-                total_size = s["block-manager"]["file size in bytes"]
-                fragmentation = round(reusable / total_size if total_size > 0 else 0, 4)
-                index_frags.append(
-                    {
-                        "indexName": index_name,
-                        "reusable": reusable,
-                        "totalSize": total_size,
-                        "fragmentation": fragmentation,
-                    }
-                )
-                if fragmentation > fragmentation_ratio:
-                    test_result.append(
-                        {
-                            "host": host,
-                            "severity": SEVERITY.MEDIUM,
-                            "title": "High Index Fragmentation",
-                            "description": f"Collection `{ns}` index `{index_name}` has a higher index fragmentation: `{fragmentation:.2%}` than threshold `{fragmentation_ratio:.2%}`.",
-                        }
-                    )
+            # Check fragmentation
+            result_1, frag_data = self._fragmentation_rule.apply(stats, extra_info={"host": host})
+            test_result.extend(result_1)
             # Check operation latency
-            latency_stats = stats.get("latencyStats", {})
-            reads, writes, commands, transactions = (
-                latency_stats["reads"],
-                latency_stats["writes"],
-                latency_stats["commands"],
-                latency_stats["transactions"],
-            )
-            r_latency, w_latency, c_latency, t_latency = (
-                reads["latency"],
-                writes["latency"],
-                commands["latency"],
-                transactions["latency"],
-            )
-            r_ops, w_ops, c_ops, t_ops = (
-                reads["ops"],
-                writes["ops"],
-                commands["ops"],
-                transactions["ops"],
-            )
-            avg_r_latency = r_latency / r_ops if r_ops > 0 else 0
-            avg_w_latency = w_latency / w_ops if w_ops > 0 else 0
-            avg_c_latency = c_latency / c_ops if c_ops > 0 else 0
-            avg_t_latency = t_latency / t_ops if t_ops > 0 else 0
-            op_latency_ms = self._config.get("op_latency_ms", 100)
-            if avg_r_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Read Latency",
-                        "description": f"Collection `{ns}` has a higher average read latency `{avg_r_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_w_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Write Latency",
-                        "description": f"Collection `{ns}` has a higher average write latency `{avg_w_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_c_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Command Latency",
-                        "description": f"Collection `{ns}` has a higher average command latency `{avg_c_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            if avg_t_latency > op_latency_ms:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "High Transaction Latency",
-                        "description": f"Collection `{ns}` has a higher average transaction latency `{avg_t_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
-                    }
-                )
-            return test_result, {
-                "ns": ns,
-                "collFragmentation": {
-                    "reusable": coll_reusable,
-                    "totalSize": storage_size,
-                    "fragmentation": coll_frag,
-                },
-                "indexFragmentation": index_frags,
-                "latencyStats": {
-                    "reads_latency": avg_r_latency,
-                    "writes_latency": avg_w_latency,
-                    "commands_latency": avg_c_latency,
-                    "transactions_latency": avg_t_latency,
-                },
-                "stats": stats,
-            }
+            result_2, latency_data = self._op_latency_rule.apply(stats, extra_info={"host": host})
+            test_result.extend(result_2)
+
+            return test_result, frag_data | latency_data | {"ns": ns, "stats": stats}
 
         nodes = discover_nodes(client, parsed_uri)
         result = enum_all_nodes(
@@ -335,7 +192,7 @@ class CollInfoItem(BaseItem):
                 ns = stats["ns"]
                 # Fragmentation visualization
                 coll_frag = stats.get("collFragmentation", {}).get("fragmentation", 0)
-                index_frags = stats.get("indexFragmentation", [])
+                index_frags = stats.get("indexFragmentations", [])
                 total_reusable_size = 0
                 total_index_size = 0
                 index_details = []

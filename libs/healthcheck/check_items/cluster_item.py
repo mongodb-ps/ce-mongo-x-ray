@@ -1,7 +1,10 @@
 from libs.healthcheck.check_items.base_item import BaseItem
+from libs.healthcheck.rules.oplog_window_rule import OplogWindowRule
+from libs.healthcheck.rules.rs_config_rule import RSConfigRule
+from libs.healthcheck.rules.rs_status_rule import RSStatusRule
+from libs.healthcheck.rules.shard_mongos_rule import ShardMongosRule
 from libs.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
-    SEVERITY,
     MEMBER_STATE,
     enum_all_nodes,
     discover_nodes,
@@ -21,6 +24,10 @@ class ClusterItem(BaseItem):
         self._description += "    - Oplog window check (Both `oplogMinRetentionHours` and oplog size are considered).\n"
         self._description += "- Whether there are irresponsive mongos nodes.\n"
         self._description += "- Whether active mongos nodes are enough.\n"
+        self._rs_status_rule = RSStatusRule(config)
+        self._rs_config_rule = RSConfigRule(config)
+        self._shard_mongos_rule = ShardMongosRule(config)
+        self._oplog_window_rule = OplogWindowRule(config)
 
     def _check_rs(self, set_name, node, **kwargs):
         """
@@ -42,9 +49,9 @@ class ClusterItem(BaseItem):
         }
 
         # Check replica set status and config
-        result = check_replset_status(replset_status, self._config)
+        result, _ = self._rs_status_rule.apply(replset_status)
         test_result.extend(result)
-        result = check_replset_config(replset_config, self._config)
+        result, _ = self._rs_config_rule.apply(replset_config)
         test_result.extend(result)
 
         self.append_test_results(test_result)
@@ -55,47 +62,14 @@ class ClusterItem(BaseItem):
         """
         Check if the sharded cluster is available and connected.
         """
-        test_result = []
-        all_mongos = node["map"]["mongos"]["members"]
-        active_mongos = []
-        for mongos in all_mongos:
-            if mongos.get("pingLatencySec", 0) > MAX_MONGOS_PING_LATENCY:
-                test_result.append(
-                    {
-                        "host": mongos["host"],
-                        "severity": SEVERITY.LOW,
-                        "title": "Irresponsive Mongos",
-                        "description": f"Mongos `{mongos['host']}` is not responsive. Last ping was at `{round(mongos['pingLatencySec'])}` seconds ago. This is expected if the mongos has been removed from the cluster.",
-                    }
-                )
-            else:
-                active_mongos.append(mongos["host"])
-
-        if len(active_mongos) == 0:
-            test_result.append(
-                {
-                    "host": "cluster",
-                    "severity": SEVERITY.HIGH,
-                    "title": "No Active Mongos",
-                    "description": "No active mongos found in the cluster.",
-                }
-            )
-        if len(active_mongos) == 1:
-            test_result.append(
-                {
-                    "host": "cluster",
-                    "severity": SEVERITY.HIGH,
-                    "title": "Single Mongos",
-                    "description": f"Only one mongos `{active_mongos[0]}` is available in the cluster. No failover is possible.",
-                }
-            )
+        test_result, _ = self._shard_mongos_rule.apply(node["map"]["mongos"]["members"])
         self.append_test_results(test_result)
         raw_result = {
             mongos["host"]: {
                 "pingLatencySec": mongos["pingLatencySec"],
                 "lastPing": mongos["lastPing"],
             }
-            for mongos in all_mongos
+            for mongos in node["map"]["mongos"]["members"]
         }
         return test_result, raw_result
 
@@ -114,31 +88,22 @@ class ClusterItem(BaseItem):
         # Gather oplog information
         stats = client.local.command("collStats", "oplog.rs")
         server_status = client.admin.command("serverStatus")
-        configured_retention_hours = server_status.get("oplogTruncation", {}).get("oplogMinRetentionHours", 0)
-        latest_oplog = list(client.local.oplog.rs.find().sort("$natural", -1).limit(1))[0]["ts"]
-        earliest_oplog = list(client.local.oplog.rs.find().sort("$natural", 1).limit(1))[0]["ts"]
-        delta = latest_oplog.time - earliest_oplog.time
-        current_retention_hours = delta / 3600  # Convert seconds to hours
-        oplog_window_threshold = self._config.get("oplog_window_hours", 48)
-
-        # Check oplog information
-        retention_hours = max(configured_retention_hours, current_retention_hours)
-        if retention_hours < oplog_window_threshold:
-            test_result.append(
-                {
-                    "host": node["host"],
-                    "severity": SEVERITY.HIGH,
-                    "title": "Oplog Window Too Small",
-                    "description": f"`Replica set `{set_name}` member {node['host']}` oplog window is `{retention_hours}` hours, below the recommended minimum `{oplog_window_threshold}` hours.",
-                }
-            )
+        last_oplog = next(client.local.oplog.rs.find().sort("$natural", -1).limit(1))["ts"].time
+        first_oplog = next(client.local.oplog.rs.find().sort("$natural", 1).limit(1))["ts"].time
+        test_result, parsed_data = self._oplog_window_rule.apply(
+            {
+                "stats": stats,
+                "serverStatus": server_status,
+                "firstOplogEntry": first_oplog,
+                "lastOplogEntry": last_oplog,
+            },
+            extra_info={"host": node["host"]},
+        )
 
         self.append_test_results(test_result)
 
         return test_result, {
             "oplogInfo": {
-                "oplogMinRetentionHours": configured_retention_hours,
-                "currentRetentionHours": current_retention_hours,
                 "oplogStats": {
                     "size": stats["size"],
                     "count": stats["count"],
@@ -147,6 +112,7 @@ class ClusterItem(BaseItem):
                     "averageObjectSize": stats["avgObjSize"],
                 },
             }
+            | parsed_data
         }
 
     def test(self, *args, **kwargs):
@@ -322,143 +288,3 @@ class ClusterItem(BaseItem):
             func_config=func_rs,
         )
         return {"name": self.name, "description": self.description, "data": data}
-
-
-def check_replset_status(replset_status, config):
-    """
-    Check the replica set status for any issues.
-    """
-    result = []
-    # Find primary in members
-    primary_member = next(iter(m for m in replset_status["members"] if m["state"] == 1), None)
-
-    if not primary_member:
-        result.append(
-            {
-                "host": "cluster",
-                "severity": SEVERITY.HIGH,
-                "title": "No Primary",
-                "description": f"`{replset_status['set']}` does not have a primary.",
-            }
-        )
-
-    # Check member states
-    max_delay = config.get("replication_lag_seconds", 60)
-    set_name = replset_status.get("set", "Unknown Set")
-    for member in replset_status["members"]:
-        # Check problematic states
-        state = member["state"]
-        host = member["name"]
-
-        if state in [3, 6, 8, 9, 10]:
-            result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": "Unhealthy Member",
-                    "description": f"`{set_name}` member `{host}` is in `{MEMBER_STATE[state]}` state.",
-                }
-            )
-        elif state in [0, 5]:
-            result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.LOW,
-                    "title": "Initializing Member",
-                    "description": f"`{set_name}` member `{host}` is being initialized in `{MEMBER_STATE[state]}` state.",
-                }
-            )
-
-        # Check replication lag
-        if state == 2:  # SECONDARY
-            p_time = primary_member["optime"]["ts"]
-            s_time = member["optime"]["ts"]
-            lag = s_time.time - p_time.time
-            if lag >= max_delay:
-                result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": "High Replication Lag",
-                        "description": f"`{set_name}` member `{host}` has a replication lag of `{lag}` seconds, which is greater than the configured threshold of `{max_delay}` seconds.",
-                    }
-                )
-
-    return result
-
-
-def check_replset_config(replset_config, config):
-    """
-    Check the replica set configuration for any issues.
-    """
-    result = []
-    set_name = replset_config["config"]["_id"]
-    # Check number of voting members
-    voting_members = sum(1 for member in replset_config["config"]["members"] if member.get("votes", 0) > 0)
-    if voting_members < 3:
-        result.append(
-            {
-                "host": "cluster",
-                "severity": SEVERITY.HIGH,
-                "title": "Insufficient Voting Members",
-                "description": f"`{set_name}` has only {voting_members} voting members. Consider adding more to ensure fault tolerance.",
-            }
-        )
-    if voting_members % 2 == 0:
-        result.append(
-            {
-                "host": "cluster",
-                "severity": SEVERITY.HIGH,
-                "title": "Even Voting Members",
-                "description": f"`{set_name}` has an even number of voting members, which can lead to split-brain scenarios. Consider adding an additional member.",
-            }
-        )
-
-    for member in replset_config["config"]["members"]:
-        if member.get("slaveDelay", 0) > 0:
-            if member.get("votes", 0) > 0:
-                result.append(
-                    {
-                        "host": member["host"],
-                        "severity": SEVERITY.HIGH,
-                        "title": "Delayed Voting Member",
-                        "description": f"`{set_name}` member `{member['host']}` is a delayed secondary but is also a voting member. This can lead to performance issues.",
-                    }
-                )
-            elif member.get("priority", 0) > 0:
-                result.append(
-                    {
-                        "host": member["host"],
-                        "severity": SEVERITY.HIGH,
-                        "title": "Delayed Voting Member",
-                        "description": f"`{set_name}` member `{member['host']}` is a delayed secondary but is has non-zero priority. This can lead to potential issues.",
-                    }
-                )
-            elif not member.get("hidden", False):
-                result.append(
-                    {
-                        "host": member["host"],
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "Delayed Voting Member",
-                        "description": f"`{set_name}` member `{member['host']}` is a delayed secondary and should be configured as hidden.",
-                    }
-                )
-            else:
-                result.append(
-                    {
-                        "host": member["host"],
-                        "severity": SEVERITY.LOW,
-                        "title": "Delayed Voting Member",
-                        "description": f"`{set_name}` member `{member['host']}` is a delayed secondary. Delayed secondaries are not recommended in general.",
-                    }
-                )
-        if member.get("arbiterOnly", False):
-            result.append(
-                {
-                    "host": member["host"],
-                    "severity": SEVERITY.HIGH,
-                    "title": "Arbiter Member",
-                    "description": f"`{set_name}` member `{member['host']}` is an arbiter. Arbiters are not recommended.",
-                }
-            )
-    return result

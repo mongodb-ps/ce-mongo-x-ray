@@ -4,6 +4,7 @@ This module defines a checklist item for collecting and reviewing collection sta
 
 from datetime import datetime, timezone
 from libs.healthcheck.check_items.base_item import BaseItem
+from libs.healthcheck.rules.index_rule import IndexRule
 from libs.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
     SEVERITY,
@@ -22,90 +23,7 @@ class IndexInfoItem(BaseItem):
         self._description += "- Whether the number of indexes in the collection is too many.\n"
         self._description += "- Whether there are unused indexes in the collection.\n"
         self._description += "- Whether there are redundant indexes in the collection.\n"
-
-    def _num_indexes_check(self, ns, index_stats, max_num_indexes, host):
-        """Check for the number of indexes in the collection."""
-        # Get the unique index names
-        unique_indexes = set()
-        for index in index_stats:
-            unique_indexes.add(index.get("name"))
-        num_indexes = len(unique_indexes)
-        test_result = []
-        if num_indexes > max_num_indexes:
-            test_result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": "Too Many Indexes",
-                    "description": f"Collection `{ns}` has more than `{max_num_indexes}` indexes (`{num_indexes}` indexes detected), which can cause potential write performance issues.",
-                }
-            )
-        return test_result
-
-    def _unused_indexes_check(self, ns, index_stats, unused_index_days, host):
-        """
-        Check for unused indexes in the collection.
-        """
-        test_result = []
-        for index in index_stats:
-            if index.get("accesses", {}).get("ops", 0) == 0:
-                last_used = index.get("accesses", {}).get("since", None)
-                if last_used:
-                    if (datetime.now() - last_used).days > unused_index_days:
-                        test_result.append(
-                            {
-                                "host": host,
-                                "severity": SEVERITY.LOW,
-                                "title": "Unused Index",
-                                "description": f"Index `{index.get('name')}` from collection `{ns}` has not been used for more than `{unused_index_days}` days.",
-                            }
-                        )
-        return test_result
-
-    def _redundant_indexes_check(self, ns, indexes, host):
-        """
-        Check for redundant indexes in the collection.
-        """
-        test_result = []
-
-        def is_redundant(index1, index2):
-            # These options must be identical for indexes to be considered redundant
-            OPTIONS = [
-                "unique",
-                "sparse",
-                "partialFilterExpression",
-                "collation",
-                "hidden",
-            ]
-            for o in OPTIONS:
-                if index1.get(o) != index2.get(o):
-                    return False
-            # Check if the keys are identical or if one is a prefix of the other
-            key1 = "_".join([f"{k}_{v}" for k, v in index1["key"].items()])
-            key2 = "_".join([f"{k}_{v}" for k, v in index2["key"].items()])
-
-            # If key1 == key2, it's being compared to itself, so skip
-            return key1 != key2 and key2.startswith(key1)
-
-        reverse_indexes = []
-        for index in indexes:
-            reverse_index = {k: v for k, v in index.items() if k != "key"}
-            reverse_index["key"] = {k: (v * -1 if isinstance(v, (int, float)) else v) for k, v in index["key"].items()}
-            reverse_indexes.append(reverse_index)
-        index_targets = indexes + reverse_indexes
-        for index in indexes:
-            for target in index_targets:
-                if is_redundant(index, target):
-                    test_result.append(
-                        {
-                            "host": host,
-                            "severity": SEVERITY.MEDIUM,
-                            "title": "Redundant Index",
-                            "description": f"Index `{index.get('name')}` in collection `{ns}` is redundant with index `{target.get('name')}`.",
-                        }
-                    )
-                    break
-        return test_result
+        self._index_rule = IndexRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -113,17 +31,19 @@ class IndexInfoItem(BaseItem):
         nodes = discover_nodes(client, parsed_uri)
 
         def cluster_check(host, ns, index_stats):
-            # Check number of indexes
-            max_num_indexes = self._config.get("num_indexes", 10)
-            result1 = self._num_indexes_check(ns, index_stats, max_num_indexes, host)
-            # Check for redundant indexes
-            indexes = [index["spec"] for i, index in enumerate(index_stats)]
-            result2 = self._redundant_indexes_check(ns, indexes, host)
-            return result1 + result2
+            # Check number of indexes and redundant indexes
+            result, _ = self._index_rule.apply(
+                index_stats,
+                extra_info={"host": host, "ns": ns},
+                check_items=["num_indexes", "redundant_indexes"],
+            )
+            return result
 
         def node_check(host, ns, index_stats):
-            unused_index_days = self._config.get("unused_index_days", 7)
-            return self._unused_indexes_check(ns, index_stats, unused_index_days, host)
+            result, _ = self._index_rule.apply(
+                index_stats, extra_info={"host": host, "ns": ns}, check_items=["unused_indexes"]
+            )
+            return result
 
         def enum_namespaces(node, func, **kwargs):
             level = kwargs.get("level")
