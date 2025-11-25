@@ -192,7 +192,7 @@ class CollInfoItem(BaseItem):
                 ns = stats["ns"]
                 # Fragmentation visualization
                 coll_frag = stats.get("collFragmentation", {}).get("fragmentation", 0)
-                index_frags = stats.get("indexFragmentation", [])
+                index_frags = stats.get("indexFragmentations", [])
                 total_reusable_size = 0
                 total_index_size = 0
                 index_details = []

@@ -53,7 +53,7 @@ class FragmentationRule(BaseRule):
             "collFragmentation": {
                 "reusable": coll_reusable,
                 "totalSize": storage_size,
-                "collectionFragmentation": coll_frag_ratio,
+                "fragmentation": coll_frag_ratio,
             },
             "indexFragmentations": index_frags,
         }
