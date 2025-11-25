@@ -65,6 +65,9 @@ class ISSUE(enum.Enum):
     CRITICAL_DIRTY_RATIO = 1304
     HIGH_CACHE_FILL_RATIO = 1305
     CRITICAL_CACHE_FILL_RATIO = 1306
+    # Shard Key Issues
+    IMPROPER_SHARD_KEY = 1400
+    IMBALANCED_SHARDING = 1401
 
 
 ISSUE_MSG_MAP = {
@@ -355,6 +358,18 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.HIGH,
         "title": "Critical Cache Fill Ratio",
         "description": "Cache fill ratio `{fill_ratio:.2f}` has exceeded the critical threshold `{cache_fill_ratio_threshold}`. All operations are being throttled.",
+    },
+    ISSUE.IMPROPER_SHARD_KEY: {
+        "id": ISSUE.IMPROPER_SHARD_KEY,
+        "severity": SEVERITY.INFO,
+        "title": "Potential Bad Shard Key",
+        "description": "Collection `{ns}` has the shard key set to `{shard_key}`. Make sure the value of `_id` is not monotonically increasing or decreasing.",
+    },
+    ISSUE.IMBALANCED_SHARDING: {
+        "id": ISSUE.IMBALANCED_SHARDING,
+        "severity": SEVERITY.MEDIUM,
+        "title": "Imbalanced Sharding",
+        "description": "Collection `{ns}` is imbalanced across shards. The difference between the largest and smallest shard {size_diff} MB is more than {imbalance_percentage:.2f}%.",
     },
 }
 

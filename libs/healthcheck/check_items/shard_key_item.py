@@ -1,4 +1,6 @@
 from libs.healthcheck.check_items.base_item import BaseItem
+from libs.healthcheck.rules.shard_balance_rule import ShardBalanceRule
+from libs.healthcheck.rules.shard_key_rule import ShardKeyRule
 from libs.healthcheck.shared import (
     SEVERITY,
     discover_nodes,
@@ -15,6 +17,8 @@ class ShardKeyItem(BaseItem):
         self._description = "Collects and reviews shard key configuration for collections in a sharded cluster.\n\n"
         self._description += "- Whether the shard key is set to `{_id: 1}` or `{_id: -1}`.\n"
         self._description += "- Whether collections are imbalanced."
+        self._shard_key_rule = ShardKeyRule(config)
+        self._shard_balance_rule = ShardBalanceRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -29,53 +33,21 @@ class ShardKeyItem(BaseItem):
 
         def func_sh_cluster(name, node, **kwargs):
             client = node["client"]
-            imbalance_percentage = self._config["sharding_imbalance_percentage"]
             collections = list(client.config.collections.find({"_id": {"$ne": "config.system.sessions"}}))
-            shards = [doc["_id"] for doc in client.config.shards.find()]
             test_result = []
             raw_result = {"shardedCollections": collections, "stats": {}}
             for c in collections:
                 # Check if the collection is using `{_id: 1}` as shard key
                 ns = c["_id"]
-                key = c["key"]
-                v = key.get("_id", None)
-                if v in [-1, 1] and len(key.keys()) == 1:
-                    test_result.append(
-                        {
-                            "host": "cluster",
-                            "severity": SEVERITY.INFO,
-                            "title": "Improper Shard Key",
-                            "description": f"Collection `{ns}` has the shard key set to `{{_id: {v}}}`. Make sure the value of `_id` is not monotonically increasing or decreasing.",
-                        }
-                    )
+                result1, _ = self._shard_key_rule.apply(c)
+                test_result.extend(result1)
+                # Gather sharding stats
                 db_name, coll_name = ns.split(".")
                 stats = client[db_name].command("collStats", coll_name)
-                shard_stats = {
-                    s_name: {
-                        "size": s["size"],
-                        "count": s["count"],
-                        "avgObjSize": s.get("avgObjSize", 0),
-                        "storageSize": s["storageSize"],
-                        "nindexes": s["nindexes"],
-                        "totalIndexSize": s["totalIndexSize"],
-                        "totalSize": s["totalSize"],
-                    }
-                    for s_name, s in stats["shards"].items()
-                }
-                raw_result["stats"][ns] = shard_stats
-                # Check if collection is imbalanced.
-                sizes = [shard_stats.get(s_name, {}).get("size", 0) for s_name in shards]
-                max_size = max(sizes)
-                min_size = min(sizes)
-                if max_size > min_size * (1 + imbalance_percentage):
-                    test_result.append(
-                        {
-                            "host": "cluster",
-                            "severity": SEVERITY.MEDIUM,
-                            "title": "Sharding Imbalance",
-                            "description": f"Collection `{ns}` is imbalanced across shards. The difference between the largest and smallest shard {(max_size - min_size) / 1024 / 1024:.2f} MB is more than {imbalance_percentage * 100:.2f}%.",
-                        }
-                    )
+                result2, parsed_data = self._shard_balance_rule.apply(stats)
+                test_result.extend(result2)
+                raw_result["stats"][ns] = parsed_data
+
             self.append_test_results(test_result)
             return test_result, raw_result
 

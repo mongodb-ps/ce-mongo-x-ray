@@ -1,6 +1,5 @@
 from libs.healthcheck.issues import ISSUE
 from libs.healthcheck.rules.connections_rule import ConnectionsRule
-from libs.healthcheck.rules.query_targeting_rule import QueryTargetingRule
 
 
 DATA_CONNECTIONS_NORMAL = {
