@@ -1,5 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP, create_issue
 from libs.healthcheck.shared import SEVERITY
 from libs.version import Version
 
@@ -20,41 +20,17 @@ class VersionEOLRule(BaseRule):
         eol_version = Version(self._thresholds.get("eol_version", [6, 3, 0]))
         # Check if the version is below EOL version
         if version < eol_version:
-            issue_id = ISSUE.EOL_VERSION_USED
-            test_results.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        version=version, eol_version=eol_version
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.EOL_VERSION_USED, host=host, params={"version": version, "eol_version": eol_version}
             )
+            test_results.append(issue)
         # Check if rapid releases are being used
         if 5 <= version.major_version <= 7 and version.minor_version != 0:
-            issue_id = ISSUE.RAPID_RELEASE_VERSION_USED
-            test_results.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(version=version),
-                }
-            )
+            issue = create_issue(ISSUE.RAPID_RELEASE_VERSION_USED, host=host, params={"version": version})
+            test_results.append(issue)
         # Check if development releases are being used
         if version.major_version >= 8 or version.major_version <= 4:
             if version.minor_version % 2 != 0:
-                issue_id = ISSUE.DEVELOPMENT_RELEASE_VERSION_USED
-                test_results.append(
-                    {
-                        "id": issue_id,
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": ISSUE_MSG_MAP[issue_id]["title"],
-                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(version=version),
-                    }
-                )
+                issue = create_issue(ISSUE.DEVELOPMENT_RELEASE_VERSION_USED, host=host, params={"version": version})
+                test_results.append(issue)
         return test_results, data

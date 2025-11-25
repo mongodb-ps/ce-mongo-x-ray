@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class OpLatencyRule(BaseRule):
@@ -43,65 +42,49 @@ class OpLatencyRule(BaseRule):
         avg_c_latency = c_latency / c_ops if c_ops > 0 else 0
         avg_t_latency = t_latency / t_ops if t_ops > 0 else 0
         if avg_r_latency > self._op_latency_ms:
-            issue_id = ISSUE.HIGH_READ_LATENCY
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        avg_r_latency=avg_r_latency,
-                        op_latency_ms=self._op_latency_ms,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.HIGH_READ_LATENCY,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "avg_r_latency": avg_r_latency,
+                    "op_latency_ms": self._op_latency_ms,
+                },
             )
+            test_result.append(issue)
         if avg_w_latency > self._op_latency_ms:
-            issue_id = ISSUE.HIGH_WRITE_LATENCY
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        avg_w_latency=avg_w_latency,
-                        op_latency_ms=self._op_latency_ms,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.HIGH_WRITE_LATENCY,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "avg_w_latency": avg_w_latency,
+                    "op_latency_ms": self._op_latency_ms,
+                },
             )
+            test_result.append(issue)
         if avg_c_latency > self._op_latency_ms:
-            issue_id = ISSUE.HIGH_COMMAND_LATENCY
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        avg_c_latency=avg_c_latency,
-                        op_latency_ms=self._op_latency_ms,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.HIGH_COMMAND_LATENCY,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "avg_c_latency": avg_c_latency,
+                    "op_latency_ms": self._op_latency_ms,
+                },
             )
+            test_result.append(issue)
         if avg_t_latency > self._op_latency_ms:
-            issue_id = ISSUE.HIGH_TRANSACTION_LATENCY
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        avg_t_latency=avg_t_latency,
-                        op_latency_ms=self._op_latency_ms,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.HIGH_TRANSACTION_LATENCY,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "avg_t_latency": avg_t_latency,
+                    "op_latency_ms": self._op_latency_ms,
+                },
             )
+            test_result.append(issue)
         return test_result, {
             "latencyStats": {
                 "reads_latency": avg_r_latency,

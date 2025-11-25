@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class OplogWindowRule(BaseRule):
@@ -26,19 +25,15 @@ class OplogWindowRule(BaseRule):
         # Check oplog information
         retention_hours = max(configured_retention_hours, current_retention_hours)
         if retention_hours < oplog_window_threshold:
-            issue_id = ISSUE.OPLOG_WINDOW_TOO_SMALL
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        retention_hours=retention_hours,
-                        oplog_window_threshold=oplog_window_threshold,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.OPLOG_WINDOW_TOO_SMALL,
+                host=host,
+                params={
+                    "retention_hours": retention_hours,
+                    "oplog_window_threshold": oplog_window_threshold,
+                },
             )
+            test_result.append(issue)
 
         return test_result, {
             "configured_retention_hours": configured_retention_hours,

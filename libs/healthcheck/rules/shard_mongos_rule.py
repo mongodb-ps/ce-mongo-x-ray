@@ -1,6 +1,6 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class ShardMongosRule(BaseRule):
@@ -17,42 +17,19 @@ class ShardMongosRule(BaseRule):
         active_mongos = []
         for mongos in data:
             if mongos.get("pingLatencySec", 0) > MAX_MONGOS_PING_LATENCY:
-                issue_id = ISSUE.IRRESPONSIVE_MONGOS
-                test_result.append(
-                    {
-                        "id": issue_id,
-                        "host": mongos["host"],
-                        "severity": SEVERITY.LOW,
-                        "title": ISSUE_MSG_MAP[issue_id]["title"],
-                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                            host=mongos["host"],
-                            ping_latency=round(mongos["pingLatencySec"]),
-                        ),
-                    }
+                issue = create_issue(
+                    ISSUE.IRRESPONSIVE_MONGOS,
+                    host=mongos["host"],
+                    params={"host": mongos["host"], "ping_latency": round(mongos["pingLatencySec"])},
                 )
+                test_result.append(issue)
             else:
                 active_mongos.append(mongos["host"])
 
         if len(active_mongos) == 0:
-            issue_id = ISSUE.NO_ACTIVE_MONGOS
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": "cluster",
-                    "severity": SEVERITY.HIGH,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"],
-                }
-            )
+            issue = create_issue(ISSUE.NO_ACTIVE_MONGOS, host="cluster")
+            test_result.append(issue)
         if len(active_mongos) == 1:
-            issue_id = ISSUE.SINGLE_MONGOS
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": "cluster",
-                    "severity": SEVERITY.HIGH,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(host=active_mongos[0]),
-                }
-            )
+            issue = create_issue(ISSUE.SINGLE_MONGOS, host="cluster", params={"mongos": active_mongos[0]})
+            test_result.append(issue)
         return test_result, data

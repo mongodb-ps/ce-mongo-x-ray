@@ -1,6 +1,6 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.shared import MEMBER_STATE, SEVERITY
+from libs.healthcheck.issues import ISSUE, create_issue
+from libs.healthcheck.shared import MEMBER_STATE
 
 
 class RSStatusRule(BaseRule):
@@ -21,16 +21,8 @@ class RSStatusRule(BaseRule):
         no_primary = False
         if not primary_member:
             no_primary = True
-            issue_id = ISSUE.NO_PRIMARY
-            result.append(
-                {
-                    "id": issue_id,
-                    "host": "cluster",
-                    "severity": SEVERITY.HIGH,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(rs=data["set"]),
-                }
-            )
+            issue = create_issue(ISSUE.NO_PRIMARY, host=host)
+            result.append(issue)
 
         # Check member states
         max_delay = self._thresholds.get("replication_lag_seconds", 60)
@@ -41,31 +33,19 @@ class RSStatusRule(BaseRule):
             host = member["name"]
 
             if state in [3, 6, 8, 9, 10]:
-                issue_id = ISSUE.UNHEALTHY_MEMBER
-                result.append(
-                    {
-                        "id": issue_id,
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": ISSUE_MSG_MAP[issue_id]["title"],
-                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                            rs=set_name, host=host, state=MEMBER_STATE[state]
-                        ),
-                    }
+                issue = create_issue(
+                    ISSUE.UNHEALTHY_MEMBER,
+                    host=host,
+                    params={"set_name": set_name, "host": host, "state": MEMBER_STATE[state]},
                 )
+                result.append(issue)
             elif state in [0, 5]:
-                issue_id = ISSUE.INITIALIZING_MEMBER
-                result.append(
-                    {
-                        "id": issue_id,
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": ISSUE_MSG_MAP[issue_id]["title"],
-                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                            rs=set_name, host=host, state=MEMBER_STATE[state]
-                        ),
-                    }
+                issue = create_issue(
+                    ISSUE.INITIALIZING_MEMBER,
+                    host=host,
+                    params={"set_name": set_name, "host": host, "state": MEMBER_STATE[state]},
                 )
+                result.append(issue)
 
             # Check replication lag
             if state == 2 and not no_primary:  # SECONDARY
@@ -73,16 +53,8 @@ class RSStatusRule(BaseRule):
                 s_time = member["optime"]["ts"]
                 lag = p_time.time - s_time.time
                 if lag >= max_delay:
-                    issue_id = ISSUE.DELAYED_MEMBER
-                    result.append(
-                        {
-                            "id": issue_id,
-                            "host": host,
-                            "severity": SEVERITY.HIGH,
-                            "title": ISSUE_MSG_MAP[issue_id]["title"],
-                            "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                                rs=set_name, host=host, lag=lag
-                            ),
-                        }
+                    issue = create_issue(
+                        ISSUE.DELAYED_MEMBER, host=host, params={"set_name": set_name, "host": host, "lag": lag}
                     )
+                    result.append(issue)
         return result, data

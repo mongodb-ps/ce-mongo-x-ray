@@ -1,7 +1,6 @@
 from datetime import datetime
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class IndexRule(BaseRule):
@@ -33,37 +32,29 @@ class IndexRule(BaseRule):
                     last_used = index.get("accesses", {}).get("since", None)
                     if last_used:
                         if (datetime.now() - last_used).days > self._unused_index_days:
-                            issue_id = ISSUE.UNUSED_INDEX
-                            test_result.append(
-                                {
-                                    "id": issue_id,
-                                    "host": host,
-                                    "severity": SEVERITY.LOW,
-                                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                                        index_name=index.get("name"),
-                                        ns=ns,
-                                        unused_index_days=self._unused_index_days,
-                                    ),
-                                }
+                            issue = create_issue(
+                                ISSUE.UNUSED_INDEX,
+                                host=host,
+                                params={
+                                    "index_name": index.get("name"),
+                                    "ns": ns,
+                                    "unused_index_days": self._unused_index_days,
+                                },
                             )
+                            test_result.append(issue)
         # Check number of indexes
         num_indexes = len(unique_indexes)
         if "num_indexes" in check_items and num_indexes > self._max_num_indexes:
-            issue_id = ISSUE.TOO_MANY_INDEXES
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=ns,
-                        max_num_indexes=self._max_num_indexes,
-                        num_indexes=num_indexes,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.TOO_MANY_INDEXES,
+                host=host,
+                params={
+                    "ns": ns,
+                    "max_num_indexes": self._max_num_indexes,
+                    "num_indexes": num_indexes,
+                },
             )
+            test_result.append(issue)
         # Check for redundant indexes
         if "redundant_indexes" in check_items:
             indexes = [index["spec"] for i, index in enumerate(data)]
@@ -78,20 +69,16 @@ class IndexRule(BaseRule):
             for index in indexes:
                 for target in index_targets:
                     if is_redundant(index, target):
-                        issue_id = ISSUE.REDUNDANT_INDEX
-                        test_result.append(
-                            {
-                                "id": issue_id,
-                                "host": host,
-                                "severity": SEVERITY.MEDIUM,
-                                "title": ISSUE_MSG_MAP[issue_id]["title"],
-                                "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                                    index1=index.get("name"),
-                                    ns=ns,
-                                    index2=target.get("name"),
-                                ),
-                            }
+                        issue = create_issue(
+                            ISSUE.REDUNDANT_INDEX,
+                            host=host,
+                            params={
+                                "index1": index.get("name"),
+                                "ns": ns,
+                                "index2": target.get("name"),
+                            },
                         )
+                        test_result.append(issue)
                         break
         return test_result, data
 

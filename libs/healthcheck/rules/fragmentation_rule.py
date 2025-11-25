@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class FragmentationRule(BaseRule):
@@ -26,19 +25,10 @@ class FragmentationRule(BaseRule):
         coll_reusable = storage_stats["wiredTiger"]["block-manager"]["file bytes available for reuse"]
         coll_frag_ratio = round(coll_reusable / storage_size if storage_size else 0, 4)
         if coll_frag_ratio > self._fragmentation_ratio:
-            issue_id = ISSUE.HIGH_COLLECTION_FRAGMENTATION
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.MEDIUM,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=ns,
-                        fragmentation=coll_frag_ratio,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.HIGH_COLLECTION_FRAGMENTATION, host=host, params={"ns": ns, "fragmentation": coll_frag_ratio}
             )
+            test_result.append(issue)
         index_frags = []
         for index_name, s in storage_stats["indexDetails"].items():
             reusable = s["block-manager"]["file bytes available for reuse"]
@@ -53,20 +43,12 @@ class FragmentationRule(BaseRule):
                 }
             )
             if index_frag_ratio > self._fragmentation_ratio:
-                issue_id = ISSUE.HIGH_INDEX_FRAGMENTATION
-                test_result.append(
-                    {
-                        "id": issue_id,
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": ISSUE_MSG_MAP[issue_id]["title"],
-                        "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                            ns=ns,
-                            index_name=index_name,
-                            fragmentation=index_frag_ratio,
-                        ),
-                    }
+                issue = create_issue(
+                    ISSUE.HIGH_INDEX_FRAGMENTATION,
+                    host=host,
+                    params={"ns": ns, "index_name": index_name, "fragmentation": index_frag_ratio},
                 )
+                test_result.append(issue)
         return test_result, {
             "collFragmentation": {
                 "reusable": coll_reusable,

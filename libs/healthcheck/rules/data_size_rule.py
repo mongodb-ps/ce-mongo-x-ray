@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE, create_issue
 
 
 class DataSizeRule(BaseRule):
@@ -26,35 +25,27 @@ class DataSizeRule(BaseRule):
         del storage_stats["wiredTiger"]
         # Check for large collection size
         if storage_stats.get("size", 0) > self._collection_size_gb:
-            issue_id = ISSUE.COLLECTION_TOO_LARGE
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.LOW,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        size_gb=storage_stats.get("size", 0) / 1024**3,
-                        collection_size_gb=self._collection_size_gb / 1024**3,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.COLLECTION_TOO_LARGE,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "size_gb": storage_stats.get("size", 0) / 1024**3,
+                    "collection_size_gb": self._collection_size_gb / 1024**3,
+                },
             )
+            test_result.append(issue)
         # Check for average object size
         if storage_stats.get("avgObjSize", 0) > self._obj_size_bytes:
-            issue_id = ISSUE.AVG_OBJECT_SIZE_TOO_LARGE
-            test_result.append(
-                {
-                    "id": issue_id,
-                    "host": host,
-                    "severity": SEVERITY.LOW,
-                    "title": ISSUE_MSG_MAP[issue_id]["title"],
-                    "description": ISSUE_MSG_MAP[issue_id]["description"].format(
-                        ns=data.get("ns", ""),
-                        avg_obj_size_kb=storage_stats.get("avgObjSize", 0) / 1024,
-                        obj_size_kb=self._obj_size_bytes / 1024,
-                    ),
-                }
+            issue = create_issue(
+                ISSUE.AVG_OBJECT_SIZE_TOO_LARGE,
+                host=host,
+                params={
+                    "ns": data.get("ns", ""),
+                    "avg_obj_size_kb": storage_stats.get("avgObjSize", 0) / 1024,
+                    "obj_size_kb": self._obj_size_bytes / 1024,
+                },
             )
+            test_result.append(issue)
 
         return test_result, data
