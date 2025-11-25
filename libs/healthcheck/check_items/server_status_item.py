@@ -3,7 +3,7 @@ from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.cache_rule import CacheRule
 from libs.healthcheck.rules.connections_rule import ConnectionsRule
 from libs.healthcheck.rules.query_targeting_rule import QueryTargetingRule
-from libs.healthcheck.shared import SEVERITY, MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import format_size, escape_markdown, green, yellow
 
 SERVER_STATUS_INTERVAL = 5

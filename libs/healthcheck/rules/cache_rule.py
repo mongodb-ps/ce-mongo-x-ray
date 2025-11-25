@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
 from libs.healthcheck.issues import ISSUE, create_issue
-from libs.healthcheck.shared import MEMBER_STATE
 
 
 class CacheRule(BaseRule):

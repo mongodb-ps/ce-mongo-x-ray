@@ -50,8 +50,8 @@ def test_query_targeting_high():
     rule = QueryTargetingRule(config)
     issues, parsed_data = rule.apply(DATA_TARGETING_HIGH, extra_info={"host": "localhost"})
     assert len(issues) == 2
-    assert issues[0].issue_id == ISSUE.POOR_QUERY_TARGETING_KEYS
-    assert issues[1].issue_id == ISSUE.POOR_QUERY_TARGETING_OBJECTS
+    assert issues[0]["id"] == ISSUE.POOR_QUERY_TARGETING_KEYS
+    assert issues[1]["id"] == ISSUE.POOR_QUERY_TARGETING_OBJECTS
     assert parsed_data["scanned/returned"] == 5000.0
     assert parsed_data["scanned_obj/returned"] == 8000.0
 
@@ -60,7 +60,7 @@ def test_query_targeting_exception():
     rule = QueryTargetingRule(config)
     issues, parsed_data = rule.apply(DATA_TARGETING_EXCEPTION, extra_info={"host": "localhost"})
     assert len(issues) == 2
-    assert issues[0].issue_id == ISSUE.POOR_QUERY_TARGETING_KEYS
-    assert issues[1].issue_id == ISSUE.POOR_QUERY_TARGETING_OBJECTS
+    assert issues[0]["id"] == ISSUE.POOR_QUERY_TARGETING_KEYS
+    assert issues[1]["id"] == ISSUE.POOR_QUERY_TARGETING_OBJECTS
     assert parsed_data["scanned/returned"] == 50000
     assert parsed_data["scanned_obj/returned"] == 80000

@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
 from libs.healthcheck.issues import ISSUE, create_issue
-from libs.healthcheck.shared import MEMBER_STATE
 
 
 class QueryTargetingRule(BaseRule):
@@ -37,8 +36,8 @@ class QueryTargetingRule(BaseRule):
                 ISSUE.POOR_QUERY_TARGETING_KEYS,
                 host=host,
                 params={
-                    "scanned_returned": f"{scanned_returned:.2f}",
-                    "query_targeting": f"{self._max_query_targeting:.2f}",
+                    "scanned_returned": scanned_returned,
+                    "query_targeting": self._max_query_targeting,
                 },
             )
             test_result.append(issue)
@@ -47,8 +46,8 @@ class QueryTargetingRule(BaseRule):
                 ISSUE.POOR_QUERY_TARGETING_OBJECTS,
                 host=host,
                 params={
-                    "scanned_obj_returned": f"{scanned_obj_returned:.2f}",
-                    "query_targeting_obj": f"{self._max_query_targeting_obj:.2f}",
+                    "scanned_obj_returned": scanned_obj_returned,
+                    "query_targeting_obj": self._max_query_targeting_obj,
                 },
             )
             test_result.append(issue)
