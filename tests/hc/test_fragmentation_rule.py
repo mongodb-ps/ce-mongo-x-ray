@@ -66,7 +66,7 @@ def test_high_fragmentation():
     assert index_issue_1["id"] == ISSUE.HIGH_INDEX_FRAGMENTATION
     assert index_issue_1["severity"] == SEVERITY.MEDIUM
     assert index_issue_1["title"] == ISSUE_MSG_MAP[ISSUE.HIGH_INDEX_FRAGMENTATION]["title"]
-    assert frag_data["collFragmentation"]["collectionFragmentation"] == 0.6
+    assert frag_data["collFragmentation"]["fragmentation"] == 0.6
     assert frag_data["indexFragmentations"][0]["fragmentation"] == 0.6
     assert frag_data["indexFragmentations"][1]["fragmentation"] == 0.25
 
@@ -75,5 +75,5 @@ def test_normal_fragmentation():
     rule = FragmentationRule(thresholds=config)
     results, frag_data = rule.apply(DATA_WITH_NORMAL_FRAGMENTATION)
     assert len(results) == 0  # No issues
-    assert frag_data["collFragmentation"]["collectionFragmentation"] == 0.2
+    assert frag_data["collFragmentation"]["fragmentation"] == 0.2
     assert frag_data["indexFragmentations"][0]["fragmentation"] == 0.2

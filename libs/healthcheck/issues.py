@@ -52,6 +52,19 @@ class ISSUE(enum.Enum):
     AUDITING_DISABLED = 1006
     ENCRYPTION_AT_REST_DISABLED = 1007
     ENCRYPTION_AT_REST_USING_KEYFILE = 1008
+    # Query Targeting Issues
+    POOR_QUERY_TARGETING_KEYS = 1100
+    POOR_QUERY_TARGETING_OBJECTS = 1101
+    # Connections Issues
+    HIGH_CONNECTION_USAGE_RATIO = 1200
+    # Cache Issues
+    HIGH_SWAPPING = 1300
+    HIGH_UPDATES_RATIO = 1301
+    CRITICAL_UPDATES_RATIO = 1302
+    HIGH_DIRTY_RATIO = 1303
+    CRITICAL_DIRTY_RATIO = 1304
+    HIGH_CACHE_FILL_RATIO = 1305
+    CRITICAL_CACHE_FILL_RATIO = 1306
 
 
 ISSUE_MSG_MAP = {
@@ -282,6 +295,66 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.HIGH,
         "title": "Encryption at Rest Using Keyfile",
         "description": "Encryption at rest is enabled using a keyfile. This is not safe in general. Ensure that the keyfile is securely managed.",
+    },
+    ISSUE.POOR_QUERY_TARGETING_KEYS: {
+        "id": ISSUE.POOR_QUERY_TARGETING_KEYS,
+        "severity": SEVERITY.HIGH,
+        "title": "Poor Query Targeting (Keys)",
+        "description": "Scanned/Returned ratio `{scanned_returned:.2f}` exceeds the threshold `{query_targeting}`.",
+    },
+    ISSUE.POOR_QUERY_TARGETING_OBJECTS: {
+        "id": ISSUE.POOR_QUERY_TARGETING_OBJECTS,
+        "severity": SEVERITY.HIGH,
+        "title": "Poor Query Targeting (Objects)",
+        "description": "Scanned Objects/Returned ratio `{scanned_obj_returned:.2f}` exceeds the threshold `{query_targeting_obj}`.",
+    },
+    ISSUE.HIGH_CONNECTION_USAGE_RATIO: {
+        "id": ISSUE.HIGH_CONNECTION_USAGE_RATIO,
+        "severity": SEVERITY.HIGH,
+        "title": "High Connection Usage Ratio",
+        "description": "Current connections (`{current}`) exceed `{used_connection_ratio:.2f}%` of total available connections (`{total}`).",
+    },
+    ISSUE.HIGH_SWAPPING: {
+        "id": ISSUE.HIGH_SWAPPING,
+        "severity": SEVERITY.MEDIUM,
+        "title": "High Swapping",
+        "description": "Read into cache rate `{read_into} MB/s` exceeds the threshold `{read_into_threshold} MB/s`. This usually indicates insufficient cache size or suboptimal indexes.",
+    },
+    ISSUE.HIGH_UPDATES_RATIO: {
+        "id": ISSUE.HIGH_UPDATES_RATIO,
+        "severity": SEVERITY.MEDIUM,
+        "title": "High Updates Ratio",
+        "description": "Bytes allocated for updates ratio `{update_ratio:.2f}` is approaching the threshold `{updates_ratio_threshold}`. Once the ratio exceeds 10%, all operations will be throttled.",
+    },
+    ISSUE.CRITICAL_UPDATES_RATIO: {
+        "id": ISSUE.CRITICAL_UPDATES_RATIO,
+        "severity": SEVERITY.HIGH,
+        "title": "Critical Updates Ratio",
+        "description": "Bytes allocated for updates ratio `{update_ratio:.2f}` has exceeded the critical threshold `{updates_ratio_threshold}`. All operations are being throttled.",
+    },
+    ISSUE.HIGH_DIRTY_RATIO: {
+        "id": ISSUE.HIGH_DIRTY_RATIO,
+        "severity": SEVERITY.MEDIUM,
+        "title": "High Dirty Fill Ratio",
+        "description": "Dirty fill ratio `{dirty_ratio:.2f}` is approaching the threshold `{dirty_ratio_threshold}`. Once the ratio exceeds 20%, all operations will be throttled.",
+    },
+    ISSUE.CRITICAL_DIRTY_RATIO: {
+        "id": ISSUE.CRITICAL_DIRTY_RATIO,
+        "severity": SEVERITY.HIGH,
+        "title": "Critical Dirty Fill Ratio",
+        "description": "Dirty fill ratio `{dirty_ratio:.2f}` has exceeded the critical threshold `{dirty_ratio_threshold}`. All operations are being throttled.",
+    },
+    ISSUE.HIGH_CACHE_FILL_RATIO: {
+        "id": ISSUE.HIGH_CACHE_FILL_RATIO,
+        "severity": SEVERITY.MEDIUM,
+        "title": "High Cache Fill Ratio",
+        "description": "Cache fill ratio `{fill_ratio:.2f}` is approaching the threshold `{cache_fill_ratio_threshold}`. Once the ratio exceeds 95%, all operations will be throttled.",
+    },
+    ISSUE.CRITICAL_CACHE_FILL_RATIO: {
+        "id": ISSUE.CRITICAL_CACHE_FILL_RATIO,
+        "severity": SEVERITY.HIGH,
+        "title": "Critical Cache Fill Ratio",
+        "description": "Cache fill ratio `{fill_ratio:.2f}` has exceeded the critical threshold `{cache_fill_ratio_threshold}`. All operations are being throttled.",
     },
 }
 
