@@ -31,7 +31,7 @@ class BuildInfoItem(BaseItem):
                 return None, None
             client = node["client"]
             raw_result = client.admin.command("buildInfo")
-            test_result, _ = self._version_eol_rule.apply(raw_result, {"host": host})
+            test_result, _ = self._version_eol_rule.apply(raw_result, extra_info={"host": host})
             running_version = Version(raw_result.get("versionArray", None))
             node["version"] = running_version
             self.append_test_results(test_result)

@@ -4,16 +4,15 @@ from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 
 
 class RSConfigRule(BaseRule):
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the replica set configuration for any issues.
 
         Args:
             data (object): The replica set configuration data.
-            result_template (object, optional): The template for the result. Defaults to None.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of replica set configuration check results.
         """
-        template = result_template or {}
         result = []
         set_name = data["config"]["_id"]
         # Check number of voting members
@@ -21,8 +20,7 @@ class RSConfigRule(BaseRule):
         if voting_members < 3:
             issue_id = ISSUE.INSUFFICIENT_VOTING_MEMBERS
             result.append(
-                template
-                | {
+                {
                     "id": issue_id,
                     "host": "cluster",
                     "severity": SEVERITY.HIGH,
@@ -35,8 +33,7 @@ class RSConfigRule(BaseRule):
         if voting_members % 2 == 0:
             issue_id = ISSUE.EVEN_VOTING_MEMBERS
             result.append(
-                template
-                | {
+                {
                     "id": issue_id,
                     "host": "cluster",
                     "severity": SEVERITY.HIGH,
@@ -51,8 +48,7 @@ class RSConfigRule(BaseRule):
                 if member.get("votes", 0) > 0:
                     issue_id = ISSUE.DELAYED_VOTING_MEMBER
                     result.append(
-                        template
-                        | {
+                        {
                             "id": issue_id,
                             "host": member["host"],
                             "severity": SEVERITY.HIGH,
@@ -65,8 +61,7 @@ class RSConfigRule(BaseRule):
                 if member.get("priority", 0) > 0:
                     issue_id = ISSUE.DELAYED_ELECTABLE_MEMBER
                     result.append(
-                        template
-                        | {
+                        {
                             "id": issue_id,
                             "host": member["host"],
                             "severity": SEVERITY.HIGH,

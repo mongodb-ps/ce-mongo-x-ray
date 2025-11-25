@@ -10,16 +10,16 @@ class DataSizeRule(BaseRule):
         self._obj_size_bytes = self._thresholds.get("obj_size_kb", 32) * 1024
         self._index_size_ratio = self._thresholds.get("index_size_ratio", 0.2)
 
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the data size for any issues.
 
         Args:
             data (object): The data size status data.
-            result_template (object, optional): The template for the result. Defaults to None.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of data size check results.
         """
-        template = result_template or {}
+        host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
         storage_stats = data.get("storageStats", {})
         del storage_stats["indexDetails"]
@@ -28,9 +28,9 @@ class DataSizeRule(BaseRule):
         if storage_stats.get("size", 0) > self._collection_size_gb:
             issue_id = ISSUE.COLLECTION_TOO_LARGE
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.LOW,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
@@ -44,9 +44,9 @@ class DataSizeRule(BaseRule):
         if storage_stats.get("avgObjSize", 0) > self._obj_size_bytes:
             issue_id = ISSUE.AVG_OBJECT_SIZE_TOO_LARGE
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.LOW,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(

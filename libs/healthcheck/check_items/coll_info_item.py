@@ -79,17 +79,17 @@ class CollInfoItem(BaseItem):
 
         def func_overview(host, stats, **kwargs):
             # Check data size
-            test_result, _ = self._data_size_rule.apply(stats, {"host": host})
+            test_result, _ = self._data_size_rule.apply(stats, extra_info={"host": host})
             return test_result, stats
 
         def func_node(host, stats, **kwargs):
             ns = stats["ns"]
             test_result = []
             # Check fragmentation
-            result_1, frag_data = self._fragmentation_rule.apply(stats, {"host": host})
+            result_1, frag_data = self._fragmentation_rule.apply(stats, extra_info={"host": host})
             test_result.extend(result_1)
             # Check operation latency
-            result_2, latency_data = self._op_latency_rule.apply(stats, {"host": host})
+            result_2, latency_data = self._op_latency_rule.apply(stats, extra_info={"host": host})
             test_result.extend(result_2)
 
             return test_result, frag_data | latency_data | {"ns": ns, "stats": stats}

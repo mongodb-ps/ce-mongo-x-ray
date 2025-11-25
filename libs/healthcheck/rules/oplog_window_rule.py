@@ -4,16 +4,16 @@ from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 
 
 class OplogWindowRule(BaseRule):
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the oplog window for any issues.
 
         Args:
             data (object): The oplog status data.
-            result_template (object, optional): The template for the result. Defaults to None.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of oplog window check results.
         """
-        template = result_template or {}
+        host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
         server_status = data.get("serverStatus", {})
         first_oplog = data.get("firstOplogEntry", {})
@@ -28,9 +28,9 @@ class OplogWindowRule(BaseRule):
         if retention_hours < oplog_window_threshold:
             issue_id = ISSUE.OPLOG_WINDOW_TOO_SMALL
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.HIGH,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(

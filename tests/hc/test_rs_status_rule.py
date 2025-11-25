@@ -50,7 +50,7 @@ def test_no_primary():
     rule = RSStatusRule(config)
 
     # Test with no primary
-    result, _ = rule.apply(RS_STATUS_NO_PRIMARY, result_template={"host": "cluster"})
+    result, _ = rule.apply(RS_STATUS_NO_PRIMARY, extra_info={"host": "cluster"})
     assert result is not None
     assert result[0]["id"] == ISSUE.NO_PRIMARY
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -63,7 +63,7 @@ def test_unhealthy_member():
     rule = RSStatusRule(config)
 
     # Test with unhealthy member
-    result, _ = rule.apply(RS_UNHEALTHY_MEMBER, result_template={"host": "cluster"})
+    result, _ = rule.apply(RS_UNHEALTHY_MEMBER, extra_info={"host": "cluster"})
     assert result is not None
     assert result[0]["id"] == ISSUE.UNHEALTHY_MEMBER
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -76,7 +76,7 @@ def test_initializing_member():
     rule = RSStatusRule(config)
 
     # Test with initializing member
-    result, _ = rule.apply(RS_INITIALIZING_MEMBER, result_template={"host": "cluster"})
+    result, _ = rule.apply(RS_INITIALIZING_MEMBER, extra_info={"host": "cluster"})
     assert result is not None
     assert result[0]["id"] == ISSUE.INITIALIZING_MEMBER
     assert result[0]["severity"] == SEVERITY.LOW
@@ -89,7 +89,7 @@ def test_lagged_member():
     rule = RSStatusRule(config)
 
     # Test with lagged member
-    result, _ = rule.apply(RS_STATUS_LAGGED_MEMBER, result_template={"host": "cluster"})
+    result, _ = rule.apply(RS_STATUS_LAGGED_MEMBER, extra_info={"host": "cluster"})
     assert result is not None
     assert len(result) == 2
     assert result[0]["id"] == ISSUE.DELAYED_MEMBER
@@ -102,6 +102,6 @@ def test_normal_status():
     rule = RSStatusRule(config)
 
     # Test with normal status
-    result, _ = rule.apply(RS_STATUS_NORMAL, result_template={"host": "cluster"})
+    result, _ = rule.apply(RS_STATUS_NORMAL, extra_info={"host": "cluster"})
     assert result is not None
     assert len(result) == 0

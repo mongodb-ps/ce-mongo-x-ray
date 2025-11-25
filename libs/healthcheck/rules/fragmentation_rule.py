@@ -8,16 +8,16 @@ class FragmentationRule(BaseRule):
         super().__init__(thresholds)
         self._fragmentation_ratio = self._thresholds.get("fragmentation_ratio", 0.5)
 
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the fragmentation ratio for any issues.
 
         Args:
             data (object): The collStats data.
-            result_template (object, optional): The template for the result. Defaults to None.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of fragmentation check results.
         """
-        template = result_template or {}
+        host = kwargs.get("extra_info", {}).get("host", "unknown")
         ns = data["ns"]
         test_result = []
         # Check for fragmentation
@@ -28,9 +28,9 @@ class FragmentationRule(BaseRule):
         if coll_frag_ratio > self._fragmentation_ratio:
             issue_id = ISSUE.HIGH_COLLECTION_FRAGMENTATION
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.MEDIUM,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
@@ -55,9 +55,9 @@ class FragmentationRule(BaseRule):
             if index_frag_ratio > self._fragmentation_ratio:
                 issue_id = ISSUE.HIGH_INDEX_FRAGMENTATION
                 test_result.append(
-                    template
-                    | {
+                    {
                         "id": issue_id,
+                        "host": host,
                         "severity": SEVERITY.MEDIUM,
                         "title": ISSUE_MSG_MAP[issue_id]["title"],
                         "description": ISSUE_MSG_MAP[issue_id]["description"].format(

@@ -21,7 +21,7 @@ def test_eol_version():
     rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with EOL version
-    result, _ = rule.apply(EOL_BUILD_INFO, result_template={"host": "localhost"})
+    result, _ = rule.apply(EOL_BUILD_INFO, extra_info={"host": "localhost"})
     assert result is not None
     assert result[0]["id"] == ISSUE.EOL_VERSION_USED
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -34,7 +34,7 @@ def test_upd_version():
     rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with up-to-date version
-    result, _ = rule.apply(UPD_BUILD_INFO, result_template={"host": "localhost"})
+    result, _ = rule.apply(UPD_BUILD_INFO, extra_info={"host": "localhost"})
     assert result == []
     assert _ == UPD_BUILD_INFO
 
@@ -43,7 +43,7 @@ def test_rapid_version():
     rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with rapid release version
-    result, _ = rule.apply(RAPID_BUILD_INFO, result_template={"host": "localhost"})
+    result, _ = rule.apply(RAPID_BUILD_INFO, extra_info={"host": "localhost"})
     assert len(result) == 2
     assert result[0]["id"] == ISSUE.EOL_VERSION_USED
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -60,7 +60,7 @@ def test_dev_version():
     rule = VersionEOLRule({"eol_version": EOL_VERSION})
 
     # Test with development release version
-    result, _ = rule.apply(DEV_BUILD_INFO, result_template={"host": "localhost"})
+    result, _ = rule.apply(DEV_BUILD_INFO, extra_info={"host": "localhost"})
     assert result[0]["id"] == ISSUE.DEVELOPMENT_RELEASE_VERSION_USED
     assert result[0]["severity"] == SEVERITY.MEDIUM
     assert result[0]["title"] == ISSUE_MSG_MAP[ISSUE.DEVELOPMENT_RELEASE_VERSION_USED]["title"]

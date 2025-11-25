@@ -8,16 +8,16 @@ class OpLatencyRule(BaseRule):
         super().__init__(thresholds)
         self._op_latency_ms = self._thresholds.get("op_latency_ms", 100)  # in milliseconds
 
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the operation latency for any issues.
 
         Args:
             data (object): The collStats data.
-            result_template (object, optional): The template for the result. Defaults to None.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of operation latency check results.
         """
-        template = result_template or {}
+        host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
         latency_stats = data.get("latencyStats", {})
         reads, writes, commands, transactions = (
@@ -45,9 +45,9 @@ class OpLatencyRule(BaseRule):
         if avg_r_latency > self._op_latency_ms:
             issue_id = ISSUE.HIGH_READ_LATENCY
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.MEDIUM,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
@@ -60,9 +60,9 @@ class OpLatencyRule(BaseRule):
         if avg_w_latency > self._op_latency_ms:
             issue_id = ISSUE.HIGH_WRITE_LATENCY
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.MEDIUM,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
@@ -75,9 +75,9 @@ class OpLatencyRule(BaseRule):
         if avg_c_latency > self._op_latency_ms:
             issue_id = ISSUE.HIGH_COMMAND_LATENCY
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.MEDIUM,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(
@@ -90,9 +90,9 @@ class OpLatencyRule(BaseRule):
         if avg_t_latency > self._op_latency_ms:
             issue_id = ISSUE.HIGH_TRANSACTION_LATENCY
             test_result.append(
-                template
-                | {
+                {
                     "id": issue_id,
+                    "host": host,
                     "severity": SEVERITY.MEDIUM,
                     "title": ISSUE_MSG_MAP[issue_id]["title"],
                     "description": ISSUE_MSG_MAP[issue_id]["description"].format(

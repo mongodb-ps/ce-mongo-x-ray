@@ -36,6 +36,10 @@ class ISSUE(enum.Enum):
     HIGH_WRITE_LATENCY = 801
     HIGH_COMMAND_LATENCY = 802
     HIGH_TRANSACTION_LATENCY = 803
+    # Index Issues
+    UNUSED_INDEX = 900
+    TOO_MANY_INDEXES = 901
+    REDUNDANT_INDEX = 902
 
 
 ISSUE_MSG_MAP = {
@@ -142,5 +146,17 @@ ISSUE_MSG_MAP = {
     ISSUE.HIGH_TRANSACTION_LATENCY: {
         "title": "High Transaction Latency",
         "description": "Collection `{ns}` has a higher average transaction latency `{avg_t_latency:.2f}ms` than threshold `{op_latency_ms:.2f}ms`.",
+    },
+    ISSUE.UNUSED_INDEX: {
+        "title": "Unused Index",
+        "description": "Index `{index_name}` in collection `{ns}` has not been used for more than `{unused_index_days}` days.",
+    },
+    ISSUE.TOO_MANY_INDEXES: {
+        "title": "Too Many Indexes",
+        "description": "Collection `{ns}` has more than `{max_num_indexes}` indexes (`{num_indexes}` indexes detected), which can cause potential write performance issues.",
+    },
+    ISSUE.REDUNDANT_INDEX: {
+        "title": "Redundant Index",
+        "description": "Index `{index1}` in collection `{ns}` is redundant with another index `{index2}`.",
     },
 }

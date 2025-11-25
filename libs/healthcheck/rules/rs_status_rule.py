@@ -4,15 +4,16 @@ from libs.healthcheck.shared import MEMBER_STATE, SEVERITY
 
 
 class RSStatusRule(BaseRule):
-    def apply(self, data: dict, result_template=None) -> tuple:
+    def apply(self, data: object, **kwargs) -> tuple:
         """Check the replica set status for any issues.
 
         Args:
             data (object): The result from `replSetGetStatus` command.
+            extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             list: A list of replica set status check results.
         """
-        template = result_template or {}
+        host = kwargs.get("extra_info", {}).get("host", "unknown")
         result = []
         # Find primary in members
         primary_member = next(iter(m for m in data["members"] if m["state"] == 1), None)
@@ -22,8 +23,7 @@ class RSStatusRule(BaseRule):
             no_primary = True
             issue_id = ISSUE.NO_PRIMARY
             result.append(
-                template
-                | {
+                {
                     "id": issue_id,
                     "host": "cluster",
                     "severity": SEVERITY.HIGH,
@@ -43,8 +43,7 @@ class RSStatusRule(BaseRule):
             if state in [3, 6, 8, 9, 10]:
                 issue_id = ISSUE.UNHEALTHY_MEMBER
                 result.append(
-                    template
-                    | {
+                    {
                         "id": issue_id,
                         "host": host,
                         "severity": SEVERITY.HIGH,
@@ -57,8 +56,7 @@ class RSStatusRule(BaseRule):
             elif state in [0, 5]:
                 issue_id = ISSUE.INITIALIZING_MEMBER
                 result.append(
-                    template
-                    | {
+                    {
                         "id": issue_id,
                         "host": host,
                         "severity": SEVERITY.LOW,
@@ -77,8 +75,7 @@ class RSStatusRule(BaseRule):
                 if lag >= max_delay:
                     issue_id = ISSUE.DELAYED_MEMBER
                     result.append(
-                        template
-                        | {
+                        {
                             "id": issue_id,
                             "host": host,
                             "severity": SEVERITY.HIGH,

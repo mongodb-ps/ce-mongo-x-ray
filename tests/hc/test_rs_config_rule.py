@@ -147,7 +147,7 @@ CONFIG_ARBITER_MEMBER = {
 def test_insufficient_voting_members():
     rule = RSConfigRule({})
 
-    result, _ = rule.apply(CONFIG_INSUFFICIENT_VOTING_MEMBERS, result_template={"host": "cluster"})
+    result, _ = rule.apply(CONFIG_INSUFFICIENT_VOTING_MEMBERS, extra_info={"host": "cluster"})
     assert result is not None
     assert result[0]["id"] == ISSUE.INSUFFICIENT_VOTING_MEMBERS
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -159,7 +159,7 @@ def test_insufficient_voting_members():
 def test_even_voting_members():
     rule = RSConfigRule({})
 
-    result, _ = rule.apply(CONFIG_EVEN_VOTING_MEMBERS, result_template={"host": "cluster"})
+    result, _ = rule.apply(CONFIG_EVEN_VOTING_MEMBERS, extra_info={"host": "cluster"})
     assert result is not None
     assert result[0]["id"] == ISSUE.EVEN_VOTING_MEMBERS
     assert result[0]["severity"] == SEVERITY.HIGH
@@ -171,7 +171,7 @@ def test_even_voting_members():
 def test_delayed_member():
     rule = RSConfigRule({})
 
-    result, _ = rule.apply(CONFIG_DELAYED_MEMBER, result_template={"host": "cluster"})
+    result, _ = rule.apply(CONFIG_DELAYED_MEMBER, extra_info={"host": "cluster"})
     assert result is not None
     assert len(result) == 4
     assert result[0]["id"] == ISSUE.DELAYED_VOTING_MEMBER
