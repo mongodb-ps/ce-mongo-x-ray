@@ -27,6 +27,8 @@ logger.debug("Using log level: %s", level)
 
 BUILDIN_CONFIG_PATH = "libs/config.json"
 
+BUILDIN_CONFIG_PATH = "libs/config.json"
+
 
 # The script can be started from other working folder. E.g. Invoked by a cron job.
 # This function gives you the base path of the script.
