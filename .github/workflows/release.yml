@@ -8,7 +8,7 @@ on:
     inputs:
       tag:
         description: "Tag name to build (e.g., v1.2.3). Defaults to ref."
-        required: false
+        required: true
         type: string
 
 permissions:
@@ -129,6 +129,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./artifacts/**/*
+          tag_name: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
           draft: false
           prerelease: false
           generate_release_notes: true
