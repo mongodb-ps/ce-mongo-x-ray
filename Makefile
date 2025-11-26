@@ -5,8 +5,9 @@ PROJECT_NAME = x-ray
 
 # Detect OS and set Python path accordingly
 ifeq ($(OS),Windows_NT)
-	PYTHON = .venv\Scripts\python.exe
-	VENV_ACTIVATE = .venv\Scripts\activate
+	# Use forward slashes to be compatible with Git Bash and cmd
+	PYTHON = .venv/Scripts/python.exe
+	VENV_ACTIVATE = .venv/Scripts/activate
 	RM = cmd /C rmdir /S /Q
 	MKDIR = cmd /C mkdir
 	DELIMITER = ;
