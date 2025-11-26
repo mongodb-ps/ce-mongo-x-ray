@@ -1,9 +1,8 @@
 # x-ray
-
 [![Makefile](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml)
-[![Pylint](https://github.com/zhangyaoxing/x-ray/actions/workflows/pylint.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/pylint.yml)
-[![CodeQL](https://github.com/zhangyaoxing/x-ray/actions/workflows/codeql.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/codeql.yml)
 [![Release](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml)
+[![PyPI](https://img.shields.io/pypi/v/x-ray.svg)](https://pypi.org/project/x-ray/)
+
 
 This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are built:
 - Health check module.
@@ -51,7 +50,7 @@ For Windows users, `make` command is not available. You can use Python commands 
 ```powershell
 python.exe -m venv .venv
 .venv\Scripts\python.exe -m pip install --upgrade pip
-.venv\Scripts\python.exe -m pip install -r requirements-base.txt
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .venv\Scripts\python.exe -m PyInstaller --onefile `
   --name x-ray `
   --add-data="templates;templates" `
