@@ -23,7 +23,7 @@
             "console": "integratedTerminal",
             "args": [
                 "-c",
-                "config.json",
+                "libs/config.json",
                 "hc",
                 "-s",
                 "default",
@@ -43,7 +43,7 @@
             "console": "integratedTerminal",
             "args": [
                 "-c",
-                "config.json",
+                "libs/config.json",
                 "log",
                 "-r",
                 "1",

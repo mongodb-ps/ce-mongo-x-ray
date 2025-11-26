@@ -9,11 +9,13 @@ ifeq ($(OS),Windows_NT)
 	VENV_ACTIVATE = .venv\Scripts\activate
 	RM = cmd /C rmdir /S /Q
 	MKDIR = cmd /C mkdir
+	DELIMITER = ;
 else
 	PYTHON = .venv/bin/python
 	VENV_ACTIVATE = source .venv/bin/activate
 	RM = rm -rf
 	MKDIR = mkdir -p
+	DELIMITER = :
 endif
 
 # Default target
@@ -44,10 +46,8 @@ build: build-lite
 build-lite:
 	@echo "Building lightweight executable (without AI support)..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME) \
-		--add-data="templates:templates" \
-		--add-data="config.json:." \
-		--add-data="libs:libs" \
-		--add-data="compatibility_matrix.json:." \
+		--add-data="templates$(DELIMITER)templates" \
+		--add-data="libs$(DELIMITER)libs" \
 		--icon="misc/x-ray.ico" \
 		--hidden-import=openai \
 		x-ray
@@ -57,10 +57,8 @@ build-lite:
 build-ai:
 	@echo "Building full executable (with AI support)..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME)-ai \
-		--add-data="templates:templates" \
-		--add-data="config.json:." \
-		--add-data="libs:libs" \
-		--add-data="compatibility_matrix.json:." \
+		--add-data="templates$(DELIMITER)templates" \
+		--add-data="libs$(DELIMITER)libs" \
 		--hidden-import torch \
 		--hidden-import transformers \
 		--hidden-import transformers.models.qwen2 \

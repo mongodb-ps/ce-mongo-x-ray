@@ -55,9 +55,7 @@ python.exe -m venv .venv
 .venv\Scripts\python.exe -m PyInstaller --onefile `
   --name x-ray `
   --add-data="templates;templates" `
-  --add-data="config.json;." `
   --add-data="libs;libs" `
-  --add-data="compatibility_matrix.json;." `
   --icon="misc/x-ray.ico" `
   --hidden-import=openai `
   x-ray
@@ -67,12 +65,12 @@ python.exe -m venv .venv
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log}
 ```
-| Argument         | Description                                                                                    |        Default         |
-| ---------------- | ---------------------------------------------------------------------------------------------- | :--------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                    |        `false`         |
-| `-h`, `--help`   | Show the help message and exit.                                                                |          n/a           |
-| `-c`, `--config` | Path to configuration file.                                                                    | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis. |          None          |
+| Argument         | Description                                                                                    |           Default           |
+| ---------------- | ---------------------------------------------------------------------------------------------- | :-------------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                    |           `false`           |
+| `-h`, `--help`   | Show the help message and exit.                                                                |             n/a             |
+| `-c`, `--config` | Path to configuration file.                                                                    | Built-in `libs/config.json` |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis. |            None             |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:

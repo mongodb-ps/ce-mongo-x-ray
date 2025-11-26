@@ -4,6 +4,7 @@ import logging
 from getpass import getpass
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
+from pathlib import Path
 from libs.utils import load_config
 from libs.healthcheck.framework import Framework as HealthCheckFramework
 from libs.log_analysis.framework import Framework as LogAnalysisFramework
@@ -36,9 +37,9 @@ For more information on specific commands, use:
     parser.add_argument(
         "-c",
         "--config",
-        help='Path to configuration file. Defaults to "config.json".',
+        help='Path to configuration file. Defaults to "libs/config.json".',
         type=str,
-        default="config.json",
+        default=None,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=True)
@@ -191,6 +192,10 @@ def health_check_command(args):
 
 def log_analysis_command(args):
     """Log analysis command"""
+    # Check if the log file exists
+    if not Path(args.log_file).is_file():
+        logger.error("Log file not found: %s", args.log_file)
+        return 1
     logger.info("Analyzing log file: %s", args.log_file)
     try:
         config = load_config(args.config)["log"]

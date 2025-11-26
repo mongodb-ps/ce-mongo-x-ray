@@ -1,7 +1,7 @@
 def test_load_config():
     from libs.utils import load_config
 
-    config = load_config("config.json")
+    config = load_config("libs/config.json")
     assert "log" in config
     assert "healthcheck" in config
 
