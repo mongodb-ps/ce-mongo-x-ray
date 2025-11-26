@@ -15,7 +15,7 @@ from libs.utils import (
 )
 from libs.version import Version
 
-COMPATIBILITY_MATRIX_JSON = "compatibility_matrix.json"
+COMPATIBILITY_MATRIX_JSON = "libs/compatibility_matrix.json"
 
 
 class ClientMetaItem(BaseItem):

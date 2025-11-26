@@ -33,7 +33,7 @@ class Framework:
             batch_folder = output_folder
         else:
             batch_folder = f"{output_folder}{self._logset_name}-{self._timestamp}/"
-            Path(batch_folder).mkdir(parents=True, exist_ok=True)
+        Path(batch_folder).mkdir(parents=True, exist_ok=True)
         return batch_folder
 
     def run_logs_analysis(self, logset_name: str, *args, **kwargs):

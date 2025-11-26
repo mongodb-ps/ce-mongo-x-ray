@@ -1,9 +1,8 @@
 # x-ray
-
 [![Makefile](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml)
-[![Pylint](https://github.com/zhangyaoxing/x-ray/actions/workflows/pylint.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/pylint.yml)
-[![CodeQL](https://github.com/zhangyaoxing/x-ray/actions/workflows/codeql.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/codeql.yml)
 [![Release](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml)
+[![PyPI](https://img.shields.io/pypi/v/x-ray.svg)](https://pypi.org/project/x-ray/)
+
 
 This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are built:
 - Health check module.
@@ -51,13 +50,11 @@ For Windows users, `make` command is not available. You can use Python commands 
 ```powershell
 python.exe -m venv .venv
 .venv\Scripts\python.exe -m pip install --upgrade pip
-.venv\Scripts\python.exe -m pip install -r requirements-base.txt
+.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .venv\Scripts\python.exe -m PyInstaller --onefile `
   --name x-ray `
   --add-data="templates;templates" `
-  --add-data="config.json;." `
   --add-data="libs;libs" `
-  --add-data="compatibility_matrix.json;." `
   --icon="misc/x-ray.ico" `
   --hidden-import=openai `
   x-ray
@@ -67,12 +64,12 @@ python.exe -m venv .venv
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log}
 ```
-| Argument         | Description                                                                                    |        Default         |
-| ---------------- | ---------------------------------------------------------------------------------------------- | :--------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                    |        `false`         |
-| `-h`, `--help`   | Show the help message and exit.                                                                |          n/a           |
-| `-c`, `--config` | Path to configuration file.                                                                    | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis. |          None          |
+| Argument         | Description                                                                                    |           Default           |
+| ---------------- | ---------------------------------------------------------------------------------------------- | :-------------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                    |           `false`           |
+| `-h`, `--help`   | Show the help message and exit.                                                                |             n/a             |
+| `-c`, `--config` | Path to configuration file.                                                                    | Built-in `libs/config.json` |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis. |            None             |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:

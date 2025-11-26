@@ -1,3 +1,123 @@
+[build-system]
+requires = ["setuptools==70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "x-ray"
+version = "1.1.4"
+description = "MongoDB diagnostics toolkit with health checks and log analysis"
+readme = "README.md"
+requires-python = ">=3.9,<4"
+license = { file = "LICENSE" }
+authors = [{ name = "Yaoxing Zhang" }]
+keywords = ["mongodb", "diagnostics", "healthcheck", "log-analysis"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: System Administrators",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Database",
+  "Topic :: System :: Monitoring",
+]
+dependencies = [
+  "pymongo==4.15.4",
+  "Jinja2==3.1.6",
+  "Markdown==3.9",
+  "MarkupSafe==3.0.3",
+  "packaging==25",
+  "Pygments==2.19.2",
+  "PyYAML==6.0.3",
+  "requests==2.32.5",
+  "urllib3==2.5.0",
+  "openai==2.8.1",
+  "httpx==0.28.1",
+  "httpcore==1.0.9",
+  "h11==0.16.0",
+  "certifi==2025.11.12",
+  "idna==3.11",
+  "sniffio==1.3.1",
+  "anyio==4.11.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black==25.11.0",
+  "pylint==3.3.9",
+  "flake8==7.3.0",
+  "pytest==8.4.2",
+  "pluggy==1.6.0",
+  "iniconfig==2.1.0",
+  "tomli==2.3.0",
+  "pyinstaller==6.16.0",
+  "pyinstaller-hooks-contrib==2025.10",
+  "macholib==1.16.4",
+  "altgraph==0.17.5",
+]
+ai = [
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  "transformers==4.57.1",
+  "accelerate==1.10.1",
+  "bitsandbytes==0.48.2",
+  "huggingface-hub==1.1.5",
+  "safetensors==0.7.0",
+  "tokenizers==0.22.1",
+  "filelock==3.19.1",
+  "fsspec==2025.10.0",
+  "hf-xet==1.2.0",
+  "numpy==2.0.2",
+  "scipy==1.13.1",
+  "pillow==11.3.0",
+  "regex==2025.11.3",
+  "tqdm==4.67.1",
+  "pydantic==2.12.4",
+  "pydantic_core==2.41.5",
+  "annotated-types==0.7.0",
+  "typing_extensions==4.15.0",
+  "jiter==0.12.0",
+  "psutil==7.1.3",
+  "networkx==3.2.1",
+  "sympy==1.14.0",
+  "mpmath==1.3.0",
+  "distro==1.9.0",
+  "dnspython==2.7.0",
+  "charset-normalizer==3.4.4",
+  "exceptiongroup==1.3.1",
+  "importlib_metadata==8.7.0",
+  "typing-inspection==0.4.2",
+  "zipp==3.23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/zhangyaoxing/x-ray"
+Repository = "https://github.com/zhangyaoxing/x-ray"
+Issues = "https://github.com/zhangyaoxing/x-ray/issues"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = ["x_ray"]
+
+[project.scripts]
+x-ray = "x_ray:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["libs*"]
+exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
+
+[tool.setuptools.package-data]
+"libs" = ["config.json", "compatibility_matrix.json"]
+
+[tool.setuptools.data-files]
+templates = ["templates/**/*"]
+
 [tool.black]
 line-length = 120
 target-version = ['py39']
