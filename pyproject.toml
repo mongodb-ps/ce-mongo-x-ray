@@ -102,7 +102,10 @@ Issues = "https://github.com/zhangyaoxing/x-ray/issues"
 
 [tool.setuptools]
 include-package-data = true
-script-files = ["x-ray"]
+py-modules = ["x_ray"]
+
+[project.scripts]
+x-ray = "x_ray:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
