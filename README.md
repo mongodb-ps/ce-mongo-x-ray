@@ -1,7 +1,7 @@
 # x-ray
 [![Makefile](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml)
 [![Release](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml)
-[![PyPI](https://img.shields.io/pypi/v/x-ray.svg)](https://pypi.org/project/x-ray/)
+[![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
 This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are built:

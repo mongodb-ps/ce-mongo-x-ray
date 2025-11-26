@@ -3,7 +3,7 @@ requires = ["setuptools==70", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "x-ray"
+name = "mongo-x-ray"
 version = "1.1.4"
 description = "MongoDB diagnostics toolkit with health checks and log analysis"
 readme = "README.md"
@@ -116,7 +116,6 @@ exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 "libs" = ["config.json", "compatibility_matrix.json"]
 
 [tool.setuptools.data-files]
-# Only include actual files (avoid directories) to prevent wheel build errors
 templates = ["templates/**/*.html", "templates/**/*.js"]
 
 [tool.black]
