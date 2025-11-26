@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
 authors = [{ name = "Yaoxing Zhang" }]
-keywords = ["mongodb", "diagnostics", "healthcheck", "log-analysis", "monitoring"]
+keywords = ["mongodb", "diagnostics", "healthcheck", "log-analysis"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: System Administrators",
@@ -47,12 +47,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=8.4",
-  "black>=25.0",
-  "pylint>=3.3",
-  "flake8>=7.0",
-]
+dev = ["pytest>=8.4", "black>=25.0", "pylint>=3.3", "flake8>=7.0"]
 ai = [
   "torch==2.8.0",
   "torchvision==0.23.0",
@@ -103,10 +98,7 @@ include = ["libs*"]
 exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 
 [tool.setuptools.package-data]
-"libs" = [
-  "config.json",
-  "compatibility_matrix.json",
-]
+"libs" = ["config.json", "compatibility_matrix.json"]
 
 [tool.setuptools.data-files]
 templates = ["templates/**/*"]
