@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag name to build (e.g., v1.2.3). Defaults to ref."
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -54,7 +60,8 @@ jobs:
       - name: Create release directory (Unix)
         if: runner.os != 'Windows'
         run: |
-          RELEASE_DIR="x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.ref_name }}"
+          TAG="${{ inputs.tag != '' && inputs.tag || github.ref_name }}"
+          RELEASE_DIR="x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${TAG}"
           mkdir -p "dist/${RELEASE_DIR}"
           mv dist/${{ matrix.artifact_name }} "dist/${RELEASE_DIR}/x-ray"
           cp LICENSE "dist/${RELEASE_DIR}/"
@@ -63,7 +70,8 @@ jobs:
       - name: Create release directory (Windows)
         if: runner.os == 'Windows'
         run: |
-          set RELEASE_DIR=x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.ref_name }}
+          set TAG=${{ inputs.tag != '' && inputs.tag || github.ref_name }}
+          set RELEASE_DIR=x-ray-${{ matrix.platform }}-${{ matrix.arch }}-%TAG%
           mkdir dist\%RELEASE_DIR%
           move dist\${{ matrix.artifact_name }} dist\%RELEASE_DIR%\x-ray.exe
           copy LICENSE dist\%RELEASE_DIR%\
@@ -73,8 +81,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
-          name: x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.ref_name }}
-          path: dist/x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.ref_name }}.tar.gz
+          name: x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ inputs.tag != '' && inputs.tag || github.ref_name }}
+          path: dist/x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ inputs.tag != '' && inputs.tag || github.ref_name }}.tar.gz
           retention-days: 1
 
   release:
@@ -98,19 +106,20 @@ jobs:
 
       - name: Generate build summary
         run: |
+          TAG="${{ inputs.tag != '' && inputs.tag || github.ref_name }}"
           echo "## Build Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ -f "./artifacts/x-ray-linux-amd64-${{ github.ref_name }}/x-ray-linux-amd64-${{ github.ref_name }}.tar.gz" ]; then
+          if [ -f "./artifacts/x-ray-linux-amd64-${TAG}/x-ray-linux-amd64-${TAG}.tar.gz" ]; then
             echo "✅ Linux (amd64)" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Linux (amd64) - Build failed" >> $GITHUB_STEP_SUMMARY
           fi
-          if [ -f "./artifacts/x-ray-macos-arm64-${{ github.ref_name }}/x-ray-macos-arm64-${{ github.ref_name }}.tar.gz" ]; then
+          if [ -f "./artifacts/x-ray-macos-arm64-${TAG}/x-ray-macos-arm64-${TAG}.tar.gz" ]; then
             echo "✅ macOS (ARM64)" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ macOS (ARM64) - Build failed" >> $GITHUB_STEP_SUMMARY
           fi
-          if [ -f "./artifacts/x-ray-windows-amd64-${{ github.ref_name }}/x-ray-windows-amd64-${{ github.ref_name }}.tar.gz" ]; then
+          if [ -f "./artifacts/x-ray-windows-amd64-${TAG}/x-ray-windows-amd64-${TAG}.tar.gz" ]; then
             echo "✅ Windows (amd64)" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Windows (amd64) - Build failed" >> $GITHUB_STEP_SUMMARY
