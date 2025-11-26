@@ -6,6 +6,7 @@ This mirrors the previous top-level script content and provides a
 
 import argparse
 import logging
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
 from pathlib import Path
 from pymongo import MongoClient
@@ -158,6 +159,11 @@ For more information on specific commands, use:
     )
     log_parser.add_argument("--top", help="Top N slow queries. Defaults to 10.", type=int, default=10)
 
+    subparsers.add_parser(
+        "version",
+        help="Show the current version of x-ray",
+    )
+
     return parser
 
 
@@ -216,6 +222,17 @@ def log_analysis_command(args):
     return 0
 
 
+def version_command(_args):
+    """Print current package version"""
+    try:
+        # Distribution name matches [project].name in pyproject.toml
+        print(pkg_version("mongo-x-ray"))
+    except PackageNotFoundError:
+        # Fallback for source tree without installed metadata
+        print("development")
+    return 0
+
+
 def main():
     parser = setup_parser()
     args = parser.parse_args()
@@ -227,6 +244,8 @@ def main():
         return health_check_command(args)
     if args.command == "log":
         return log_analysis_command(args)
+    if args.command == "version":
+        return version_command(args)
     logger.error("Unknown command: %s", args.command)
     return 1
 

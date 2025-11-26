@@ -23,7 +23,7 @@ if level not in levels:
 log_level = levels[level]
 logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
-logger.info("Using log level: %s", level)
+logger.debug("Using log level: %s", level)
 
 BUILDIN_CONFIG_PATH = "libs/config.json"
 
