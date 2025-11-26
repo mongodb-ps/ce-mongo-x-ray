@@ -1,6 +1,5 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE
 from libs.healthcheck.rules.cache_rule import CacheRule
-from libs.healthcheck.shared import SEVERITY
 
 DATA_BASE_SERVER_STATUS = {
     "wiredTiger": {

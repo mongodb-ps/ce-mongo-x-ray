@@ -1,5 +1,5 @@
 from datetime import datetime
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE
 from libs.healthcheck.rules.index_rule import IndexRule
 
 DATA_INDEX_PROBLEM = [

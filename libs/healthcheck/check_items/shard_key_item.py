@@ -2,7 +2,6 @@ from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.shard_balance_rule import ShardBalanceRule
 from libs.healthcheck.rules.shard_key_rule import ShardKeyRule
 from libs.healthcheck.shared import (
-    SEVERITY,
     discover_nodes,
     enum_all_nodes,
     enum_result_items,

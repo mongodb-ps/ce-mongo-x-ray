@@ -7,7 +7,6 @@ from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.index_rule import IndexRule
 from libs.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
-    SEVERITY,
     discover_nodes,
     enum_all_nodes,
     enum_result_items,

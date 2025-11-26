@@ -1,6 +1,5 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from libs.healthcheck.issues import ISSUE
 from libs.healthcheck.rules.security_rule import SecurityRule
-from libs.healthcheck.shared import SEVERITY
 
 DATA_WITH_ISSUES = {
     "parsed": {

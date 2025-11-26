@@ -1,6 +1,5 @@
 from libs.healthcheck.rules.base_rule import BaseRule
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP, create_issue
-from libs.healthcheck.shared import SEVERITY
+from libs.healthcheck.issues import ISSUE, create_issue
 from libs.version import Version
 
 
