@@ -1,7 +1,7 @@
 # x-ray
 [![Makefile](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml)
 [![Release](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml)
-[![PyPI](https://img.shields.io/pypi/v/x-ray.svg)](https://pypi.org/project/x-ray/)
+[![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
 This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are built:
@@ -23,30 +23,44 @@ Log analysis requires JSON format logs, which is supported since 4.4.
 | :-----------: | :-------------: | :-----------: |
 | >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
 
-## 2 Building
-### 2.1 Prebuilt Binaries
+## 2 How to Install
+### 2.1 PyPi
+#### 2.1.1 Install with Pip
+The easiest and recommended way to install x-ray is to use `pip`:
+```bash
+pip install mongo-x-ray
+```
+
+#### 2.1.2 Build from Source
+```bash
+git clone https://github.com/zhangyaoxing/x-ray
+cd x-ray
+pip install .
+```
+
+### 2.2 PyInstaller
+#### 2.2.1 Prebuilt Binaries
 Currently the prebuilt binaries are built on 3 platforms:
 - Ubuntu Latest (AMD64)
 - MacOS Latest (ARM64)
 - Windows Latest (AMD64)
 
-More platforms will be added in later releases. If you are not using one of the above, follow instructions in the next chapter to build binary for your platform.
+Download them from [Releases](https://github.com/zhangyaoxing/x-ray/releases).
 
-### 2.2 Manual Build
-The tool is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
+#### 2.2.2 Build from Source
+x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
 ```bash
+git clone https://github.com/zhangyaoxing/x-ray
+cd x-ray
 make deps # if it's the first time you build the project
 make # equal to `make build` and `make build-lite`
 ```
-The compiled binary is in the folder `./dist/`.
-
-For developers, the `make deps` will be enough to prepare the environment for running in the IDE.
-
-You can also build the tool with AI modules for log analysis. For more details refer to: [Build with AI Support](https://github.com/zhangyaoxing/x-ray/wiki/Build-with-AI-Support).
 
 There are other make targets. Use `make help` to find out.
 
-For Windows users, `make` command is not available. You can use Python commands to build the binary:
+You can also build the tool with AI modules for log analysis. For more details refer to: [Build with AI Support](https://github.com/zhangyaoxing/x-ray/wiki/Build-with-AI-Support).
+
+For Windows users, if `make` command is not available. You can use Python commands to build the binary:
 ```powershell
 python.exe -m venv .venv
 .venv\Scripts\python.exe -m pip install --upgrade pip
@@ -58,6 +72,18 @@ python.exe -m venv .venv
   --icon="misc/x-ray.ico" `
   --hidden-import=openai `
   x-ray
+```
+
+#### 2.3 For Developers
+For developers, use `make deps` to prepare venv and dependencies
+```bash
+make deps
+```
+Or
+```bash
+python3 -m venv .venv
+python3 -m pip install --upgrade pip
+python3 -m pip install -e ".[dev]"
 ```
 
 ## 3 Using the Tool

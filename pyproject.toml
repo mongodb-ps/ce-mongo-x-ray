@@ -3,8 +3,8 @@ requires = ["setuptools==70", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "x-ray"
-version = "1.1.4"
+name = "mongo-x-ray"
+version = "1.2.0"
 description = "MongoDB diagnostics toolkit with health checks and log analysis"
 readme = "README.md"
 requires-python = ">=3.9,<4"
@@ -116,7 +116,7 @@ exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 "libs" = ["config.json", "compatibility_matrix.json"]
 
 [tool.setuptools.data-files]
-templates = ["templates/**/*"]
+templates = ["templates/**/*.html", "templates/**/*.js"]
 
 [tool.black]
 line-length = 120

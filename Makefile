@@ -24,7 +24,7 @@ all: deps test build
 # Install dependencies
 deps:
 	@echo "Creating virtual environment..."
-	python -m venv .venv
+	python3 -m venv .venv
 	@echo "Installing dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -33,7 +33,7 @@ deps:
 # Install AI dependencies (for build-ai)
 deps-ai:
 	@echo "Creating virtual environment..."
-	python -m venv .venv
+	python3 -m venv .venv
 	@echo "Installing AI dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -e ".[dev,ai]"
