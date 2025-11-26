@@ -5,15 +5,18 @@ PROJECT_NAME = x-ray
 
 # Detect OS and set Python path accordingly
 ifeq ($(OS),Windows_NT)
-	PYTHON = .venv\Scripts\python.exe
-	VENV_ACTIVATE = .venv\Scripts\activate
+	# Use forward slashes to be compatible with Git Bash and cmd
+	PYTHON = .venv/Scripts/python.exe
+	VENV_ACTIVATE = .venv/Scripts/activate
 	RM = cmd /C rmdir /S /Q
 	MKDIR = cmd /C mkdir
+	DELIMITER = ;
 else
 	PYTHON = .venv/bin/python
 	VENV_ACTIVATE = source .venv/bin/activate
 	RM = rm -rf
 	MKDIR = mkdir -p
+	DELIMITER = :
 endif
 
 # Default target
@@ -22,19 +25,19 @@ all: deps test build
 # Install dependencies
 deps:
 	@echo "Creating virtual environment..."
-	python -m venv .venv
-	@echo "Installing dependencies..."
+	python3 -m venv .venv
+	@echo "Installing dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-base.txt
+	$(PYTHON) -m pip install -e ".[dev]"
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Install AI dependencies (for build-ai)
 deps-ai:
 	@echo "Creating virtual environment..."
-	python -m venv .venv
-	@echo "Installing AI dependencies..."
+	python3 -m venv .venv
+	@echo "Installing AI dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-ai.txt
+	$(PYTHON) -m pip install -e ".[dev,ai]"
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Build executable (default to lightweight build)
@@ -44,29 +47,25 @@ build: build-lite
 build-lite:
 	@echo "Building lightweight executable (without AI support)..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME) \
-		--add-data="templates:templates" \
-		--add-data="config.json:." \
-		--add-data="libs:libs" \
-		--add-data="compatibility_matrix.json:." \
+		--add-data="templates$(DELIMITER)templates" \
+		--add-data="libs$(DELIMITER)libs" \
 		--icon="misc/x-ray.ico" \
 		--hidden-import=openai \
-		x-ray
+		x_ray.py
 	@echo "\033[32m✓ Lightweight build complete: dist/x-ray\033[0m"
 
 # Build executable with AI support (includes torch, transformers)
 build-ai:
 	@echo "Building full executable (with AI support)..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME)-ai \
-		--add-data="templates:templates" \
-		--add-data="config.json:." \
-		--add-data="libs:libs" \
-		--add-data="compatibility_matrix.json:." \
+		--add-data="templates$(DELIMITER)templates" \
+		--add-data="libs$(DELIMITER)libs" \
 		--hidden-import torch \
 		--hidden-import transformers \
 		--hidden-import transformers.models.qwen2 \
 		--hidden-import tokenizers \
 		--icon="misc/x-ray.ico" \
-		x-ray
+		x_ray.py
 	@echo "\033[32m✓ Full build complete: dist/x-ray-ai\033[0m"
 	@echo "\033[33m⚠ Note: This does NOT include model weights. Models will be downloaded on first use.\033[0m"
 
@@ -79,31 +78,31 @@ test:
 # Run pylint
 lint:
 	@echo "Running pylint..."
-	$(PYTHON) -m pylint libs/ x-ray --rcfile=.pylintrc
+	$(PYTHON) -m pylint libs/ x_ray.py --rcfile=.pylintrc
 	@echo "\033[32m✓ Linting complete!\033[0m"
 
 # Run pylint and show only errors
 check-lint:
 	@echo "Running pylint (errors only)..."
-	$(PYTHON) -m pylint libs/ x-ray --rcfile=.pylintrc --errors-only
+	$(PYTHON) -m pylint libs/ x_ray.py --rcfile=.pylintrc --errors-only
 	@echo "\033[32m✓ No errors found!\033[0m"
 
 # Run flake8 for syntax errors
 flake8:
 	@echo "Running flake8 (syntax errors only)..."
-	$(PYTHON) -m flake8 libs/ x-ray --select=E9,F63,F7,F82 --show-source --statistics
+	$(PYTHON) -m flake8 libs/ x_ray.py --select=E9,F63,F7,F82 --show-source --statistics
 	@echo "\033[32m✓ No syntax errors!\033[0m"
 
 # Format code with black
 format:
 	@echo "Formatting code with black..."
-	$(PYTHON) -m black libs/ x-ray tests/
+	$(PYTHON) -m black libs/ x_ray.py tests/
 	@echo "\033[32m✓ Code formatted!\033[0m"
 
 # Check formatting without making changes
 check-format:
 	@echo "Checking code format..."
-	$(PYTHON) -m black libs/ x-ray tests/ --check
+	$(PYTHON) -m black libs/ x_ray.py tests/ --check
 	@echo "\033[32m✓ Code format is correct!\033[0m"
 
 # Run all quality checks
@@ -134,7 +133,7 @@ help:
 	@echo "X-Ray Project Makefile"
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make deps         - Install all dependencies including virtual environment setup"
+	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
 	@echo "  make build        - Build executable (default: lightweight version without AI)"
 	@echo "  make build-lite   - Build lightweight executable without AI support (~15MB)"
 	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"

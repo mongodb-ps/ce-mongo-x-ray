@@ -1,7 +1,8 @@
 """Build Info Check Item Module. Used to check MongoDB server build information."""
 
 from libs.healthcheck.check_items.base_item import BaseItem
-from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, SEVERITY, discover_nodes, enum_all_nodes, enum_result_items
+from libs.healthcheck.rules.version_eol_rule import VersionEOLRule
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import yellow
 from libs.version import Version
 
@@ -12,6 +13,7 @@ class BuildInfoItem(BaseItem):
         self._name = "Build Information"
         self._description = "Collects & review server build information.\n\n"
         self._description += "- Whether the server is running a supported version.\n"
+        self._version_eol_rule = VersionEOLRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -29,20 +31,10 @@ class BuildInfoItem(BaseItem):
                 return None, None
             client = node["client"]
             raw_result = client.admin.command("buildInfo")
-            test_result = []
-            eol_version = Version(self._config.get("eol_version", [4, 4, 0]))
+            test_result, _ = self._version_eol_rule.apply(raw_result, extra_info={"host": host})
             running_version = Version(raw_result.get("versionArray", None))
-            if running_version < eol_version:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": "Server Version EOL",
-                        "description": f"Server version {running_version} is below EOL version {eol_version}. Consider upgrading to the latest version.",
-                    }
-                )
-            self.append_test_results(test_result)
             node["version"] = running_version
+            self.append_test_results(test_result)
 
             return test_result, raw_result
 

@@ -23,7 +23,11 @@ if level not in levels:
 log_level = levels[level]
 logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
-logger.info("Using log level: %s", level)
+logger.debug("Using log level: %s", level)
+
+BUILDIN_CONFIG_PATH = "libs/config.json"
+
+BUILDIN_CONFIG_PATH = "libs/config.json"
 
 
 # The script can be started from other working folder. E.g. Invoked by a cron job.
@@ -50,31 +54,23 @@ def _load_config():
     # Use a mutable container to hold cached config to avoid nonlocal assignment warnings.
     config = None
 
-    def func(config_path="config.json"):
+    def func(config_path):
         nonlocal config
         if config is None:
             try:
-                # First try to load from the path provided by the user
-                if os.path.isfile(config_path):
-                    with open(config_path, "r", encoding="utf-8") as f:
-                        config = json.load(f)
-                    logger.info("Loaded config from user-provided path: %s", config_path)
-                    return config
-
-                # Then try to load from the script path
-                script_config_path = get_script_path(config_path)
-                if os.path.isfile(script_config_path):
+                if config_path is None:
+                    # No config given. Try to load the built-in config
+                    config_path = BUILDIN_CONFIG_PATH
+                    script_config_path = get_script_path(config_path)
                     with open(script_config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
                     logger.info("Loaded config from script path: %s", script_config_path)
                     return config
-
-                # Finally, try current working directory
-                cwd_config_path = os.path.join(os.getcwd(), config_path)
-                if os.path.isfile(cwd_config_path):
-                    with open(cwd_config_path, "r", encoding="utf-8") as f:
+                elif os.path.isfile(config_path):
+                    # Try to load from the path provided by the user
+                    with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
-                    logger.info("Loaded config from current directory: %s", cwd_config_path)
+                    logger.info("Loaded config from user-provided path: %s", config_path)
                     return config
 
                 # If all fails, raise an error

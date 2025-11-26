@@ -1,6 +1,9 @@
 from time import sleep
 from libs.healthcheck.check_items.base_item import BaseItem
-from libs.healthcheck.shared import SEVERITY, MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
+from libs.healthcheck.rules.cache_rule import CacheRule
+from libs.healthcheck.rules.connections_rule import ConnectionsRule
+from libs.healthcheck.rules.query_targeting_rule import QueryTargetingRule
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import format_size, escape_markdown, green, yellow
 
 SERVER_STATUS_INTERVAL = 5
@@ -14,65 +17,12 @@ class ServerStatusItem(BaseItem):
         self._description += "- Whether used/total connection ratio is too high.\n"
         self._description += "- Whether query targeting is poor.\n"
         self._description += "- Whether the cache read into rate is too high.\n"
-
-    def _check_connections(self, host, server_status):
-        """
-        Check the connections metrics.
-        """
-        test_result = []
-        connections = server_status.get("connections", {})
-        used_connection_ratio = self._config.get("used_connection_ratio", 0.8)
-        available = connections.get("available", 0)
-        current = connections.get("current", 0)
-        total = available + current
-        if current / total > used_connection_ratio:
-            test_result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": "High Connection Usage",
-                    "description": f"Current connections (`{current}`) exceed `{used_connection_ratio * 100:.2f}%` of total connections (`{total}`).",
-                }
-            )
-
-        return test_result, connections
-
-    def _check_query_targeting(self, host, server_status):
-        """
-        Check query targeting metrics.
-        """
-        test_result = []
-        query_executor = server_status["metrics"].get("queryExecutor", {})
-        document = server_status["metrics"].get("document", {})
-        scanned_returned = (query_executor["scanned"] / document["returned"]) if document["returned"] > 0 else 0
-        scanned_obj_returned = (
-            (query_executor["scannedObjects"] / document["returned"]) if document["returned"] > 0 else 0
-        )
-        query_targeting = self._config.get("query_targeting", {})
-        query_targeting_obj = self._config.get("query_targeting_obj", {})
-        if scanned_returned > query_targeting:
-            test_result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": "Poor Query Targeting",
-                    "description": f"Scanned/Returned ratio `{scanned_returned:.2f}` exceeds the threshold `{query_targeting}`.",
-                }
-            )
-        if scanned_obj_returned > query_targeting_obj:
-            test_result.append(
-                {
-                    "host": host,
-                    "severity": SEVERITY.HIGH,
-                    "title": "Poor Query Targeting",
-                    "description": f"Scanned Objects/Returned ratio `{scanned_obj_returned:.2f}` exceeds the threshold `{query_targeting_obj}`.",
-                }
-            )
-
-        return test_result, {"scanned/returned": scanned_returned, "scanned_obj/returned": scanned_obj_returned}
-
-    def _check_cache(self, host, ss1, ss2):
-        pass
+        self._description += "- Whether updates ratio is too high.\n"
+        self._description += "- Whether dirty data ratio is too high.\n"
+        self._description += "- Whether cache fill ratio is too high.\n"
+        self._query_targeting_rule = QueryTargetingRule(config)
+        self._connections_rule = ConnectionsRule(config)
+        self._cache_rule = CacheRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -88,9 +38,11 @@ class ServerStatusItem(BaseItem):
 
         def func_2nd_req(set_name, node, server_status):
             host = node["host"]
-            test_result1, raw_result1 = self._check_connections(host, server_status)
+            test_result1, raw_result1 = self._connections_rule.apply(server_status, extra_info={"host": host})
             test_result2, raw_result2 = (
-                self._check_query_targeting(host, server_status) if set_name != "mongos" else ([], None)
+                self._query_targeting_rule.apply(server_status, extra_info={"host": host})
+                if set_name != "mongos"
+                else ([], None)
             )
             test_result = test_result1 + test_result2
             self.append_test_results(test_result)
@@ -142,7 +94,6 @@ class ServerStatusItem(BaseItem):
 
         # These metrics needs to compare 2 `serverStatus` results
         cache = {}
-        read_into_threshold = self._config.get("cache_read_into_mb", 100)
 
         def func_data_member(set_name, node, **kwargs):
             raw_result = node.get("rawResult", {})
@@ -158,41 +109,19 @@ class ServerStatusItem(BaseItem):
                 }
                 return
 
-            wt = raw_result["server_status"]["wiredTiger"]
             if host not in cache:
                 # Enumerating result1
-                cache[host] = {
-                    "readInto": wt["cache"]["bytes read into cache"],
-                    "writtenFrom": wt["cache"]["bytes written from cache"],
-                    "uptimeMillis": raw_result["server_status"]["uptimeMillis"],
-                }
+                cache[host] = raw_result
             else:
                 # Enumerating result2
-                read_into = wt["cache"]["bytes read into cache"]
-                written_from = wt["cache"]["bytes written from cache"]
-                uptime = raw_result["server_status"]["uptimeMillis"]
-                interval = (uptime - cache[host]["uptimeMillis"]) / 1000
-                cache[host] = {
-                    "cacheSize": wt["cache"]["maximum bytes configured"],
-                    "inCacheSize": wt["cache"]["bytes currently in the cache"],
-                    "readInto": (read_into - cache[host]["readInto"]) / interval,
-                    "writtenFrom": (written_from - cache[host]["writtenFrom"]) / interval,
-                    "uptimeMillis": (uptime - cache[host]["uptimeMillis"]),
-                }
-                test_result = []
-                if cache[host]["readInto"] >= read_into_threshold * 1024 * 1024:
-                    test_result.append(
-                        {
-                            "host": host,
-                            "severity": SEVERITY.MEDIUM,
-                            "title": "High Swapping",
-                            "description": f"Read into cache rate `{format_size(cache[host]['readInto'])}/s` exceeds the threshold `{format_size(read_into_threshold * 1024 * 1024)}/s`. This usually indicates insufficient cache size or suboptimal indexes.",
-                        }
-                    )
+                test_result, parsed_data = self._cache_rule.apply(
+                    raw_result["server_status"],
+                    extra_info={"host": host, "server_status": cache[host]["server_status"]},
+                )
                 self.append_test_results(test_result)
                 # Attach the test result and raw result to the original result.
                 node["testResult"].extend(test_result)
-                node["rawResult"]["cache"] = cache[host]
+                node["rawResult"]["cache"] = parsed_data
 
         enum_result_items(
             result1,
@@ -451,6 +380,8 @@ class ServerStatusItem(BaseItem):
                     "cacheSize": 0,
                     "inCacheSize": 0,
                     "readInto": 0,
+                    "forUpdates": 0,
+                    "dirty": 0,
                     "writtenFrom": 0,
                 }
                 return
@@ -469,6 +400,8 @@ class ServerStatusItem(BaseItem):
                 "cacheSize": cache.get("cacheSize", 0),
                 "inCacheSize": cache.get("inCacheSize", 0),
                 "readInto": cache.get("readInto", 0),
+                "forUpdates": cache.get("forUpdates", 0),
+                "dirty": cache.get("dirty", 0),
                 "writtenFrom": cache.get("writtenFrom", 0),
             }
             cache_sizes.append(cache.get("cacheSize", 0))

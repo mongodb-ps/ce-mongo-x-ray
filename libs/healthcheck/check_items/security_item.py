@@ -3,14 +3,9 @@ This module defines a checklist item for collecting and reviewing security-relat
 """
 
 from libs.healthcheck.check_items.base_item import BaseItem
-from libs.healthcheck.shared import (
-    MAX_MONGOS_PING_LATENCY,
-    discover_nodes,
-    enum_all_nodes,
-    enum_result_items,
-    SEVERITY,
-)
+from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import yellow, escape_markdown
+from libs.healthcheck.rules.security_rule import SecurityRule
 
 
 class SecurityItem(BaseItem):
@@ -24,7 +19,8 @@ class SecurityItem(BaseItem):
         self._description += "- Whether the bind IP is too permissive.\n"
         self._description += "- Whether the default port is used.\n"
         self._description += "- Whether auditing is enabled.\n"
-        self._description += "- Whether encryption at rest is enabled.\n"
+        self._description += "- Whether encryption at rest is enabled and properly configured.\n"
+        self._security_rule = SecurityRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -43,83 +39,7 @@ class SecurityItem(BaseItem):
                 )
                 return None, None
             raw_result = client.admin.command("getCmdLineOpts")
-            test_result = []
-
-            # Check for security settings
-            parsed = raw_result.get("parsed", {})
-            security_settings = parsed.get("security", {})
-            net = parsed.get("net", {})
-            audit_log = parsed.get("auditLog", {})
-            authorization = security_settings.get("authorization", None)
-            redact_logs = security_settings.get("redactClientLogData", None)
-            bind_ip = net.get("bindIp", "127.0.0.1")
-            port = net.get("port", None)
-            tls_enabled = net.get("tls", {}).get("mode", None)
-            audit = "enabled" if audit_log.get("destination", None) is not None else "disabled"
-            if authorization != "enabled":
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": "Authorization Disabled",
-                        "description": "Authorization is disabled, which may lead to unauthorized access.",
-                    }
-                )
-            if not redact_logs:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "Log Redaction Disabled",
-                        "description": "Redaction of log is disabled, which may lead to sensitive information exposure.",
-                    }
-                )
-            if tls_enabled is None:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": "TLS Disabled",
-                        "description": "TLS is disabled, which may lead to unencrypted connections.",
-                    }
-                )
-            elif tls_enabled != "requireTLS":
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.MEDIUM,
-                        "title": "Optional TLS",
-                        "description": f"TLS is enabled but not set to `requireTLS`, current mode is `{tls_enabled}`.",
-                    }
-                )
-            if bind_ip == "0.0.0.0":
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Unrestricted Bind IP",
-                        "description": "Bind IP is set to `0.0.0.0`. Your service may be exposed to the internet. Make sure to restrict it to specific IP addresses.",
-                    }
-                )
-            if port == 27017:
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.LOW,
-                        "title": "Default Port Used",
-                        "description": "Default port `27017` is used. Make sure to restrict access to this port.",
-                    }
-                )
-
-            if audit == "disabled":
-                test_result.append(
-                    {
-                        "host": host,
-                        "severity": SEVERITY.HIGH,
-                        "title": "Auditing Disabled",
-                        "description": "Auditing is disabled, which may lead to unmonitored access.",
-                    }
-                )
+            test_result, _ = self._security_rule.apply(raw_result, extra_info={"host": host})
             self.append_test_results(test_result)
 
             return test_result, raw_result

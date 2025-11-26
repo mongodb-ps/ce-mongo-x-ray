@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import logging
 import gzip
 import os
@@ -24,7 +24,7 @@ TABLE_ALIGNMENT = {
 }
 
 
-class BaseItem:
+class BaseItem(ABC):
     _name: str
     _description: str
     _test_result: list

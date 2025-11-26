@@ -7,7 +7,7 @@
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
                 "libs/",
-                "x-ray",
+                "x_ray.py",
                 "--rcfile=${workspaceFolder}/.pylintrc"
             ],
             "problemMatcher": {
@@ -40,7 +40,7 @@
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
                 "libs/",
-                "x-ray",
+                "x_ray.py",
                 "--rcfile=${workspaceFolder}/.pylintrc",
                 "--errors-only"
             ],
