@@ -116,7 +116,8 @@ exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 "libs" = ["config.json", "compatibility_matrix.json"]
 
 [tool.setuptools.data-files]
-templates = ["templates/**/*"]
+# Only include actual files (avoid directories) to prevent wheel build errors
+templates = ["templates/**/*.html", "templates/**/*.js"]
 
 [tool.black]
 line-length = 120
