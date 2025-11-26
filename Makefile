@@ -25,18 +25,18 @@ all: deps test build
 deps:
 	@echo "Creating virtual environment..."
 	python -m venv .venv
-	@echo "Installing dependencies..."
+	@echo "Installing dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-base.txt
+	$(PYTHON) -m pip install -e ".[dev]"
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Install AI dependencies (for build-ai)
 deps-ai:
 	@echo "Creating virtual environment..."
 	python -m venv .venv
-	@echo "Installing AI dependencies..."
+	@echo "Installing AI dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -r requirements-ai.txt
+	$(PYTHON) -m pip install -e ".[dev,ai]"
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Build executable (default to lightweight build)
@@ -132,7 +132,7 @@ help:
 	@echo "X-Ray Project Makefile"
 	@echo ""
 	@echo "Available commands:"
-	@echo "  make deps         - Install all dependencies including virtual environment setup"
+	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
 	@echo "  make build        - Build executable (default: lightweight version without AI)"
 	@echo "  make build-lite   - Build lightweight executable without AI support (~15MB)"
 	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"
