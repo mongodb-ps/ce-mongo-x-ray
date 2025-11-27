@@ -68,6 +68,8 @@ class ISSUE(enum.Enum):
     # Shard Key Issues
     IMPROPER_SHARD_KEY = 1400
     IMBALANCED_SHARDING = 1401
+    # Host Issues
+    HOSTS_DIFFERENT_HARDWARE = 1500
 
 
 ISSUE_MSG_MAP = {
@@ -370,6 +372,12 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.MEDIUM,
         "title": "Imbalanced Sharding",
         "description": "Collection `{ns}` is imbalanced across shards. The size difference between the largest and smallest shard is {size_diff} and is more than {imbalance_percentage:.2f}%.",
+    },
+    ISSUE.HOSTS_DIFFERENT_HARDWARE: {
+        "id": ISSUE.HOSTS_DIFFERENT_HARDWARE,
+        "severity": SEVERITY.LOW,
+        "title": "Hosts with Different Hardware",
+        "description": "The hosts in the `{set_name}` are using different hardware. The ones with less resources may become performance bottlenecks.",
     },
 }
 
