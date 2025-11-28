@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
-This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are built:
+This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are being built:
 - Health check module.
 - Log analysis module.
 - `getMongoData` visualization module (Under construction).
@@ -40,10 +40,10 @@ pip install .
 
 ### 2.2 PyInstaller
 #### 2.2.1 Prebuilt Binaries
-Currently the prebuilt binaries are built on 3 platforms:
-- Ubuntu Latest (AMD64)
-- MacOS Latest (ARM64)
-- Windows Latest (AMD64)
+Currently the prebuilt binaries are available on 3 platforms:
+- Ubuntu 22.04 (AMD64)
+- MacOS 14 (ARM64)
+- Windows 2022 (AMD64)
 
 Download them from [Releases](https://github.com/zhangyaoxing/x-ray/releases).
 
@@ -90,12 +90,12 @@ python3 -m pip install -e ".[dev]"
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log}
 ```
-| Argument         | Description                                                                                    |           Default           |
-| ---------------- | ---------------------------------------------------------------------------------------------- | :-------------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                    |           `false`           |
-| `-h`, `--help`   | Show the help message and exit.                                                                |             n/a             |
-| `-c`, `--config` | Path to configuration file.                                                                    | Built-in `libs/config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis. |            None             |
+| Argument         | Description                                                                                                                        |           Default           |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                                                        |           `false`           |
+| `-h`, `--help`   | Show the help message and exit.                                                                                                    |             n/a             |
+| `-c`, `--config` | Path to configuration file.                                                                                                        | Built-in `libs/config.json` |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `version`: Show version info. |            None             |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
