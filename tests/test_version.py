@@ -14,6 +14,6 @@ def test_version_comparison():
     assert v1 == v5
     assert v4 > v1
     assert v3 >= v2
-    assert v2 <= v3
+    assert v2 <= v4
     assert v1 < "1.2.4"
     assert v3 > [1, 2, 9]
