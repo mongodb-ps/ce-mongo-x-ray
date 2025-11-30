@@ -7,34 +7,28 @@ class Version:
         self.version_array = version_array
 
     def __lt__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array < other.version_array
+        other_version = normalize_version(other)
+        return self.version_array < other_version.version_array
 
     def __le__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array <= other.version_array
+        other_version = normalize_version(other)
+        return self.version_array <= other_version.version_array
 
     def __eq__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array == other.version_array
+        other_version = normalize_version(other)
+        return self.version_array == other_version.version_array
 
     def __ne__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array != other.version_array
+        other_version = normalize_version(other)
+        return self.version_array != other_version.version_array
 
     def __gt__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array > other.version_array
+        other_version = normalize_version(other)
+        return self.version_array > other_version.version_array
 
     def __ge__(self, other):
-        if not isinstance(other, Version):
-            return NotImplemented
-        return self.version_array >= other.version_array
+        other_version = normalize_version(other)
+        return self.version_array >= other_version.version_array
 
     def __str__(self):
         # Only output first 3 parts
@@ -92,3 +86,30 @@ class Version:
             except ValueError:
                 version_array.append(0)
         return Version(version_array)
+
+
+def normalize_version(version):
+    """Normalize version to a Version object.
+
+    Args:
+        version: Can be a string, array or a Version object
+
+    Returns:
+        Version: A Version object
+
+    Example:
+        >>> normalize_version("4.4.0")
+        Version([4, 4, 0, 0])
+        >>> normalize_version([4, 4, 0, 0])
+        Version([4, 4, 0, 0])
+        >>> normalize_version(Version([4, 4, 0, 0]))
+        Version([4, 4, 0, 0])
+    """
+    if isinstance(version, Version):
+        return version
+    elif isinstance(version, str):
+        return Version.parse(version)
+    elif isinstance(version, list):
+        return Version(version)
+    else:
+        raise ValueError("Invalid version type")
