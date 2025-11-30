@@ -11,6 +11,7 @@ class HostInfoItem(BaseItem):
         self._name = "Host Information"
         self._description = "Collects and reviews host hardware and OS information.  \n"
         self._description += "- Whether the hosts are using the same hardware.\n\n"
+        self._description += "- Whether NUMA is enabled on the hosts.\n"
         self._host_info_rule = HostInfoRule(config)
         self._numa_rule = NumaRule(config)
 
