@@ -1,5 +1,6 @@
 from libs.healthcheck.check_items.base_item import BaseItem
 from libs.healthcheck.rules.host_info_rule import HostInfoRule
+from libs.healthcheck.rules.numa_rule import NumaRule
 from libs.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from libs.utils import yellow, format_size
 
@@ -11,6 +12,7 @@ class HostInfoItem(BaseItem):
         self._description = "Collects and reviews host hardware and OS information.  \n"
         self._description += "- Whether the hosts are using the same hardware.\n\n"
         self._host_info_rule = HostInfoRule(config)
+        self._numa_rule = NumaRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -24,6 +26,7 @@ class HostInfoItem(BaseItem):
 
         def func_single(name, node, **kwargs):
             client = node["client"]
+            version = node.get("version", None)
             if "pingLatencySec" in node and node["pingLatencySec"] > MAX_MONGOS_PING_LATENCY:
                 self._logger.warning(
                     yellow(
@@ -32,10 +35,11 @@ class HostInfoItem(BaseItem):
                 )
                 return None, None
             host_info = client.admin.command("hostInfo")
+            test_result, _ = self._numa_rule.apply([host_info], extra_info={"host": node["host"], "version": version})
             if name not in host_infos:
                 host_infos[name] = []
             host_infos[name].append(host_info)
-            return None, host_info
+            return test_result, host_info
 
         result = enum_all_nodes(
             nodes,
