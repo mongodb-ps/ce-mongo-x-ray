@@ -36,7 +36,7 @@ class HostInfoItem(BaseItem):
                 )
                 return None, None
             host_info = client.admin.command("hostInfo")
-            test_result, _ = self._numa_rule.apply([host_info], extra_info={"host": node["host"], "version": version})
+            test_result, _ = self._numa_rule.apply(host_info, extra_info={"host": node["host"], "version": version})
             if name not in host_infos:
                 host_infos[name] = []
             host_infos[name].append(host_info)
