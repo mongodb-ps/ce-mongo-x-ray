@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mongo-x-ray"
-version = "1.2.0"
+version = "1.2.1"
 description = "MongoDB diagnostics toolkit with health checks and log analysis"
 readme = "README.md"
 requires-python = ">=3.9,<4"
@@ -96,9 +96,9 @@ ai = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/zhangyaoxing/x-ray"
-Repository = "https://github.com/zhangyaoxing/x-ray"
-Issues = "https://github.com/zhangyaoxing/x-ray/issues"
+Homepage = "https://github.com/mongodb-ps/ce-mongo-x-ray"
+Repository = "https://github.com/mongodb-ps/ce-mongo-x-ray"
+Issues = "https://github.com/mongodb-ps/ce-mongo-x-ray/issues"
 
 [tool.setuptools]
 include-package-data = true
