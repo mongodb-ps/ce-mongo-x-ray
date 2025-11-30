@@ -68,6 +68,10 @@ class ISSUE(enum.Enum):
     # Shard Key Issues
     IMPROPER_SHARD_KEY = 1400
     IMBALANCED_SHARDING = 1401
+    # Host Issues
+    HOSTS_DIFFERENT_HARDWARE = 1500
+    NUMA_ENABLED = 1501
+    NUMA_DISABLED = 1502
 
 
 ISSUE_MSG_MAP = {
@@ -370,6 +374,24 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.MEDIUM,
         "title": "Imbalanced Sharding",
         "description": "Collection `{ns}` is imbalanced across shards. The size difference between the largest and smallest shard is {size_diff} and is more than {imbalance_percentage:.2f}%.",
+    },
+    ISSUE.HOSTS_DIFFERENT_HARDWARE: {
+        "id": ISSUE.HOSTS_DIFFERENT_HARDWARE,
+        "severity": SEVERITY.LOW,
+        "title": "Hosts with Different Hardware",
+        "description": "The hosts in the `{set_name}` are using different hardware. The ones with less resources may become performance bottlenecks.",
+    },
+    ISSUE.NUMA_ENABLED: {
+        "id": ISSUE.NUMA_ENABLED,
+        "severity": SEVERITY.HIGH,
+        "title": "NUMA Enabled",
+        "description": "NUMA is enabled on host `{host}` (MongoDB `{version}`). It is recommended to disable NUMA for database servers running MongoDB <= 7.0 to avoid potential performance issues.",
+    },
+    ISSUE.NUMA_DISABLED: {
+        "id": ISSUE.NUMA_DISABLED,
+        "severity": SEVERITY.LOW,
+        "title": "NUMA Disabled",
+        "description": "NUMA is disabled on host `{host}` (MongoDB `{version}`). It is recommended to enable NUMA for database servers running MongoDB >= 8.0 to improve performance.",
     },
 }
 

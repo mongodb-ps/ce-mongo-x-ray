@@ -19,7 +19,7 @@
             "name": "App: X-Ray-HC",
             "type": "debugpy",
             "request": "launch",
-            "program": "x-ray",
+            "program": "x_ray.py",
             "console": "integratedTerminal",
             "args": [
                 "-c",
@@ -39,7 +39,7 @@
             "name": "App: X-Ray-LOG",
             "type": "debugpy",
             "request": "launch",
-            "program": "x-ray",
+            "program": "x_ray.py",
             "console": "integratedTerminal",
             "args": [
                 "-c",
