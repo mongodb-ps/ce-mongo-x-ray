@@ -1,15 +1,15 @@
 """Utility functions and classes for the X-Ray project."""
 
-import importlib
+from importlib import import_module
+from importlib.resources import files
 import os
 import json
 import logging
 import pkgutil
 import re
 import hashlib
+import sys
 from enum import Enum
-from inspect import getsourcefile
-from os.path import abspath, dirname
 from pathlib import Path
 from bson import json_util
 from x_ray.version import Version
@@ -25,29 +25,29 @@ logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 logger.debug("Using log level: %s", level)
 
-BUILDIN_CONFIG_PATH = "libs/config.json"
-
-BUILDIN_CONFIG_PATH = "libs/config.json"
+BUILDIN_CONFIG_PATH = "config.json"
 
 
 # The script can be started from other working folder. E.g. Invoked by a cron job.
 # This function gives you the base path of the script.
 # If `filename` is provided then the path include the file. Otherwise it's the folder.
 def get_script_path(filename=None):
-    import sys
-
     # Check if running in a PyInstaller bundle
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         # Running in a PyInstaller bundle
         base_path = sys._MEIPASS
-    else:
-        # Running in a normal Python environment
-        script_folder = Path(dirname(abspath(getsourcefile(lambda: 0))))
-        base_path = str((script_folder / "..").resolve())
+        if filename is None:
+            return base_path
+        return str(Path(base_path) / filename)
 
+    # Running in normal Python environment - use importlib.resources
     if filename is None:
-        return base_path
-    return str(Path(base_path) / filename)
+        # Return package directory
+        return str(files("x_ray"))
+
+    # Return specific file path
+    resource_path = files("x_ray") / filename
+    return str(resource_path)
 
 
 def _load_config():
@@ -59,12 +59,9 @@ def _load_config():
         if config is None:
             try:
                 if config_path is None:
-                    # No config given. Try to load the built-in config
-                    config_path = BUILDIN_CONFIG_PATH
-                    script_config_path = get_script_path(config_path)
-                    with open(script_config_path, "r", encoding="utf-8") as f:
-                        config = json.load(f)
-                    logger.info("Loaded config from script path: %s", script_config_path)
+                    resource = files("x_ray") / BUILDIN_CONFIG_PATH
+                    config = json.loads(resource.read_text(encoding="utf-8"))
+                    logger.info("Loaded built-in config: %s", BUILDIN_CONFIG_PATH)
                     return config
                 elif os.path.isfile(config_path):
                     # Try to load from the path provided by the user
@@ -109,11 +106,11 @@ def tooltip_html(full, truncated) -> str:
     return html
 
 
-def load_classes(package_name="libs.log_analysis.log_items"):
+def load_classes(package_name="x_ray.log_analysis.log_items"):
     class_map = {}
-    package = importlib.import_module(package_name)
+    package = import_module(package_name)
     for _, module_name, _ in pkgutil.iter_modules(package.__path__):
-        module = importlib.import_module(f"{package_name}.{module_name}")
+        module = import_module(f"{package_name}.{module_name}")
         for attr in dir(module):
             obj = getattr(module, attr)
             if isinstance(obj, type):

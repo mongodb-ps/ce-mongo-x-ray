@@ -1,6 +1,7 @@
 """Client Metadata Log Item checks for client metadata in the log."""
 
 from re import search, split
+from importlib.resources import files
 import json
 from bson import json_util
 from x_ray.log_analysis.log_items.base_item import BaseItem
@@ -15,7 +16,7 @@ from x_ray.utils import (
 )
 from x_ray.version import Version
 
-COMPATIBILITY_MATRIX_JSON = "libs/compatibility_matrix.json"
+COMPATIBILITY_MATRIX_JSON = files("x_ray") / "compatibility_matrix.json"
 
 
 class ClientMetaItem(BaseItem):

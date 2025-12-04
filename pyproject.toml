@@ -44,6 +44,7 @@ dependencies = [
   "idna==3.11",
   "sniffio==1.3.1",
   "anyio==4.11.0",
+  "importlib==1.0.4",
 ]
 
 [project.optional-dependencies]
@@ -102,21 +103,22 @@ Issues = "https://github.com/mongodb-ps/ce-mongo-x-ray/issues"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = ["x_ray"]
 
 [project.scripts]
 x-ray = "x_ray:main"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["libs*"]
+where = ["src"]
+include = ["x_ray*"]
 exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 
 [tool.setuptools.package-data]
-"libs" = ["config.json", "compatibility_matrix.json"]
-
-[tool.setuptools.data-files]
-templates = ["templates/**/*.html", "templates/**/*.js"]
+"x_ray" = [
+  "config.json",
+  "compatibility_matrix.json",
+  "templates/**/*.html",
+  "templates/**/*.js",
+]
 
 [tool.black]
 line-length = 120

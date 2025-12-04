@@ -1,7 +1,12 @@
+from importlib.resources import files
+from x_ray.utils import load_classes
+
+
 def test_load_config():
     from x_ray.utils import load_config
 
-    config = load_config("libs/config.json")
+    config_file = files("x_ray") / "config.json"
+    config = load_config(config_file)
     assert "log" in config
     assert "healthcheck" in config
 
@@ -25,9 +30,7 @@ def test_tooltip_html():
 
 
 def test_load_classes():
-    from x_ray.utils import load_classes
-
-    classes = load_classes("libs.log_analysis.log_items")
+    classes = load_classes("x_ray.log_analysis.log_items")
     assert "SlowChartItem" in classes
     assert "WEFItem" in classes
 

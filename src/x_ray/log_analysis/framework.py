@@ -9,7 +9,7 @@ from x_ray.healthcheck.shared import to_json
 from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, env
 
 logger = logging.getLogger(__name__)
-LOG_CLASSES = load_classes("libs.log_analysis.log_items")
+LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")
 
 
 class Framework:

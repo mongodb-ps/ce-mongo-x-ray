@@ -1,5 +1,6 @@
 import json
 from bson import json_util
+from importlib.resources import files
 from x_ray.log_analysis.log_items.client_meta_item import (
     ClientMetaItem,
     parse_version_from_log,

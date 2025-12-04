@@ -43,7 +43,7 @@ For more information on specific commands, use:
     parser.add_argument(
         "-c",
         "--config",
-        help='Path to configuration file. Defaults to "libs/config.json".',
+        help='Path to configuration file. Defaults to "config.json".',
         type=str,
         default=None,
     )

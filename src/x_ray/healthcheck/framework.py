@@ -12,7 +12,7 @@ import markdown
 from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.utils import load_classes, get_script_path, yellow, bold, green, env
 
-CHECKLIST_CLASSES = load_classes("libs.healthcheck.check_items")
+CHECKLIST_CLASSES = load_classes("x_ray.healthcheck.check_items")
 
 
 class Framework:

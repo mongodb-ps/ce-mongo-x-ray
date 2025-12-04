@@ -78,13 +78,13 @@ test:
 # Run pylint
 lint:
 	@echo "Running pylint..."
-	$(PYTHON) -m pylint libs/ x_ray.py --rcfile=.pylintrc
+	$(PYTHON) -m pylint src/x_ray/ --rcfile=.pylintrc
 	@echo "\033[32m✓ Linting complete!\033[0m"
 
 # Run pylint and show only errors
 check-lint:
 	@echo "Running pylint (errors only)..."
-	$(PYTHON) -m pylint libs/ x_ray.py --rcfile=.pylintrc --errors-only
+	$(PYTHON) -m pylint src/x_ray/ --rcfile=.pylintrc --errors-only
 	@echo "\033[32m✓ No errors found!\033[0m"
 
 # Run flake8 for syntax errors

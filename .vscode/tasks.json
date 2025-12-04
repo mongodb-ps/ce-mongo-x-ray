@@ -6,8 +6,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
-                "libs/",
-                "x_ray.py",
+                "src/x_ray/",
                 "--rcfile=${workspaceFolder}/.pylintrc"
             ],
             "problemMatcher": {
@@ -39,8 +38,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
-                "libs/",
-                "x_ray.py",
+                "src/x_ray/",
                 "--rcfile=${workspaceFolder}/.pylintrc",
                 "--errors-only"
             ],
