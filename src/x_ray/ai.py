@@ -1,12 +1,13 @@
 """AI-related functions for analyzing MongoDB log lines."""
 
 import logging
+import os
 from openai import OpenAI
 from x_ray.utils import green, ai_key
 
 MODEL_NAME = "Qwen/Qwen2.5-0.5B-Instruct"
 MAX_NEW_TOKENS = 256
-GPT_MODEL = "gpt-5"
+GPT_MODEL = "gpt-4o-mini"  # Use gpt-4o-mini for faster and cheaper responses
 
 logger = logging.getLogger(__name__)
 
@@ -62,14 +63,32 @@ def analyze_log_line_local(log_line, tokenizer, model, gen_config):
 
 
 def analyze_log_line_gpt(log_line):
+    """Analyze a MongoDB log line using OpenAI GPT API."""
     if ai_key == "":
         logger.warning("No AI API key found. Skipping AI analysis.")
         return ""
 
-    client = OpenAI()
-    prompt = f"Analyze this MongoDB log line and give me the shortest answer: {str(log_line)}"
-    response = client.responses.create(
-        model=GPT_MODEL,
-        input=prompt,
+    # Support custom base_url for Azure OpenAI or other services
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    client = OpenAI(
+        api_key=ai_key,
+        base_url=base_url if base_url else None,
     )
-    return response.output_text
+
+    try:
+        response = client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a MongoDB expert. Analyze log messages and provide concise insights.",
+                },
+                {"role": "user", "content": str(log_line)},
+            ],
+            max_tokens=MAX_NEW_TOKENS,
+            temperature=0.3,  # Lower temperature for more focused responses
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error("Failed to analyze log line with GPT: %s", e)
+        return ""
