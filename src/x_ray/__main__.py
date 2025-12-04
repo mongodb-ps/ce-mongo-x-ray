@@ -47,8 +47,14 @@ For more information on specific commands, use:
         type=str,
         default=None,
     )
-
-    subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=True)
+    parser.add_argument(
+        "-v",
+        "--version",
+        help="Show the version of x-ray and exit.",
+        action="store_true",
+        default=False,
+    )
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=False)
 
     # Health check module
     hc_description = """
@@ -159,11 +165,6 @@ For more information on specific commands, use:
     )
     log_parser.add_argument("--top", help="Top N slow queries. Defaults to 10.", type=int, default=10)
 
-    subparsers.add_parser(
-        "version",
-        help="Show the current version of x-ray",
-    )
-
     return parser
 
 
@@ -237,6 +238,14 @@ def main():
     parser = setup_parser()
     args = parser.parse_args()
 
+    # Handle --version flag
+    if "version" in args and args.version:
+        return version_command(args)
+
+    # Require command if --version not specified
+    if not args.command:
+        parser.error("the following arguments are required: command")
+
     if args.quiet:
         logger.setLevel(logging.FATAL)
 
@@ -244,8 +253,6 @@ def main():
         return health_check_command(args)
     if args.command == "log":
         return log_analysis_command(args)
-    if args.command == "version":
-        return version_command(args)
     logger.error("Unknown command: %s", args.command)
     return 1
 

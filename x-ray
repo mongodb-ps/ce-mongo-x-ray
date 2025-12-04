@@ -4,9 +4,15 @@
 
 set -euo pipefail
 
+# Get script directory to set PYTHONPATH
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Add src directory to PYTHONPATH for development/source execution
+export PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH:-}"
+
 # Prefer project local virtual environment if available.
-if [[ -d ".venv" && -x ".venv/bin/python" ]]; then
-  PY=".venv/bin/python"
+if [[ -d "${SCRIPT_DIR}/.venv" && -x "${SCRIPT_DIR}/.venv/bin/python" ]]; then
+  PY="${SCRIPT_DIR}/.venv/bin/python"
 elif command -v python3 >/dev/null 2>&1; then
   PY="python3"
 else
