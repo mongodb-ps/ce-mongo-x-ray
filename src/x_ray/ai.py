@@ -54,7 +54,7 @@ def load_model(model_name):
 
 
 def analyze_log_line_local(log_line, tokenizer, model, gen_config):
-    prompt = f"Analyze this MongoDB log message and give me the shortest answer: {str(log_line['msg'])}".strip()
+    prompt = f"Analyze this MongoDB log message and give me the answer in max 200 words: {str(log_line['msg'])}".strip()
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
     outputs = model.generate(**inputs, generation_config=gen_config)
     text = tokenizer.decode(outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True).strip()
@@ -81,7 +81,7 @@ def analyze_log_line_gpt(log_line):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a MongoDB expert. Analyze log messages and provide concise insights.",
+                    "content": "You are a MongoDB export. Analyze MongoDB log messages and tell me the reason in max 200 words.",
                 },
                 {"role": "user", "content": str(log_line)},
             ],
