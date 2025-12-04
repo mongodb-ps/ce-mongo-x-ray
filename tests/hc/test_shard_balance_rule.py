@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.shard_balance_rule import ShardBalanceRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.shard_balance_rule import ShardBalanceRule
 
 DATA_IMBALANCED_SHARDING = {
     "ns": "foo.bar1",

@@ -11,9 +11,9 @@ from getpass import getpass
 from pathlib import Path
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
-from libs.utils import load_config
-from libs.healthcheck.framework import Framework as HealthCheckFramework
-from libs.log_analysis.framework import Framework as LogAnalysisFramework
+from x_ray.utils import load_config
+from x_ray.healthcheck.framework import Framework as HealthCheckFramework
+from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
 
 
 def setup_parser():

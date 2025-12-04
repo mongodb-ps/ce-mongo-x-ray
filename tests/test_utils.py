@@ -1,5 +1,5 @@
 def test_load_config():
-    from libs.utils import load_config
+    from x_ray.utils import load_config
 
     config = load_config("libs/config.json")
     assert "log" in config
@@ -7,7 +7,7 @@ def test_load_config():
 
 
 def test_truncate_content():
-    from libs.utils import truncate_content
+    from x_ray.utils import truncate_content
 
     content = "This is a test log message for truncation."
     truncated = truncate_content(content, max_words=5)
@@ -15,7 +15,7 @@ def test_truncate_content():
 
 
 def test_tooltip_html():
-    from libs.utils import tooltip_html
+    from x_ray.utils import tooltip_html
 
     full = "This is the full content"
     truncated = "This is..."
@@ -25,7 +25,7 @@ def test_tooltip_html():
 
 
 def test_load_classes():
-    from libs.utils import load_classes
+    from x_ray.utils import load_classes
 
     classes = load_classes("libs.log_analysis.log_items")
     assert "SlowChartItem" in classes
@@ -33,7 +33,7 @@ def test_load_classes():
 
 
 def test_format_size():
-    from libs.utils import format_size
+    from x_ray.utils import format_size
 
     assert format_size(1023) == "1023.00 B"
     assert format_size(2048) == "2.00 KB"
@@ -44,7 +44,7 @@ def test_format_size():
 
 
 def test_escape_markdown():
-    from libs.utils import escape_markdown
+    from x_ray.utils import escape_markdown
 
     text = "This_is*some`markdown|text<with>special_chars"
     escaped = escape_markdown(text)
@@ -52,7 +52,7 @@ def test_escape_markdown():
 
 
 def test_format_json_md():
-    from libs.utils import format_json_md
+    from x_ray.utils import format_json_md
 
     data = {"key": "value", "number": 123}
     md = format_json_md(data)
@@ -62,7 +62,7 @@ def test_format_json_md():
 
 
 def test_to_ejson():
-    from libs.utils import to_ejson
+    from x_ray.utils import to_ejson
     from datetime import datetime
     from enum import Enum
 
@@ -89,7 +89,7 @@ def test_to_ejson():
 
 
 def test_json_hash():
-    from libs.utils import json_hash
+    from x_ray.utils import json_hash
 
     data = {"a": 1, "b": 2}
     hash1 = json_hash(data)

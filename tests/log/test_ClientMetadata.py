@@ -1,13 +1,13 @@
 import json
 from bson import json_util
-from libs.log_analysis.log_items.client_meta_item import (
+from x_ray.log_analysis.log_items.client_meta_item import (
     ClientMetaItem,
     parse_version_from_log,
     COMPATIBILITY_MATRIX_JSON,
     is_driver_compatible,
 )
 from tests.log.mocking import gen_mock_write_output
-from libs.version import Version
+from x_ray.version import Version
 
 LOGS = [
     json_util.loads(

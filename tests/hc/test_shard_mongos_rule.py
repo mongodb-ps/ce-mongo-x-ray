@@ -1,8 +1,8 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.shard_mongos_rule import ShardMongosRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
+from x_ray.healthcheck.shared import SEVERITY
 from datetime import datetime, timezone
-from libs.version import Version
+from x_ray.version import Version
 
 MONGOS_IRRESPONSIVE = [
     {

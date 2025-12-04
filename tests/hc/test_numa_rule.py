@@ -1,7 +1,7 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.numa_rule import NumaRule
-from libs.healthcheck.shared import SEVERITY
-from libs.version import Version
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.numa_rule import NumaRule
+from x_ray.healthcheck.shared import SEVERITY
+from x_ray.version import Version
 
 DATA_DISABLED = {"system": {"numaEnabled": False}}
 

@@ -1,4 +1,4 @@
-from libs.version import Version
+from x_ray.version import Version
 
 
 def test_version_comparison():

@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.oplog_window_rule import OplogWindowRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
+from x_ray.healthcheck.shared import SEVERITY
 
 DATA_WITH_SMALL_OPLOG_WINDOW = {
     "serverStatus": {

@@ -1,8 +1,8 @@
 from datetime import datetime
 from bson import json_util
 import pytest
-from libs.healthcheck.shared import SEVERITY, to_json, str_to_md_id, enum_all_nodes, enum_result_items
-from libs.utils import get_script_path
+from x_ray.healthcheck.shared import SEVERITY, to_json, str_to_md_id, enum_all_nodes, enum_result_items
+from x_ray.utils import get_script_path
 
 
 def test_to_json():

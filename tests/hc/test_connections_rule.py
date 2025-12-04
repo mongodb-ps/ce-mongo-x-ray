@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.connections_rule import ConnectionsRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.connections_rule import ConnectionsRule
 
 
 DATA_CONNECTIONS_NORMAL = {

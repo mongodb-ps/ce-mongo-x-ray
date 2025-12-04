@@ -1,0 +1,50 @@
+"""
+Analyze connection rates from log entries.
+"""
+
+from datetime import datetime
+import math
+from x_ray.log_analysis.log_items.base_item import BaseItem
+
+
+class ConnectionRateItem(BaseItem):
+    def __init__(self, output_folder: str, config):
+        super().__init__(output_folder, config, show_reset=True)
+        self._cache = None
+        self.name = "Connection Rate"
+        self.description = "Analyse the rate of connections created and ended over a specified time window."
+
+    def analyze(self, log_line):
+        log_id = log_line.get("id", "")
+        if log_id not in [22943, 22944]:  # Connection accepted/ended
+            return
+        if self._cache is None:
+            self._cache = {}
+        counter = "created" if log_id == 22943 else "ended"
+        time = log_line.get("t")
+        ts = math.floor(time.timestamp())
+        time_min = datetime.fromtimestamp(ts - (ts % 60))
+
+        if self._cache.get("time", None) != time_min:
+            if self._cache != {}:
+                self._write_output()
+            self._cache = {
+                "time": time_min,
+                "created": 0,
+                "ended": 0,
+                "total": 0,
+                "byIp": {},
+            }
+        attr = log_line.get("attr", {})
+        conn_count = attr.get("connectionCount", 1)
+        ip = attr["remote"].split(":")[0] if "remote" in attr else "unknown"
+        self._cache[counter] += 1
+        self._cache["total"] = conn_count
+        if ip not in self._cache["byIp"]:
+            self._cache["byIp"][ip] = {"created": 0, "ended": 0}
+        self._cache["byIp"][ip][counter] += 1
+
+    def review_results_markdown(self, f):
+        super().review_results_markdown(f)
+        f.write(f'<canvas id="canvas_{self.__class__.__name__}" width="400" height="200"></canvas>\n')
+        f.write(f'<canvas id="canvas_{self.__class__.__name__}_byip" width="400" height="200"></canvas>\n')

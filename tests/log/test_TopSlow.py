@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.top_slow_item import TopSlowItem
+from x_ray.log_analysis.log_items.top_slow_item import TopSlowItem
 from tests.log.mocking import gen_mock_write_output
 
 LOGS = [
