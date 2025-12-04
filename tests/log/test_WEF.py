@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.wef_item import WEFItem
+from x_ray.log_analysis.log_items.wef_item import WEFItem
 from tests.log.mocking import gen_mock_write_output
 
 LOGS = [

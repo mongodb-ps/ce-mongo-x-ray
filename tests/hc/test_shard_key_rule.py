@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.shard_key_rule import ShardKeyRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.shard_key_rule import ShardKeyRule
 
 DATA_IMPROPER_SHARD_KEY = {
     "_id": "foo.bar3",

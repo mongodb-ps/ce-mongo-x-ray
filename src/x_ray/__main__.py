@@ -1,0 +1,254 @@
+"""Console entry point module for x-ray CLI.
+
+This mirrors the previous top-level script content and provides a
+`main()` function so packaging can use `[project.scripts] x-ray = "x_ray:main"`.
+"""
+
+import argparse
+import logging
+from importlib.metadata import PackageNotFoundError, version as pkg_version
+from getpass import getpass
+from pathlib import Path
+from pymongo import MongoClient
+from pymongo.uri_parser import parse_uri
+from x_ray.utils import load_config
+from x_ray.healthcheck.framework import Framework as HealthCheckFramework
+from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
+
+
+def setup_parser():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="X-Ray project for MongoDB analysis and diagnostics.",
+        epilog="""
+Examples:
+  x-ray healthcheck mongodb://localhost:27017 -f html
+  x-ray hc -s comprehensive -o /path/to/output/
+  x-ray log /var/log/mongodb/mongod.log -f markdown
+
+For more information on specific commands, use:
+  x-ray healthcheck --help
+  x-ray log --help
+        """,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        help='Quiet mode. Defaults to "false".',
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help='Path to configuration file. Defaults to "config.json".',
+        type=str,
+        default=None,
+    )
+
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=True)
+
+    # Health check module
+    hc_description = """
+    Run comprehensive health checks on MongoDB deployments including replica sets and sharded clusters (Standalone instance is NOT supported!).
+    The results will be output in the format specified (HTML or Markdown).
+    """
+
+    hc_epilog = """
+    Examples:
+      x-ray healthcheck mongodb://localhost:27017
+      x-ray hc mongodb://user:password@mongodb0.example.com:27017/?authSource=admin
+      x-ray hc -s default -f html -o /path/to/output/
+    """
+
+    hc_parser = subparsers.add_parser(
+        "healthcheck",
+        aliases=["hc"],
+        help="Run health checks on MongoDB cluster",
+        description=hc_description,
+        epilog=hc_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    hc_parser.add_argument(
+        "uri",
+        nargs="?",
+        help="MongoDB database URI. If not provided, you will be prompted to enter it.",
+        type=str,
+    )
+    hc_parser.add_argument(
+        "-s",
+        "--checkset",
+        help='Checkset to run. Defaults to "default".',
+        type=str,
+        default="default",
+    )
+    hc_parser.add_argument(
+        "-o",
+        "--output",
+        help='Output folder path. Defaults to "output/".',
+        type=str,
+        default="output/",
+    )
+    hc_parser.add_argument(
+        "-f",
+        "--format",
+        help='Output format (markdown/html). Defaults to "markdown".',
+        type=str,
+        default="html",
+        choices=["markdown", "html"],
+    )
+
+    # Log analysis module
+    log_description = """
+    Analyze MongoDB log files to identify patterns, issues, and optimization opportunities.
+    
+    This command will process MongoDB log files and provide insights including:
+    - Slow query analysis
+    - Error pattern detection
+    - Connection statistics
+    - Operation distribution
+    - Index usage suggestions
+    
+    The analysis will be output in the format specified (HTML or Markdown).
+    """
+
+    log_epilog = """
+    Examples:
+      x-ray log /var/log/mongodb/mongod.log
+      x-ray log /path/to/mongod.log -f html -o /path/to/output/
+    """
+
+    log_parser = subparsers.add_parser(
+        "log",
+        help="Analyze MongoDB log files",
+        description=log_description,
+        epilog=log_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    log_parser.add_argument("log_file", help="Path to the MongoDB log file to analyze")
+    log_parser.add_argument(
+        "-s",
+        "--checkset",
+        help='Checkset to run. Defaults to "default".',
+        type=str,
+        default="default",
+    )
+    log_parser.add_argument(
+        "-o",
+        "--output",
+        help='Output folder path. Defaults to "output/".',
+        type=str,
+        default="output/",
+    )
+    log_parser.add_argument(
+        "-f",
+        "--format",
+        help='Output format (markdown/html). Defaults to "markdown".',
+        type=str,
+        default="html",
+        choices=["markdown", "html"],
+    )
+    log_parser.add_argument(
+        "-r",
+        "--rate",
+        help="Log sampling rate (e.g., 1 for all logs, 0.1 for 10% logs). Defaults to 1.",
+        type=float,
+        default=1.0,
+    )
+    log_parser.add_argument("--top", help="Top N slow queries. Defaults to 10.", type=int, default=10)
+
+    subparsers.add_parser(
+        "version",
+        help="Show the current version of x-ray",
+    )
+
+    return parser
+
+
+logger = logging.getLogger(__name__)
+
+
+def health_check_command(args):
+    """Health check command"""
+    uri = args.uri
+    if uri is None:
+        uri = input("Enter MongoDB URI: ")
+    parsed_uri = parse_uri(uri)
+    if parsed_uri["username"] is None or parsed_uri["password"] is None:
+        username = input("Enter MongoDB username: ")
+        password = getpass("Enter MongoDB password: ")
+        parsed_uri["username"] = username
+        parsed_uri["password"] = password
+        client = MongoClient(uri, username=username, password=password)
+    else:
+        client = MongoClient(uri)
+    try:
+        config = load_config(args.config)["healthcheck"]
+    except FileNotFoundError:
+        logger.error("Config file not found: %s", args.config)
+        logger.info("Please provide a valid path to config.json using the -c/--config argument")
+        return 1
+
+    checkset = args.checkset
+    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
+    framework = HealthCheckFramework(config)
+    framework.run_checks(checkset, client=client, output_folder=output_folder, parsed_uri=parsed_uri)
+    framework.output_results(output_folder=output_folder, fmt=args.format)
+    return 0
+
+
+def log_analysis_command(args):
+    """Log analysis command"""
+    if not Path(args.log_file).is_file():
+        logger.error("Log file not found: %s", args.log_file)
+        return 1
+    logger.info("Analyzing log file: %s", args.log_file)
+    try:
+        config = load_config(args.config)["log"]
+        config["sample_rate"] = args.rate
+        config["item_config"]["TopSlowItem"]["top"] = args.top
+    except FileNotFoundError:
+        logger.error("Config file not found: %s", args.config)
+        logger.info("Please provide a valid path to config.json using the -c/--config argument")
+        return 1
+
+    checkset = args.checkset
+    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
+    framework = LogAnalysisFramework(args.log_file, config)
+    framework.run_logs_analysis(checkset, output_folder=output_folder)
+    framework.output_results(output_folder=output_folder, fmt=args.format)
+    return 0
+
+
+def version_command(_args):
+    """Print current package version"""
+    try:
+        # Distribution name matches [project].name in pyproject.toml
+        print(pkg_version("mongo-x-ray"))
+    except PackageNotFoundError:
+        # Fallback for source tree without installed metadata
+        print("development")
+    return 0
+
+
+def main():
+    parser = setup_parser()
+    args = parser.parse_args()
+
+    if args.quiet:
+        logger.setLevel(logging.FATAL)
+
+    if args.command in ["healthcheck", "hc"]:
+        return health_check_command(args)
+    if args.command == "log":
+        return log_analysis_command(args)
+    if args.command == "version":
+        return version_command(args)
+    logger.error("Unknown command: %s", args.command)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

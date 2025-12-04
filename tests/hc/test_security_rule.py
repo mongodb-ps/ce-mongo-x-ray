@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.security_rule import SecurityRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.security_rule import SecurityRule
 
 DATA_WITH_ISSUES = {
     "parsed": {

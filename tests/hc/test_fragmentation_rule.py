@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.fragmentation_rule import FragmentationRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.fragmentation_rule import FragmentationRule
+from x_ray.healthcheck.shared import SEVERITY
 
 DATA_WITH_HIGH_FRAGMENTATION = {
     "ns": "test.fragmented_collection",

@@ -1,0 +1,98 @@
+from random import randint
+from bson import json_util
+from x_ray.log_analysis.log_items.base_item import BaseItem
+from x_ray.utils import green, bold, yellow, escape_markdown, env
+
+
+class WEFItem(BaseItem):
+    def __init__(self, output_folder, config):
+        super().__init__(output_folder, config)
+        self._cache = {}
+        self.name = "Warning/Error/Fatal Logs"
+        self.description = "Visualize warning, error, and fatal log messages."
+        self._ai_support = self.config.get("ai_support", False)
+
+    def analyze(self, log_line):
+        severity = log_line.get("s", "").lower()
+        if severity not in ["w", "e", "f"]:
+            return
+        timestamp = log_line.get("t", "")
+        msg = log_line.get("msg", "")
+        log_id = log_line.get("id", "")
+        if log_id not in self._cache:
+            self._cache[log_id] = {
+                "id": log_id,
+                "severity": severity,
+                "timestamp": [timestamp],
+                "msg": msg,
+                "sample": log_line,
+            }
+        else:
+            self._cache[log_id]["timestamp"].append(timestamp)
+
+    def finalize_analysis(self):
+        self._cache = list(self._cache.values())
+        cache = self._cache
+
+        # Lazy import AI modules (only if needed)
+        if self._ai_support == "local":
+            try:
+                from x_ray.ai import MODEL_NAME, analyze_log_line_local, load_model
+
+                tokenizer, model, gen_config = load_model(MODEL_NAME)
+                self._logger.info(
+                    "Local AI model (%s) loaded for W/E/F log analysis. This can take a few minutes...",
+                    green(bold(MODEL_NAME)),
+                )
+                for item in cache:
+                    item["ai_analysis"] = analyze_log_line_local(item["sample"], tokenizer, model, gen_config)
+                    self._logger.debug("AI analyzed log: %s", item["id"])
+            except ImportError as e:
+                self._logger.error("AI support enabled but AI libraries not available: %s", e)
+                self._logger.error("Please install AI dependencies or disable AI support in config.json")
+                self._ai_support = False
+        elif self._ai_support == "gpt":
+            try:
+                from x_ray.ai import GPT_MODEL, analyze_log_line_gpt
+
+                if env == "development":
+                    cache = [self._cache[randint(0, len(self._cache) - 1)]] if len(self._cache) > 0 else []
+                    self._logger.info(yellow("Running in development mode. Only process ONE random log entry with AI."))
+                    self._logger.info(yellow(f"Log ID: {cache[0]['id']}"))
+                self._logger.info(
+                    "Using GPT model (%s) for W/E/F log analysis. This can take a few minutes...",
+                    green(bold(GPT_MODEL)),
+                )
+                for item in cache:
+                    item["ai_analysis"] = analyze_log_line_gpt(item["sample"])
+                    self._logger.debug("AI analyzed log: %s", item["id"])
+
+            except ImportError as e:
+                self._logger.error("AI support enabled but AI libraries not available: %s", e)
+                self._logger.error("Please install AI dependencies or disable AI support in config.json")
+                self._ai_support = False
+
+        super().finalize_analysis()
+
+    def review_results_markdown(self, f):
+        super().review_results_markdown(f)
+        f.write('<div id="wef_positioner"></div>\n\n')
+        f.write("|Code|Severity|Message|Count|\n")
+        f.write("|---|---|---|---|\n")
+        rows = []
+        i = 0
+        with open(self._output_file, "r", encoding="utf-8") as data:
+            for line in data:
+                line_json = json_util.loads(line)
+                log_id = line_json.get("id", "Unknown")
+                severity = line_json.get("severity", "Unknown").upper()
+                msg = line_json.get("msg", "")
+                count = len(line_json.get("timestamp", []))
+                rows.append(f"|[{log_id}](#{i})|{severity}|{escape_markdown(msg)}|{count}|\n")
+                i += 1
+        rows = sorted(rows, key=lambda x: x.lower())
+        for row in rows:
+            f.write(row)
+        f.write("```json\n")
+        f.write("// Click error code to review sample log line...\n")
+        f.write("```\n")

@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.rs_status_rule import RSStatusRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
+from x_ray.healthcheck.shared import SEVERITY
 from bson import Timestamp
 
 RS_STATUS_NO_PRIMARY = {

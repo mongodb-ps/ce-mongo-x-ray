@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.slow_chart_item import SlowChartItem
+from x_ray.log_analysis.log_items.slow_chart_item import SlowChartItem
 from tests.log.mocking import gen_mock_write_output
 
 LOGS = [

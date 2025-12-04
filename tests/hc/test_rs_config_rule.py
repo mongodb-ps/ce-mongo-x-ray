@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.rs_config_rule import RSConfigRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.rs_config_rule import RSConfigRule
+from x_ray.healthcheck.shared import SEVERITY
 
 CONFIG_INSUFFICIENT_VOTING_MEMBERS = {
     "config": {

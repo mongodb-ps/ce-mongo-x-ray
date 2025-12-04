@@ -1,9 +1,11 @@
 [MASTER]
 py-version=3.9
-jobs=0
-ignore=CVS,.git,__pycache__,.venv,build,dist,.pytest_cache
+jobs=1
+ignore=CVS,.git,__pycache__,.venv,build,dist,.pytest_cache,ai.py
 ignore-patterns=test_.*?\.py,conftest\.py
 load-plugins=
+extension-pkg-allow-list=
+    astroid.brain.brain_ctypes
 
 [MESSAGES CONTROL]
 disable=
@@ -13,8 +15,10 @@ disable=
     C0116,  # missing-function-docstring
     C0301,  # line-too-long
     C0415,  # import-outside-toplevel
+    E1101,  # no-member (often false positive, especially with dynamic attributes)
     R0801,  # duplicate-code
     R0903,  # too-few-public-methods
+    R0912,  # too-many-branches
     R0913,  # too-many-arguments
     R0914,  # too-many-locals
     R0915,  # too-many-statements
@@ -23,6 +27,7 @@ disable=
     W0611,  # unused-import
     W0613,  # unused-argument
     W0718,  # broad-exception-caught
+    astroid-error,  # Suppress astroid internal errors
 
 enable=
     useless-suppression,

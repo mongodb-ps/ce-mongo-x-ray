@@ -1,6 +1,6 @@
 from datetime import datetime
-from libs.version import Version
-from libs.log_analysis.shared import to_json
+from x_ray.version import Version
+from x_ray.log_analysis.shared import to_json
 
 
 def test_to_json():

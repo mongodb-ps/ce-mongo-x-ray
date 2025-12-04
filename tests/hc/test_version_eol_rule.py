@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
-from libs.healthcheck.rules.version_eol_rule import VersionEOLRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
+from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
+from x_ray.healthcheck.shared import SEVERITY
 
 EOL_BUILD_INFO = {
     "versionArray": [4, 2, 8],

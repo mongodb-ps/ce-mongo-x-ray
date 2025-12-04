@@ -1,6 +1,6 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.host_info_rule import HostInfoRule
-from libs.healthcheck.shared import SEVERITY
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
+from x_ray.healthcheck.shared import SEVERITY
 
 DATA_HOST_INFO_SAME_HARDWARE = [
     {

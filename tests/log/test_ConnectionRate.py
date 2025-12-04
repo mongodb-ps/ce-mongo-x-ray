@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.connection_rate_item import ConnectionRateItem
+from x_ray.log_analysis.log_items.connection_rate_item import ConnectionRateItem
 from tests.log.mocking import gen_mock_write_output
 
 LOGS = [

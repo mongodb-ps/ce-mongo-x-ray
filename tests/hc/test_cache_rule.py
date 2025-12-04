@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.cache_rule import CacheRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.cache_rule import CacheRule
 
 DATA_BASE_SERVER_STATUS = {
     "wiredTiger": {

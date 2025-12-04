@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.state_trace_item import StateTraceItem
+from x_ray.log_analysis.log_items.state_trace_item import StateTraceItem
 from tests.log.mocking import gen_mock_write_output
 
 LOGS = [

@@ -1,5 +1,5 @@
 from bson import json_util
-from libs.log_analysis.log_items.info_item import InfoItem
+from x_ray.log_analysis.log_items.info_item import InfoItem
 
 LOGS = [
     json_util.loads(

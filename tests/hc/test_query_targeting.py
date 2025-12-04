@@ -1,5 +1,5 @@
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.query_targeting_rule import QueryTargetingRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.query_targeting_rule import QueryTargetingRule
 
 DATA_TARGETING_NORMAL = {
     "metrics": {

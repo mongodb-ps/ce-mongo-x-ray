@@ -1,6 +1,6 @@
 from datetime import datetime
-from libs.healthcheck.issues import ISSUE
-from libs.healthcheck.rules.index_rule import IndexRule
+from x_ray.healthcheck.issues import ISSUE
+from x_ray.healthcheck.rules.index_rule import IndexRule
 
 DATA_INDEX_PROBLEM = [
     {

@@ -1,8 +1,8 @@
 from datetime import datetime
 from bson import json_util
 import pytest
-from libs.healthcheck.shared import SEVERITY, to_json, str_to_md_id, enum_all_nodes, enum_result_items
-from libs.utils import get_script_path
+from x_ray.healthcheck.shared import SEVERITY, to_json, str_to_md_id, enum_all_nodes, enum_result_items
+from x_ray.utils import get_script_path
 
 
 def test_to_json():
@@ -28,7 +28,7 @@ def test_str_to_md_id():
 def test_enum_all_nodes_sh():
     nodes = None
     with open(
-        get_script_path("misc/example_data_structure/healthcheck/discovered_sh.json"), "r", encoding="utf-8"
+        get_script_path("../../misc/example_data_structure/healthcheck/discovered_sh.json"), "r", encoding="utf-8"
     ) as f:
         nodes = json_util.loads(f.read())
 
@@ -160,7 +160,7 @@ def test_enum_all_nodes_sh():
 def test_enum_all_nodes_rs():
     nodes = None
     with open(
-        get_script_path("misc/example_data_structure/healthcheck/discovered_rs.json"), "r", encoding="utf-8"
+        get_script_path("../../misc/example_data_structure/healthcheck/discovered_rs.json"), "r", encoding="utf-8"
     ) as f:
         nodes = json_util.loads(f.read())
 
@@ -200,7 +200,9 @@ def test_enum_all_nodes_rs():
 
 def test_enum_result_items_rs():
     result = None
-    with open(get_script_path("misc/example_data_structure/healthcheck/result_rs.json"), "r", encoding="utf-8") as f:
+    with open(
+        get_script_path("../../misc/example_data_structure/healthcheck/result_rs.json"), "r", encoding="utf-8"
+    ) as f:
         result = json_util.loads(f.read())
 
     def func_rs_cluster(name, node, **kwargs):
@@ -238,7 +240,9 @@ def test_enum_result_items_rs():
 
 def test_enum_result_items_sh():
     result = None
-    with open(get_script_path("misc/example_data_structure/healthcheck/result_sh.json"), "r", encoding="utf-8") as f:
+    with open(
+        get_script_path("../../misc/example_data_structure/healthcheck/result_sh.json"), "r", encoding="utf-8"
+    ) as f:
         result = json_util.loads(f.read())
 
     def func_sh_cluster(name, node, **kwargs):
