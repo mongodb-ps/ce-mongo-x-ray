@@ -38,7 +38,8 @@ def get_script_path(filename=None):
         base_path = sys._MEIPASS
         if filename is None:
             return base_path
-        return str(Path(base_path) / filename)
+        # In PyInstaller, resources are under x_ray/ subdirectory
+        return str(Path(base_path) / "x_ray" / filename)
 
     # Running in normal Python environment - use importlib.resources
     if filename is None:
