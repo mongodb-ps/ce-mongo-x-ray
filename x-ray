@@ -13,4 +13,4 @@ else
   PY="python"
 fi
 
-exec "$PY" -m src.x_ray "$@"
+exec "$PY" -m x_ray "$@"
