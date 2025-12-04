@@ -57,25 +57,20 @@ def _load_config():
     def func(config_path):
         nonlocal config
         if config is None:
-            try:
-                if config_path is None:
-                    resource = files("x_ray") / BUILDIN_CONFIG_PATH
-                    config = json.loads(resource.read_text(encoding="utf-8"))
-                    logger.info("Loaded built-in config: %s", BUILDIN_CONFIG_PATH)
-                    return config
-                elif os.path.isfile(config_path):
-                    # Try to load from the path provided by the user
-                    with open(config_path, "r", encoding="utf-8") as f:
-                        config = json.load(f)
-                    logger.info("Loaded config from user-provided path: %s", config_path)
-                    return config
-
+            if config_path is None:
+                resource = files("x_ray") / BUILDIN_CONFIG_PATH
+                config = json.loads(resource.read_text(encoding="utf-8"))
+                logger.info("Loaded built-in config: %s", BUILDIN_CONFIG_PATH)
+            elif os.path.isfile(config_path):
+                # Try to load from the path provided by the user
+                with open(config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                logger.info("Loaded config from user-provided path: %s", config_path)
+            else:
                 # If all fails, raise an error
+                logger.error("Failed to load config file: %s", config_path)
                 raise FileNotFoundError(f"Could not find config file: {config_path}")
 
-            except Exception as e:
-                logger.error("Failed to load config file: %s", e)
-                raise
         return config
 
     return func

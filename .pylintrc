@@ -18,6 +18,7 @@ disable=
     E1101,  # no-member (often false positive, especially with dynamic attributes)
     R0801,  # duplicate-code
     R0903,  # too-few-public-methods
+    R0912,  # too-many-branches
     R0913,  # too-many-arguments
     R0914,  # too-many-locals
     R0915,  # too-many-statements

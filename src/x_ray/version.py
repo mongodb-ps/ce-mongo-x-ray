@@ -107,9 +107,9 @@ def normalize_version(version):
     """
     if isinstance(version, Version):
         return version
-    elif isinstance(version, str):
+    if isinstance(version, str):
         return Version.parse(version)
-    elif isinstance(version, list):
+    if isinstance(version, list):
         return Version(version)
-    else:
-        raise ValueError("Invalid version type")
+
+    raise ValueError("Invalid version type")
