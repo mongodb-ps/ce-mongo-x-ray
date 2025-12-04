@@ -58,7 +58,7 @@ build-lite:
 # Build executable with AI support (includes torch, transformers)
 build-ai:
 	@echo "Building full executable (with AI support)..."
-	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME)-ai \
+	BUILD_WITH_AI=1 $(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME)-ai \
 		--add-data="src/x_ray/templates$(DELIMITER)x_ray/templates" \
 		--add-data="src/x_ray/config.json$(DELIMITER)x_ray" \
 		--add-data="src/x_ray/compatibility_matrix.json$(DELIMITER)x_ray" \
