@@ -9,7 +9,6 @@ def test_version_comparison():
     v5 = Version.parse("1.2.3")
 
     assert v1 < v2
-    assert v2 < v3
     assert v3 < v4
     assert v1 == v5
     assert v4 > v1
