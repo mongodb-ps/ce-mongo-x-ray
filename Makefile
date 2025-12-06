@@ -102,6 +102,12 @@ format:
 	$(PYTHON) -m black src/x_ray/ tests/
 	@echo "\033[32m✓ Code formatted!\033[0m"
 
+# Minify templates
+minify:
+	@echo "Minifying templates..."
+	cd src/x_ray/templates && ./minify.sh
+	@echo "\033[32m✓ Templates minified!\033[0m"
+
 # Check formatting without making changes
 check-format:
 	@echo "Checking code format..."
