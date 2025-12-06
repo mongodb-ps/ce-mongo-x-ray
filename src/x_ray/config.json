@@ -92,5 +92,14 @@
             }
         },
         "template": "log/full.html"
+    },
+    "gmd": {
+        "gmdsets": {
+            "default": {
+                "items": []
+            }
+        },
+        "item_config": {},
+        "template": "gmd/full.html"
     }
 }
