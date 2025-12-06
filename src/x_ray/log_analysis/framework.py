@@ -108,7 +108,7 @@ class Framework:
             f.write(f"Log path: `{self._file_path}`\n\n")
             f.write(f"Log analysis period: `{self._log_start.isoformat()}` to `{self._log_end.isoformat()}`\n\n")
             f.write("Histogram chart instructions:\n\n")
-            f.write("- **zoom in/out:** _mouse wheel or pinch_\n")
+            f.write("- **zoom in/out:** _ctrl+wheel, or pinch_\n")
             f.write("- **pan:** _shift+drag_\n")
             f.write("- **select time frame:** _drag_\n\n")
             for item in self._items:

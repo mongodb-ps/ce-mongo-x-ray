@@ -111,7 +111,7 @@ class ClientMetaItem(BaseItem):
             f.write("|".join(row) + "\n")
         if self._server_version:
             f.write(
-                f'\n**Drivers that doesn\'t support current MongoDB <span style="color: red;">{self._server_version}</span> are marked <span style="color:red;">RED</span>.**\n'
+                f'\n**Drivers that doesn\'t support current MongoDB <span style="color: red;">{self._server_version}</span> are marked <span style="color:red;">RED</span>. Reference: [Compatibility Matrix](https://www.mongodb.com/docs/drivers/compatibility/)**\n'
             )
         else:
             f.write(
