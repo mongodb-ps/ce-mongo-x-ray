@@ -146,6 +146,7 @@ help:
 	@echo "  make build        - Build executable (default: lightweight version without AI)"
 	@echo "  make build-lite   - Build lightweight executable without AI support (~15MB)"
 	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"
+	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
 	@echo "  make lint         - Run pylint on code"
 	@echo "  make check-lint   - Run pylint (errors only)"
