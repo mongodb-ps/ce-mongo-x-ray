@@ -102,7 +102,7 @@ def tooltip_html(full, truncated) -> str:
     return html
 
 
-def load_classes(package_name="x_ray.log_analysis.log_items"):
+def load_classes(package_name):
     class_map = {}
     package = import_module(package_name)
     for _, module_name, _ in pkgutil.iter_modules(package.__path__):
