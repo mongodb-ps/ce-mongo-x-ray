@@ -1,10 +1,10 @@
 var bar_labels = [];
 var count = [];
-var total_slow_ms = [];
+var avg_slow_ms = [];
 data.forEach(d => {
     bar_labels.push(d.time);
     count.push(d.count);
-    total_slow_ms.push(d.total_slow_ms);
+    avg_slow_ms.push(d.total_slow_ms / d.count);
 });
 
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
@@ -21,8 +21,8 @@ chart1 = new Chart(ctx, {
                 yAxisID: 'y'
             },
             {
-                label: 'Total Slow (ms)',
-                data: total_slow_ms,
+                label: 'Avg Slow (ms)',
+                data: avg_slow_ms,
                 type: 'line',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -56,7 +56,7 @@ chart1 = new Chart(ctx, {
             y1: {
                 beginAtZero: true,
                 position: 'right',
-                title: { display: true, text: 'Total Slow (ms)' },
+                title: { display: true, text: 'Avg Slow (ms)' },
                 grid: { drawOnChartArea: false }
             }
         }

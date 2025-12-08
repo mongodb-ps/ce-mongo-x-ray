@@ -16,7 +16,7 @@ class StateTraceItem(BaseItem):
     def __init__(self, output_folder, config):
         super().__init__(output_folder, config, show_reset=True)
         self.name = "Member State Trace"
-        self.description = "Visualize member state trace logs to understand system state changes over time."
+        self.description = "Visualize member state trace logs to understand replica set state changes over time."
         self._cache = None
         self._myself = "self"
         self._last_log = None
