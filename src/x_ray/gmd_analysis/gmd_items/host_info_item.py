@@ -1,4 +1,5 @@
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
 
 
@@ -8,6 +9,7 @@ class HostInfoItem(BaseItem):
         self.name = "Host Information"
         self.description = "Collects and analyzes host information from GMD logs."
         self._host_info_rule = HostInfoRule(config)
+        self._host_info_parser = HostInfoParser()
 
     def test(self, block):
         super().test(block)
@@ -17,3 +19,8 @@ class HostInfoItem(BaseItem):
         test_result, _ = self._host_info_rule.apply([output])
         self.append_test_results(test_result)
         self.captured_sample = output
+
+    def review_results_markdown(self, output):
+        super().review_results_markdown(output)
+        parsed_output = self._host_info_parser.parse([self.captured_sample])
+        output.write(parsed_output)
