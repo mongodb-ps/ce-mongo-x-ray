@@ -96,7 +96,9 @@
     "gmd": {
         "gmdsets": {
             "default": {
-                "items": []
+                "items": [
+                    "HostInfoItem"
+                ]
             }
         },
         "item_config": {},

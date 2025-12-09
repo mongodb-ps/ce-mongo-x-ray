@@ -14,6 +14,10 @@ from pymongo.uri_parser import parse_uri
 from x_ray.utils import load_config
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
+from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
+
+
+logger = logging.getLogger(__name__)
 
 
 def setup_parser():
@@ -24,11 +28,13 @@ def setup_parser():
 Examples:
   x-ray healthcheck mongodb://localhost:27017 -f html
   x-ray hc -s comprehensive -o /path/to/output/
-  x-ray log /var/log/mongodb/mongod.log -f markdown
+  x-ray log /var/log/mongodb/mongod.log
+  x-ray gmd /path/to/getMongoData_output.json
 
 For more information on specific commands, use:
   x-ray healthcheck --help
   x-ray log --help
+  x-ray gmd --help
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -165,10 +171,44 @@ For more information on specific commands, use:
     )
     log_parser.add_argument("--top", help="Top N slow queries. Defaults to 10.", type=int, default=10)
 
+    gmd_epilog = """
+    Examples:
+      x-ray gmd /misc/getMongoData-output.json
+      x-ray gmd /misc/getMongoData-output.json -f html -o /path/to/output/
+    """
+
+    gmd_parser = subparsers.add_parser(
+        "gmd",
+        help="Analyze getMongoData output files",
+        description=log_description,
+        epilog=gmd_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    gmd_parser.add_argument("gmd_file", help="Path to the getMongoData output file.")
+    gmd_parser.add_argument(
+        "-s",
+        "--checkset",
+        help='Checkset to run. Defaults to "default".',
+        type=str,
+        default="default",
+    )
+    gmd_parser.add_argument(
+        "-o",
+        "--output",
+        help='Output folder path. Defaults to "output/".',
+        type=str,
+        default="output/",
+    )
+    gmd_parser.add_argument(
+        "-f",
+        "--format",
+        help='Output format (markdown/html). Defaults to "markdown".',
+        type=str,
+        default="html",
+        choices=["markdown", "html"],
+    )
+
     return parser
-
-
-logger = logging.getLogger(__name__)
 
 
 def health_check_command(args):
@@ -189,7 +229,7 @@ def health_check_command(args):
         config = load_config(args.config)["healthcheck"]
     except FileNotFoundError:
         logger.error("Config file not found: %s", args.config)
-        logger.info("Please provide a valid path to config.json using the -c/--config argument")
+        logger.info("Please provide a valid path to config.json.")
         return 1
 
     checkset = args.checkset
@@ -212,13 +252,34 @@ def log_analysis_command(args):
         config["item_config"]["TopSlowItem"]["top"] = args.top
     except FileNotFoundError:
         logger.error("Config file not found: %s", args.config)
-        logger.info("Please provide a valid path to config.json using the -c/--config argument")
+        logger.info("Please provide a valid path to config.json.")
         return 1
 
     checkset = args.checkset
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
     framework = LogAnalysisFramework(args.log_file, config)
     framework.run_logs_analysis(checkset, output_folder=output_folder)
+    framework.output_results(output_folder=output_folder, fmt=args.format)
+    return 0
+
+
+def gmd_alalysis_command(args):
+    """getMongoData analysis command"""
+    if not Path(args.gmd_file).is_file():
+        logger.error("getMongoData output file not found: %s", args.gmd_file)
+        return 1
+    logger.info("Analyzing getMongoData output file: %s", args.gmd_file)
+    try:
+        config = load_config(args.config)["gmd"]
+    except FileNotFoundError:
+        logger.error("Config file not found: %s", args.config)
+        logger.info("Please provide a valid path to config.json.")
+        return 1
+
+    checkset = args.checkset
+    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
+    framework = GMDAnalysisFramework(args.gmd_file, config)
+    framework.run_gmd_analysis(checkset, output_folder=output_folder)
     framework.output_results(output_folder=output_folder, fmt=args.format)
     return 0
 
@@ -253,6 +314,9 @@ def main():
         return health_check_command(args)
     if args.command == "log":
         return log_analysis_command(args)
+    if args.command == "gmd":
+        return gmd_alalysis_command(args)
+
     logger.error("Unknown command: %s", args.command)
     return 1
 
