@@ -28,7 +28,7 @@ deps:
 	python3 -m venv .venv
 	@echo "Installing dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev]"
+	$(PYTHON) -m pip install -e ".[dev]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Install AI dependencies (for build-ai)
@@ -37,7 +37,7 @@ deps-ai:
 	python3 -m venv .venv
 	@echo "Installing AI dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev,ai]"
+	$(PYTHON) -m pip install -e ".[dev,ai]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Build executable (default to lightweight build)

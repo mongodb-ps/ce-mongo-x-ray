@@ -19,8 +19,15 @@
             "name": "App: X-Ray-HC",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/x_ray/",
+            "module": "x_ray",
             "console": "integratedTerminal",
+            "justMyCode": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "${workspaceFolder}/src"
+                }
+            ],
             "args": [
                 "hc",
                 "-s",
@@ -37,8 +44,15 @@
             "name": "App: X-Ray-LOG",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/x_ray/",
+            "module": "x_ray",
             "console": "integratedTerminal",
+            "justMyCode": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "${workspaceFolder}/src"
+                }
+            ],
             "args": [
                 "-c",
                 "src/x_ray/config.json",
@@ -46,6 +60,30 @@
                 "-r",
                 "1",
                 "misc/example.log"
+            ],
+            "env": {
+                "LOG_LEVEL": "INFO",
+                "ENV": "development"
+            }
+        },
+        {
+            "name": "App: X-Ray-GMD",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "x_ray",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "${workspaceFolder}/src"
+                }
+            ],
+            "args": [
+                "-c",
+                "src/x_ray/config.json",
+                "gmd",
+                "misc/getMongoData-output.json"
             ],
             "env": {
                 "LOG_LEVEL": "INFO",
