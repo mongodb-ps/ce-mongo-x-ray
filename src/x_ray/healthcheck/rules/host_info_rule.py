@@ -6,7 +6,7 @@ class HostInfoRule(BaseRule):
     def apply(self, data, **kwargs):
         """Check the host information for any issues.
         Args:
-            data (object): The result from `hostInfo` command.
+            data (list): The result from `hostInfo` command.
             extra_info (dict, optional): Extra information such as host.
         Returns:
             tuple: (list of issues found, list of parsed data)

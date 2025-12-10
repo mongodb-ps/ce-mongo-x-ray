@@ -2811,7 +2811,7 @@
                 "numPhysicalCores": 1,
                 "numCpuSockets": 1,
                 "cpuArch": "x86_64",
-                "numaEnabled": false,
+                "numaEnabled": true,
                 "numNumaNodes": 1
             },
             "os": {
