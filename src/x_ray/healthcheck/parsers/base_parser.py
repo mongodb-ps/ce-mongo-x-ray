@@ -14,15 +14,17 @@ class BaseParser(ABC):
         Parse a table represented by header and rows into a list of dictionaries.
 
         Args:
-            header (list): List of column names.
+            headers (list): List of column names. Accepts strings or dicts {"text": str, "align": "center" | "left" | "right"}.
             rows (list): List of rows, where each row is a list of values.
         Returns:
             str: Parsed table as a markdown string.
         """
+        caption = kwargs.get("caption", None)
+        output = f"#### {caption}\n\n" if caption else ""
         header_text = [h["text"] if isinstance(h, dict) else h for h in headers]
         alignments = [h.get("align", "center") if isinstance(h, dict) else "center" for h in headers]
         align_md = [TABLE_ALIGNMENT[a] for a in alignments]
-        output = f"|{'|'.join(header_text)}|\n"
+        output += f"|{'|'.join(header_text)}|\n"
         output += f"|{'|'.join(align_md)}|\n"
         for row in rows:
             row_text = [str(cell) for cell in row]

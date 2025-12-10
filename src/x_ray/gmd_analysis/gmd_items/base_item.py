@@ -85,9 +85,6 @@ class BaseItem:
         file_path = get_script_path(file_path)
         self._logger.debug("Using JS snippet file: %s", file_path)
 
-        output.write(f"## {self.name}\n\n")
-        output.write(f"{self.description}\n\n")
-
         output.write('<script type="text/javascript">\n')
         output.write("document.addEventListener('DOMContentLoaded', function() {\n")
         output.write("let data = [\n")
