@@ -1,6 +1,6 @@
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 
-hostInfos = [
+HOST_INFOS = [
     (
         "M-QTFH0WFXLG:30017",
         {
@@ -59,7 +59,7 @@ hostInfos = [
 
 def test_host_info_parser():
     parser = HostInfoParser()
-    output = parser.parse(hostInfos)
+    output = parser.parse(HOST_INFOS)
     assert len(output) == 2
     table_hardware = output[0]
     assert table_hardware["type"] == "table"

@@ -65,21 +65,22 @@ class BaseParser(ABC):
         """
         if item is None or item.get("type", None) != "chart":
             raise ValueError("Invalid chart item")
-        result = ""
-        result += f'<div id="container_{caller}_{index}"></div>'
-        result += "<script type='text/javascript'>\n"
-        result += "(function() {\n"
-        result += f"const container = document.getElementById('container_{caller}_{index}');\n"
-        result += f"let data = {to_json(item.get('data'))};\n"
+        output = ""
+        output += f'<div id="container_{caller}_{index}"></div>'
+        output += "<script type='text/javascript'>\n"
+        output += "(function() {\n"
+        output += f"const container = document.getElementById('container_{caller}_{index}');\n"
+        output += f"let data = {to_json(item.get('data'))};\n"
         file_name = f"{caller}_{index}.js"
         file_path = os.path.join("templates", "healthcheck", "snippets", file_name)
         file_path = get_script_path(file_path)
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as js_file:
                 for line in js_file:
-                    result += line.replace("{name}", self.__class__.__name__)
-        result += "})()\n"
-        result += "</script>\n"
+                    output += line.replace("{name}", self.__class__.__name__)
+        output += "})()\n"
+        output += "</script>\n"
+        return output
 
     def markdown(self, data: object, **kwargs) -> str:
         """
