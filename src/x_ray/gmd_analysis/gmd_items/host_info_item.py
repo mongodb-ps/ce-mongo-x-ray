@@ -22,5 +22,7 @@ class HostInfoItem(BaseItem):
 
     def review_results_markdown(self, output):
         super().review_results_markdown(output)
-        parsed_output = self._host_info_parser.markdown([self.captured_sample])
+        data = self.captured_sample
+        host = data.get("system", {}).get("hostname", "unknown_host")
+        parsed_output = self._host_info_parser.markdown([(host, data)])
         output.write(parsed_output)

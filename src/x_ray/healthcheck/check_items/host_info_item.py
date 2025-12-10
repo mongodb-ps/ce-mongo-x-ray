@@ -1,4 +1,5 @@
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
 from x_ray.healthcheck.rules.numa_rule import NumaRule
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
@@ -61,50 +62,16 @@ class HostInfoItem(BaseItem):
         self.captured_sample = result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self):
         """
         Review the gathered host information.
         """
         result = self.captured_sample
-        data = []
+        host_infos = []
 
         def func_component(name, node, **kwargs):
             members = node["members"]
-            table = {
-                "type": "table",
-                "caption": f"Hardware & OS Information - `{name}`",
-                "columns": [
-                    {"name": "Host", "type": "string"},
-                    {"name": "CPU Family", "type": "string"},
-                    {"name": "CPU Cores", "type": "string"},
-                    {"name": "Memory", "type": "string"},
-                    {"name": "OS", "type": "string"},
-                    {"name": "NUMA", "type": "boolean"},
-                ],
-                "rows": [],
-            }
-            data.append(table)
-            for m in members:
-                info = m["rawResult"]
-                if info is None:
-                    table["rows"].append([m["host"], "n/a", "n/a", "n/a", "n/a", "n/a"])
-                    continue
-                system = info["system"]
-                os = info["os"]
-                extra = info["extra"]
-                if "extra" in extra:
-                    # Compatibility for MongoDB 6.0
-                    extra = extra["extra"]
-                table["rows"].append(
-                    [
-                        m["host"],
-                        f"{extra.get('cpuString', '(Unknown CPU)')} ({system['cpuArch']}) {extra.get('cpuFrequencyMHz', 'n/a')} MHz",
-                        f"{system['numCores']}c",
-                        format_size(system["memSizeMB"] * 1024**2),
-                        f"{os['name']} {os['version']}",
-                        system["numaEnabled"],
-                    ]
-                )
+            host_infos.extend([(m["host"], m["rawResult"]) for m in members])
 
         enum_result_items(
             result,
@@ -113,4 +80,6 @@ class HostInfoItem(BaseItem):
             func_shard=func_component,
             func_config=func_component,
         )
-        return {"name": self.name, "description": self.description, "data": data}
+        parser = HostInfoParser()
+
+        return parser.markdown(host_infos, caller=self.__class__.__name__)

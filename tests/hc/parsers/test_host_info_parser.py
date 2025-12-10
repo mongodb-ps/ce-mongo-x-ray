@@ -1,52 +1,59 @@
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 
 hostInfos = [
-    {
-        "system": {
-            "hostname": "M-QTFH0WFXLG:30017",
-            "memLimitMB": 32768,
-            "numCores": 10,
-            "cpuArch": "x86_64",
-            "numaEnabled": False,
-        },
-        "os": {"type": "Darwin", "name": "Mac OS X", "version": "24.6.0"},
-        "extra": {
-            "cpuFrequencyMHz": 2400,
-            "cpuString": "Apple M1 Max",
-        },
-    },
-    {
-        "system": {
-            "hostname": "ip-172-31-22-196",
-            "memLimitMB": 7736,
-            "numCores": 2,
-            "numCpuSockets": 1,
-            "cpuArch": "x86_64",
-            "numaEnabled": False,
-        },
-        "os": {"type": "Linux", "name": "Ubuntu", "version": "22.04"},
-        "extra": {
+    (
+        "M-QTFH0WFXLG:30017",
+        {
+            "system": {
+                "hostname": "M-QTFH0WFXLG:30017",
+                "memLimitMB": 32768,
+                "numCores": 10,
+                "cpuArch": "x86_64",
+                "numaEnabled": False,
+            },
+            "os": {"type": "Darwin", "name": "Mac OS X", "version": "24.6.0"},
             "extra": {
-                "cpuString": "Intel(R) Xeon(R) Platinum 8175M CPU @ 2.50GHz",
-                "cpuFrequencyMHz": "3200.679",
-                "maxOpenFiles": 64000,
-                "mountInfo": [
-                    {
-                        "mountId": 25,
-                        "mountPoint": "/",
-                        "options": "rw,relatime",
-                        "type": "ext4",
-                    },
-                    {
-                        "mountId": 26,
-                        "mountPoint": "/dev",
-                        "options": "rw,nosuid,noexec,relatime",
-                        "type": "devtmpfs",
-                    },
-                ],
-            }
+                "cpuFrequencyMHz": 2400,
+                "cpuString": "Apple M1 Max",
+            },
         },
-    },
+    ),
+    (
+        "ip-172-31-22-196",
+        {
+            "system": {
+                "hostname": "ip-172-31-22-196",
+                "memLimitMB": 7736,
+                "numCores": 2,
+                "numCpuSockets": 1,
+                "cpuArch": "x86_64",
+                "numaEnabled": False,
+            },
+            "os": {"type": "Linux", "name": "Ubuntu", "version": "22.04"},
+            "extra": {
+                "extra": {
+                    "cpuString": "Intel(R) Xeon(R) Platinum 8175M CPU @ 2.50GHz",
+                    "cpuFrequencyMHz": "3200.679",
+                    "maxOpenFiles": 64000,
+                    "mountInfo": [
+                        {
+                            "mountId": 25,
+                            "mountPoint": "/",
+                            "options": "rw,relatime",
+                            "type": "ext4",
+                        },
+                        {
+                            "mountId": 26,
+                            "mountPoint": "/dev",
+                            "options": "rw,nosuid,noexec,relatime",
+                            "type": "devtmpfs",
+                        },
+                    ],
+                }
+            },
+        },
+    ),
+    ("M-QTFH0WFXLG:30028", None),
 ]
 
 
@@ -80,6 +87,14 @@ def test_host_info_parser():
         "7.55 GB",
         "Ubuntu 22.04",
         False,
+    ]
+    assert table_hardware["rows"][2] == [
+        "M-QTFH0WFXLG:30028",
+        "N/A",
+        "N/A",
+        "N/A",
+        "N/A",
+        "N/A",
     ]
     table_mounts = output[1]
     assert table_mounts["type"] == "table"

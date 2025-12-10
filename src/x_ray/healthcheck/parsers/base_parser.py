@@ -1,6 +1,9 @@
 """Base parser for healthcheck results."""
 
 from abc import ABC, abstractmethod
+import os
+from x_ray.log_analysis.shared import to_json
+from x_ray.utils import get_script_path
 from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 
 
@@ -18,7 +21,7 @@ class BaseParser(ABC):
         """
         raise NotImplementedError("Subclasses must implement the parse method")
 
-    def format_table(self, item) -> str:
+    def format_table(self, item, index, caller=None) -> str:
         """
         Parse a table represented by header and rows into markdown.
 
@@ -50,18 +53,33 @@ class BaseParser(ABC):
 
         return output
 
-    def format_chart(self, item) -> str:
+    def format_chart(self, item, index, caller=None) -> str:
         """
         Format chart data into markdown. For charts, the parsed data is usually rendered as a javascript block.
         The chart rendering is handled by the frontend `snippets` in the `templates` folder.
 
         Args:
-            chart_type (str): The type of chart (e.g., "bar", "line").
             data (dict): The data for the chart.
         Returns:
             str: Parsed chart as a markdown string.
         """
-        raise NotImplementedError("Subclasses must implement the format_chart method")
+        if item is None or item.get("type", None) != "chart":
+            raise ValueError("Invalid chart item")
+        result = ""
+        result += f'<div id="container_{caller}_{index}"></div>'
+        result += "<script type='text/javascript'>\n"
+        result += "(function() {\n"
+        result += f"const container = document.getElementById('container_{caller}_{index}');\n"
+        result += f"let data = {to_json(item.get('data'))};\n"
+        file_name = f"{caller}_{index}.js"
+        file_path = os.path.join("templates", "healthcheck", "snippets", file_name)
+        file_path = get_script_path(file_path)
+        if os.path.exists(file_path):
+            with open(file_path, "r", encoding="utf-8") as js_file:
+                for line in js_file:
+                    result += line.replace("{name}", self.__class__.__name__)
+        result += "})()\n"
+        result += "</script>\n"
 
     def markdown(self, data: object, **kwargs) -> str:
         """
@@ -71,12 +89,13 @@ class BaseParser(ABC):
         Returns:
             str: The parsed data in markdown format.
         """
+        caller = kwargs.get("caller", None)
         output_list = self.parse(data, **kwargs)
         output = ""
-        for item in output_list:
+        for i, item in enumerate(output_list):
             if item["type"] == "table":
-                output += self.format_table(item)
+                output += self.format_table(item, i, caller)
             elif item["type"] == "chart":
-                output += self.format_chart(item)
+                output += self.format_chart(item, i, caller)
             output += "\n\n"
         return output

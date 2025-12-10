@@ -40,7 +40,10 @@ class HostInfoParser(BaseParser):
             ],
             "rows": rows_mounts,
         }
-        for info in data:
+        for host, info in data:
+            if not info:
+                rows.append([host, "N/A", "N/A", "N/A", "N/A", "N/A"])
+                continue
             system = info["system"]
             os = info["os"]
             extra = info["extra"]
