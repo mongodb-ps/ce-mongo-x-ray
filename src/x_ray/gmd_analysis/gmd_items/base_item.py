@@ -1,3 +1,4 @@
+from abc import abstractmethod
 import logging
 import os
 from bson import json_util
@@ -19,6 +20,29 @@ def get_version(block):
     return Version.parse(ver_str)
 
 
+def get_host(block):
+    """
+    Extract the host information from a log line.
+    """
+    sub_sec = block.get("subsection", "")
+    if sub_sec != "host_info":
+        return None
+    output = block.get("output", {})
+    return output.get("system", {}).get("hostname", "unknown")
+
+
+def get_cluster_type(block):
+    """
+    Extract the cluster type information from a log line.
+    """
+    sub_sec = block.get("subsection", "")
+    if sub_sec != "ismaster":
+        return None, None
+    output = block.get("output", {})
+    set_name = output.get("setName", None)
+    return ("RS", set_name) if set_name is not None else ("SH", "mongos")
+
+
 class BaseItem:
     _cache = None
 
@@ -27,6 +51,9 @@ class BaseItem:
         self._output_file = os.path.join(output_folder, f"{self.__class__.__name__}.json")
         self._logger = logging.getLogger(__name__)
         self._server_version = None
+        self._hostname = None
+        self._set_name = None
+        self._cluster_type = None
         self._test_result = []
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
@@ -35,6 +62,13 @@ class BaseItem:
         version = get_version(block)
         if version is not None:
             self._server_version = version
+        hostname = get_host(block)
+        if hostname is not None:
+            self._hostname = hostname
+        cluster_type, set_name = get_cluster_type(block)
+        if cluster_type is not None:
+            self._cluster_type = cluster_type
+            self._set_name = set_name
 
     @property
     def name(self):
@@ -78,29 +112,9 @@ class BaseItem:
             )
         output.write("\n")
 
+    @abstractmethod
     def review_results_markdown(self, output):
-        # Write JS snippet to the file
-        file_name = f"{self.__class__.__name__}.js"
-        file_path = os.path.join("templates", "gmd", "snippets", file_name)
-        file_path = get_script_path(file_path)
-        self._logger.debug("Using JS snippet file: %s", file_path)
-
-        output.write('<script type="text/javascript">\n')
-        output.write("document.addEventListener('DOMContentLoaded', function() {\n")
-        output.write("let data = [\n")
-        with open(self._output_file, "r", encoding="utf-8") as data:
-            for line in data:
-                # The data is in EJSON format, convert it to JSON
-                line_json = json_util.loads(line)
-                output.write(to_json(line_json))
-                output.write(", \n")
-        output.write("];\n")
-        if os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as js:
-                for line in js:
-                    output.write(line.replace("{name}", self.__class__.__name__))
-        output.write("});\n")
-        output.write("</script>\n")
+        raise NotImplementedError("Subclasses should implement this method.")
 
     def _write_output(self):
         # Open file steam and write the cache to file

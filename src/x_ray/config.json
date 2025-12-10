@@ -97,6 +97,7 @@
         "gmdsets": {
             "default": {
                 "items": [
+                    "BuildInfoItem",
                     "HostInfoItem"
                 ]
             }
