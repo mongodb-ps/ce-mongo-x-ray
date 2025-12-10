@@ -22,5 +22,5 @@ class HostInfoItem(BaseItem):
 
     def review_results_markdown(self, output):
         super().review_results_markdown(output)
-        parsed_output = self._host_info_parser.parse([self.captured_sample])
+        parsed_output = self._host_info_parser.markdown([self.captured_sample])
         output.write(parsed_output)

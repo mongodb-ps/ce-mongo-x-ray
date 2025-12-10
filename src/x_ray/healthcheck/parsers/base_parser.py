@@ -6,21 +6,39 @@ from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 
 class BaseParser(ABC):
     @abstractmethod
-    def parse(self, data: object, **kwargs) -> str:
+    def parse(self, data: object, **kwargs) -> list:
+        """
+        Parse the given data into tables and charts.
+        Args:
+            data (object): The data to be parsed.
+        Returns:
+            list (dict): The parsed list. Each element can be either
+                        {"type": "table", "caption": str (optional), "headers": list, "rows": list} or
+                        {"type": "chart", "chart_type": str, "data": dict}
+        """
         raise NotImplementedError("Subclasses must implement the parse method")
 
-    def parse_table(self, headers: list, rows: list, **kwargs) -> str:
+    def format_table(self, item) -> str:
         """
-        Parse a table represented by header and rows into a list of dictionaries.
+        Parse a table represented by header and rows into markdown.
 
         Args:
-            headers (list): List of column names. Accepts strings or dicts {"text": str, "align": "center" | "left" | "right"}.
-            rows (list): List of rows, where each row is a list of values.
+            item (dict): The table item containing
+                caption (str, optional): The table caption.
+                headers (list): List of column names. Accepts strings or dicts {"text": str, "align": "center" | "left" | "right"}.
+                rows (list): List of rows, where each row is a list of values.
         Returns:
             str: Parsed table as a markdown string.
         """
-        caption = kwargs.get("caption", None)
+        if item is None or item.get("type", None) != "table":
+            raise ValueError("Invalid table item")
+        headers = item.get("headers", [])
+        rows = item.get("rows", [])
+        caption = item.get("caption", None)
         output = f"#### {caption}\n\n" if caption else ""
+        if rows is None or len(rows) == 0:
+            output += "_No data available._\n"
+            return output
         header_text = [h["text"] if isinstance(h, dict) else h for h in headers]
         alignments = [h.get("align", "center") if isinstance(h, dict) else "center" for h in headers]
         align_md = [TABLE_ALIGNMENT[a] for a in alignments]
@@ -30,4 +48,35 @@ class BaseParser(ABC):
             row_text = [str(cell) for cell in row]
             output += f"|{'|'.join(row_text)}|\n"
 
+        return output
+
+    def format_chart(self, item) -> str:
+        """
+        Format chart data into markdown. For charts, the parsed data is usually rendered as a javascript block.
+        The chart rendering is handled by the frontend `snippets` in the `templates` folder.
+
+        Args:
+            chart_type (str): The type of chart (e.g., "bar", "line").
+            data (dict): The data for the chart.
+        Returns:
+            str: Parsed chart as a markdown string.
+        """
+        raise NotImplementedError("Subclasses must implement the format_chart method")
+
+    def markdown(self, data: object, **kwargs) -> str:
+        """
+        Parse the data and return as markdown.
+        Args:
+            data (object): The data to be parsed.
+        Returns:
+            str: The parsed data in markdown format.
+        """
+        output_list = self.parse(data, **kwargs)
+        output = ""
+        for item in output_list:
+            if item["type"] == "table":
+                output += self.format_table(item)
+            elif item["type"] == "chart":
+                output += self.format_chart(item)
+            output += "\n\n"
         return output
