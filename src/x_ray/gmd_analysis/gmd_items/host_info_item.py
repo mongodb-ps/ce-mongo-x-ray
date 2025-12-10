@@ -15,25 +15,23 @@ class HostInfoItem(BaseItem):
         self._host_info_parser = HostInfoParser()
 
     def test(self, block):
+        super().test(block)
         subsection = block.get("subsection", "")
+        if subsection not in ["host_info", "server_build_info"]:
+            return
         if subsection == "host_info":
             self._host_info = block.get("output", {})
-        elif subsection == "server_build_info":
-            version = get_version(block)
-            if version is not None:
-                self._server_version = version
-        else:
-            return
         if not self._host_info or not self._server_version:
             return
-        test_result, _ = self._host_info_rule.apply([self._host_info])
+        test_result, _ = self._host_info_rule.apply([self._host_info], extra_info={"host": self._hostname})
         self.append_test_results(test_result)
-        test_result, _ = self._numa_rule.apply(self._host_info, extra_info={"version": self._server_version})
+        test_result, _ = self._numa_rule.apply(
+            self._host_info, extra_info={"version": self._server_version, "host": self._hostname}
+        )
         self.append_test_results(test_result)
         self.captured_sample = self._host_info
 
     def review_results_markdown(self, output):
-        super().review_results_markdown(output)
         data = self.captured_sample
         host = data.get("system", {}).get("hostname", "unknown_host")
         parsed_output = self._host_info_parser.markdown([(host, data)])
