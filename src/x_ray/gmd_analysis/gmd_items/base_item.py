@@ -116,34 +116,6 @@ class BaseItem:
     def review_results_markdown(self, output):
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def _write_output(self):
-        # Open file steam and write the cache to file
-        # Even if the cache is None, we still write to indicate no data
-        with open(self._output_file, "a", encoding="utf-8") as f:
-            if self._cache is None:
-                self._logger.debug("Cache is empty, nothing to write for %s", self.__class__.__name__)
-                return
-            if isinstance(self._cache, list):
-                for item in self._cache:
-                    f.write(to_ejson(item, indent=None))
-                    f.write("\n")
-                    self._row_count += 1
-                self._logger.debug(
-                    "Wrote %d records to %s for %s",
-                    len(self._cache),
-                    self._output_file,
-                    self.__class__.__name__,
-                )
-            else:
-                f.write(to_ejson(self._cache, indent=None))
-                f.write("\n")
-                self._row_count += 1
-                self._logger.debug(
-                    "Wrote 1 record to %s for %s",
-                    self._output_file,
-                    self.__class__.__name__,
-                )
-
     def append_test_result(self, host: str, severity: SEVERITY, title: str, message: str):
         self._test_result.append({"host": host, "severity": severity, "title": title, "message": message})
 
