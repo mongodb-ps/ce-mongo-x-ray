@@ -5,7 +5,7 @@ from bson import json_util
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.shared import SEVERITY
 from x_ray.gmd_analysis.shared import GMD_EVENTS, to_json
-from x_ray.utils import get_script_path, to_ejson
+from x_ray.utils import bold, get_script_path, to_ejson
 from x_ray.version import Version
 
 
@@ -102,6 +102,10 @@ class BaseItem:
             with open(self._output_file, "r", encoding="utf-8") as f:
                 return json_util.loads(f.read())
         except FileNotFoundError:
+            self._logger.warning(
+                "Captured sample file not found: %s. This is probably because the getMongoData output is incomplete.",
+                bold(self._output_file),
+            )
             return None
 
     @captured_sample.setter

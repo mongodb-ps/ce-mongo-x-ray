@@ -26,6 +26,8 @@ class BuildInfoItem(BaseItem):
 
     def review_results_markdown(self, output):
         data = self.captured_sample
+        if data is None:
+            return
         parsed_output = self._build_info_parser.markdown(
             [(self._set_name, self._hostname, data)], caller=self.__class__.__name__
         )

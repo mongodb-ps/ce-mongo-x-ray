@@ -32,6 +32,8 @@ class HostInfoItem(BaseItem):
 
     def review_results_markdown(self, output):
         data = self.captured_sample
+        if data is None:
+            return
         host = data.get("system", {}).get("hostname", "unknown_host")
         parsed_output = self._host_info_parser.markdown([(host, data)])
         output.write(parsed_output)
