@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 import json
 from bson.json_util import object_hook
 from bson.timestamp import Timestamp
@@ -24,3 +25,10 @@ def load_json(json_str: str):
         return obj
 
     return json.loads(json_str, object_hook=custom_hook)
+
+
+class GMD_EVENTS(enum.Enum):
+    SERVER_BUILD_INFO = "server_build_info"
+    HOST_INFO = "host_info"
+    ISMASTER = "ismaster"
+    UNKNOWN = "unknown"
