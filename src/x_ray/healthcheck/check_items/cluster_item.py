@@ -146,6 +146,7 @@ class ClusterItem(BaseItem):
         rs_infos = []
 
         def func_sh(_, result, **kwargs):
+            nonlocal output
             parser = SHOverviewParser()
             output += parser.markdown(result)
 
