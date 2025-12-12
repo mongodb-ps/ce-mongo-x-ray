@@ -9,6 +9,7 @@ import pkgutil
 import re
 import hashlib
 import sys
+import numbers
 from enum import Enum
 from pathlib import Path
 from bson import json_util
@@ -195,6 +196,10 @@ def json_hash(data, digest_size=8):
     json_str = to_ejson(data, indent=None)
     h = hashlib.blake2b(json_str.encode("utf-8"), digest_size=digest_size)
     return h.digest().hex().upper()
+
+
+def is_number(value):
+    return isinstance(value, numbers.Number)
 
 
 def color_code(code):

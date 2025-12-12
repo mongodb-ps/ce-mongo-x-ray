@@ -64,7 +64,7 @@ def test_host_info_parser():
     table_hardware = output[0]
     assert table_hardware["type"] == "table"
     assert table_hardware["caption"] == "Host Hardware Information"
-    assert table_hardware["headers"] == [
+    assert table_hardware["header"] == [
         "Host",
         "CPU Family",
         "CPU Cores",
@@ -99,7 +99,7 @@ def test_host_info_parser():
     table_mounts = output[1]
     assert table_mounts["type"] == "table"
     assert table_mounts["caption"] == "Mount Points"
-    assert table_mounts["headers"] == [
+    assert table_mounts["header"] == [
         "Host",
         "Mount Point",
         "Type",

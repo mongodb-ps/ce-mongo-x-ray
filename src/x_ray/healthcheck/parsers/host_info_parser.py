@@ -18,7 +18,7 @@ class HostInfoParser(BaseParser):
         table_hardware = {
             "type": "table",
             "caption": "Host Hardware Information",
-            "headers": [
+            "header": [
                 "Host",
                 "CPU Family",
                 "CPU Cores",
@@ -32,7 +32,7 @@ class HostInfoParser(BaseParser):
         table_mounts = {
             "type": "table",
             "caption": "Mount Points",
-            "headers": [
+            "header": [
                 "Host",
                 "Mount Point",
                 "Type",

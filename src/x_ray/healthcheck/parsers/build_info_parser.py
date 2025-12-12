@@ -17,7 +17,7 @@ class BuildInfoParser(BaseParser):
         table_build_info = {
             "type": "table",
             "caption": "Server Build Information",
-            "headers": ["Component", "Host", "Version", "OpenSSL", "Target Arch", "Target OS"],
+            "header": ["Component", "Host", "Version", "OpenSSL", "Target Arch", "Target OS"],
             "rows": rows,
         }
 
