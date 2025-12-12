@@ -18,13 +18,13 @@ class SHOverviewParser(BaseParser):
         overview_table = {
             "type": "table",
             "caption": "Sharded Cluster Overview",
-            "headers": ["#Shards", "#Mongos", "#Active mongos"],
+            "header": ["#Shards", "#Mongos", "#Active mongos"],
             "rows": [],
         }
         mongos_table = {
             "type": "table",
             "caption": "Component Details - `mongos`",
-            "headers": ["Host", "Ping Latency (sec)", "Last Ping"],
+            "header": ["Host", "Ping Latency (sec)", "Last Ping"],
             "rows": [],
         }
 

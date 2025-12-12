@@ -31,8 +31,10 @@ def test_sh_overview_parser():
     assert len(result) == 2
     overview_table = result[0]
     assert overview_table["caption"] == "Sharded Cluster Overview"
+    assert overview_table["header"] == ["#Shards", "#Mongos", "#Active mongos"]
     assert overview_table["rows"][0] == [2, 2, 1]
     mongos_table = result[1]
     assert mongos_table["caption"] == "Component Details - `mongos`"
+    assert mongos_table["header"] == ["Host", "Ping Latency (sec)", "Last Ping"]
     assert mongos_table["rows"][0] == ["M-QTFH0WFXLG:30017", 1.649169, {"$date": "2025-12-10T22:18:14.610Z"}]
     assert mongos_table["rows"][1] == ["M-QTFH0WFXLG:30028", 10315140, {"$date": "2025-08-13T12:59:19.978Z"}]
