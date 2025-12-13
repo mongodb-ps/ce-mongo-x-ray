@@ -18,6 +18,13 @@ DATA_WITH_SMALL_OPLOG_WINDOW_2 = {
     "lastOplogEntry": 1716536133,  # 24 hours later
 }
 
+DATA_WITH_SMALL_OPLOG_WINDOW_3 = {
+    "serverStatus": {
+        "oplogTruncation": {"oplogMinRetentionHours": 12},
+    },
+    "timeDelta": 86400,  # 24 hours in seconds
+}
+
 DATA_NORMAL_OPLOG_WINDOW = {
     "serverStatus": {
         "oplogTruncation": {"oplogMinRetentionHours": 72},
@@ -51,6 +58,16 @@ def test_oplog_window_rule_small_window():
     assert parsed_data["effective_retention_hours"] == 36
 
     results, parsed_data = rule.apply(DATA_WITH_SMALL_OPLOG_WINDOW_2)
+    assert len(results) == 1
+    issue = results[0]
+    assert issue["id"] == ISSUE.OPLOG_WINDOW_TOO_SMALL
+    assert issue["severity"] == SEVERITY.HIGH
+    assert issue["title"] == ISSUE_MSG_MAP[ISSUE.OPLOG_WINDOW_TOO_SMALL]["title"]
+    assert parsed_data["configured_retention_hours"] == 12
+    assert parsed_data["current_retention_hours"] == 24
+    assert parsed_data["effective_retention_hours"] == 24
+
+    results, parsed_data = rule.apply(DATA_WITH_SMALL_OPLOG_WINDOW_3)
     assert len(results) == 1
     issue = results[0]
     assert issue["id"] == ISSUE.OPLOG_WINDOW_TOO_SMALL

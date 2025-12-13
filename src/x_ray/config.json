@@ -98,11 +98,17 @@
             "default": {
                 "items": [
                     "BuildInfoItem",
-                    "HostInfoItem"
+                    "HostInfoItem",
+                    "RSInfoItem"
                 ]
             }
         },
-        "item_config": {},
+        "item_config": {
+            "RSInfoItem": {
+                "replication_lag_seconds": 60,
+                "oplog_window_hours": 48
+            }
+        },
         "template": "gmd/full.html"
     }
 }

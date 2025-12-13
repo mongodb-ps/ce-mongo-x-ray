@@ -19,13 +19,13 @@ class BuildInfoItem(BaseItem):
         def process_build_info():
             test_result, _ = self._version_eol_rule.apply(self._build_info, extra_info={"host": self._hostname})
             self.append_test_results(test_result)
-            self.captured_sample = self._build_info
+            # self.captured_sample = self._build_info
 
-        self.subscribe_one(GMD_EVENTS.SERVER_BUILD_INFO, get_build_info)
-        self.subscribe_all({GMD_EVENTS.SERVER_BUILD_INFO, GMD_EVENTS.HOST_INFO}, process_build_info)
+        self.watch_one(GMD_EVENTS.SERVER_BUILD_INFO, get_build_info)
+        self.watch_all({GMD_EVENTS.SERVER_BUILD_INFO, GMD_EVENTS.HOST_INFO}, process_build_info)
 
     def review_results_markdown(self, output):
-        data = self.captured_sample
+        data = self._build_info
         if data is None:
             return
         parsed_output = self._build_info_parser.markdown(

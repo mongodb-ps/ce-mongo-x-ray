@@ -31,4 +31,8 @@ class GMD_EVENTS(enum.Enum):
     SERVER_BUILD_INFO = "server_build_info"
     HOST_INFO = "host_info"
     ISMASTER = "ismaster"
+    REPLICA_STATUS = "replica_status"
+    REPLICA_SET_CONFIG = "replica_set_config"
+    REPLICA_INFO = "replica_info"
+    SERVER_STATUS_INFO = "server_status_info"
     UNKNOWN = "unknown"

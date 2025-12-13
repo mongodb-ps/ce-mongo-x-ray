@@ -25,13 +25,13 @@ class HostInfoItem(BaseItem):
                 self._host_info, extra_info={"version": self._server_version, "host": self._hostname}
             )
             self.append_test_results(test_result)
-            self.captured_sample = self._host_info
+            # self.captured_sample = self._host_info
 
-        self.subscribe_one(GMD_EVENTS.HOST_INFO, get_host_info)
-        self.subscribe_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.SERVER_BUILD_INFO}, process_build_info)
+        self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
+        self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.SERVER_BUILD_INFO}, process_build_info)
 
     def review_results_markdown(self, output):
-        data = self.captured_sample
+        data = self._host_info
         if data is None:
             return
         host = data.get("system", {}).get("hostname", "unknown_host")

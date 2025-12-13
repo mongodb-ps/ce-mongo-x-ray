@@ -24,8 +24,8 @@ class BaseItem:
 
         # Subscribe some common events that most items care about
         self._cache = None
-        self._subbed_events = {}
-        self._subbed_all_events = []
+        self._watched_events = {}
+        self._watched_all_events = []
         self._fired_events = set()
 
         def get_version(block):
@@ -52,9 +52,9 @@ class BaseItem:
                 else:
                     self._cluster_type = "STANDALONE"
 
-        self.subscribe_one(GMD_EVENTS.SERVER_BUILD_INFO, get_version)
-        self.subscribe_one(GMD_EVENTS.HOST_INFO, get_host)
-        self.subscribe_one(GMD_EVENTS.ISMASTER, get_cluster_type)
+        self.watch_one(GMD_EVENTS.SERVER_BUILD_INFO, get_version)
+        self.watch_one(GMD_EVENTS.HOST_INFO, get_host)
+        self.watch_one(GMD_EVENTS.ISMASTER, get_cluster_type)
 
     def test(self, block):
         sub_sec = block.get("subsection", "")
@@ -63,7 +63,7 @@ class BaseItem:
         except ValueError:
             current_event = GMD_EVENTS.UNKNOWN
         # Fire subscribed single events
-        for event, funcs in self._subbed_events.items():
+        for event, funcs in self._watched_events.items():
             if current_event == event:
                 for func in funcs:
                     try:
@@ -73,7 +73,7 @@ class BaseItem:
                 self._fired_events.add(event)
 
         # Fire subscribed all events
-        for events, func in self._subbed_all_events:
+        for events, func in self._watched_all_events:
             if events.issubset(self._fired_events) and current_event in events:
                 try:
                     func()
@@ -137,12 +137,18 @@ class BaseItem:
         for item in items:
             self.append_test_result(item["host"], item["severity"], item["title"], item["description"])
 
-    def subscribe_one(self, event: GMD_EVENTS, func):
-        """Fires when the specified event occurs."""
-        if event not in self._subbed_events:
-            self._subbed_events[event] = []
-        self._subbed_events[event].append(func)
+    def watch_one(self, event: GMD_EVENTS, func):
+        """
+        Fires when the specified event occurs.
+        The order of `watch_one` depends on the order of events in the GMD log, not the order of `watch_one` calls.
+        """
+        if event not in self._watched_events:
+            self._watched_events[event] = []
+        self._watched_events[event].append(func)
 
-    def subscribe_all(self, events: set[GMD_EVENTS], func):
-        """Fires when all the specified events occured."""
-        self._subbed_all_events.append((events, func))
+    def watch_all(self, events: set[GMD_EVENTS], func):
+        """
+        Fires when all the specified events occured.
+        `watch_all` fires after the last `watch_one` fires.
+        """
+        self._watched_all_events.append((events, func))

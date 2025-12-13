@@ -15,9 +15,11 @@ class OplogWindowRule(BaseRule):
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
         server_status = data.get("serverStatus", {})
-        first_oplog = data.get("firstOplogEntry", {})
-        last_oplog = data.get("lastOplogEntry", {})
-        delta = last_oplog - first_oplog
+        delta = data.get("timeDelta", None)
+        if not delta:
+            first_oplog = data.get("firstOplogEntry", {})
+            last_oplog = data.get("lastOplogEntry", {})
+            delta = last_oplog - first_oplog
         current_retention_hours = delta / 3600  # Convert seconds to hours
         configured_retention_hours = server_status.get("oplogTruncation", {}).get("oplogMinRetentionHours", 0)
         oplog_window_threshold = self._thresholds.get("oplog_window_hours", 48)
