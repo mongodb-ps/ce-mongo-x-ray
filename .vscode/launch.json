@@ -83,7 +83,7 @@
                 "-c",
                 "src/x_ray/config.json",
                 "gmd",
-                "misc/getMongoData-rs.json"
+                "misc/getMongoData-sh.json"
             ],
             "env": {
                 "LOG_LEVEL": "INFO",

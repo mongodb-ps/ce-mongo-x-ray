@@ -1,3 +1,4 @@
+from x_ray.utils import yellow
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
@@ -59,6 +60,9 @@ class RSInfoItem(BaseItem):
         self.watch_all(oplog_window_events, analyze_oplog_window)
 
     def review_results_markdown(self, output):
+        if not self.all_events_fired():
+            self._logger.warning(yellow("Not all required GMD blocks were captured. Skipping RSInfoItem review."))
+            return
         parsed_output = RSOverviewParser().markdown([(self._rs_config["_id"], self._rs_config)])
         output.write(parsed_output)
         data = {

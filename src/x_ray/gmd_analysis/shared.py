@@ -35,4 +35,6 @@ class GMD_EVENTS(enum.Enum):
     REPLICA_SET_CONFIG = "replica_set_config"
     REPLICA_INFO = "replica_info"
     SERVER_STATUS_INFO = "server_status_info"
+    ROUTERS = "routers"
+    SHARDS = "shards"
     UNKNOWN = "unknown"

@@ -99,7 +99,8 @@
                 "items": [
                     "BuildInfoItem",
                     "HostInfoItem",
-                    "RSInfoItem"
+                    "RSInfoItem",
+                    "SHInfoItem"
                 ]
             }
         },
@@ -107,7 +108,8 @@
             "RSInfoItem": {
                 "replication_lag_seconds": 60,
                 "oplog_window_hours": 48
-            }
+            },
+            "SHInfoItem": {}
         },
         "template": "gmd/full.html"
     }
