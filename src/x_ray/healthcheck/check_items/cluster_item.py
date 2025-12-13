@@ -94,7 +94,6 @@ class ClusterItem(BaseItem):
         first_oplog = next(client.local.oplog.rs.find().sort("$natural", 1).limit(1))["ts"].time
         test_result, parsed_data = self._oplog_window_rule.apply(
             {
-                "stats": stats,
                 "serverStatus": server_status,
                 "firstOplogEntry": first_oplog,
                 "lastOplogEntry": last_oplog,
