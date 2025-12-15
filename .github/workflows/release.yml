@@ -79,7 +79,7 @@ jobs:
         shell: cmd
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ inputs.tag != '' && inputs.tag || github.ref_name }}
           path: dist/x-ray-${{ matrix.platform }}-${{ matrix.arch }}-${{ inputs.tag != '' && inputs.tag || github.ref_name }}.tar.gz
