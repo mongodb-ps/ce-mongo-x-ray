@@ -1,5 +1,11 @@
 """
-This module defines a checklist item for collecting and reviewing collection statistics in MongoDB.
+Copyright (c) 2025 MongoDB Inc.
+
+DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
+THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
+THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from x_ray.healthcheck.check_items.base_item import BaseItem
@@ -16,6 +22,10 @@ from x_ray.utils import yellow, escape_markdown, format_size
 
 
 class CollInfoItem(BaseItem):
+    """
+    This module defines a checklist item for collecting and reviewing collection statistics in MongoDB.
+    """
+
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Collection Information"
