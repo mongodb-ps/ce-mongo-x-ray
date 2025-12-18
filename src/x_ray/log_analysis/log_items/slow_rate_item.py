@@ -1,4 +1,12 @@
-"""Analyze slow query rates from log lines."""
+"""
+Copyright (c) 2025 MongoDB Inc.
+
+DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
+THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
+THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
+"""
 
 from datetime import datetime
 import math
@@ -6,6 +14,8 @@ from x_ray.log_analysis.log_items.base_item import BaseItem
 
 
 class SlowRateItem(BaseItem):
+    """Analyze slow query rates from log lines."""
+
     def __init__(self, output_folder: str, config):
         super().__init__(output_folder, config, show_reset=True)
         self._cache = None

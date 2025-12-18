@@ -1,4 +1,12 @@
-"""Client Metadata Log Item checks for client metadata in the log."""
+"""
+Copyright (c) 2025 MongoDB Inc.
+
+DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
+THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
+THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
+"""
 
 from re import search, split
 from importlib.resources import files
@@ -20,6 +28,8 @@ COMPATIBILITY_MATRIX_JSON = files("x_ray") / "compatibility_matrix.json"
 
 
 class ClientMetaItem(BaseItem):
+    """Client Metadata Log Item checks for client metadata in the log."""
+
     _driver_matrix = None
 
     def __init__(self, output_folder: str, config):
