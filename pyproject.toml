@@ -82,7 +82,7 @@ ai = [
   "annotated-types==0.7.0",
   "typing_extensions==4.15.0",
   "jiter==0.12.0",
-  "psutil==7.1.3",
+  "psutil==7.2.1",
   "networkx==3.2.1",
   "sympy==1.14.0",
   "mpmath==1.3.0",
