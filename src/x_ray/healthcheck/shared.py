@@ -80,13 +80,24 @@ def connect_and_test(host, uri):
     client = MongoClient(uri)
     try:
         ping = client.admin.command("ping")
-        cluster_time = ping["$clusterTime"]["clusterTime"]
-        latency = (datetime.now(timezone.utc) - datetime.fromtimestamp(cluster_time.time, timezone.utc)).total_seconds()
-        logger.debug("Successfully connected to MongoDB.")
+        # Atlas clusters will not return $clusterTime in ping command
+        if ping["ok"] == 1:
+            if "$clusterTime" not in ping:
+                latency = 0
+            else:
+                cluster_time = ping.get("$clusterTime", {}).get("clusterTime", 0)
+                latency = (
+                    datetime.now(timezone.utc) - datetime.fromtimestamp(cluster_time.time, timezone.utc)
+                ).total_seconds()
+            logger.debug("Successfully connected to MongoDB.")
+        else:
+            latency = MAX_MONGOS_PING_LATENCY + 1
+            irresponsive_nodes.append({"host": host, "pingLatencySec": latency})
+            logger.debug("Failed to ping MongoDB node.")
     except Exception as e:
         latency = MAX_MONGOS_PING_LATENCY + 1  # Set to a high value to indicate failure
         irresponsive_nodes.append({"host": host, "pingLatencySec": latency})
-        logger.debug("Failed to connect to MongoDB: %s", e)
+        logger.debug("Failed to ping MongoDB node: %s", e)
     return latency, client
 
 
