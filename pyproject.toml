@@ -27,7 +27,7 @@ classifiers = [
   "Topic :: System :: Monitoring",
 ]
 dependencies = [
-  "pymongo==4.15.5",
+  "pymongo==4.16.0",
   "Jinja2==3.1.6",
   "Markdown==3.9",
   "MarkupSafe==3.0.3",
