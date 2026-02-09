@@ -81,7 +81,7 @@ ai = [
   "pydantic_core==2.41.5",
   "annotated-types==0.7.0",
   "typing_extensions==4.15.0",
-  "jiter==0.12.0",
+  "jiter==0.13.0",
   "psutil==7.2.2",
   "networkx==3.2.1",
   "sympy==1.14.0",
