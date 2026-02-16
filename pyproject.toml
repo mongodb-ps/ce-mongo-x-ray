@@ -56,7 +56,7 @@ dev = [
   "iniconfig==2.1.0",
   "tomli==2.4.0",
   "pyinstaller==6.19.0",
-  "pyinstaller-hooks-contrib==2025.11",
+  "pyinstaller-hooks-contrib==2026.0",
   "macholib==1.16.4",
   "altgraph==0.17.5",
 ]
