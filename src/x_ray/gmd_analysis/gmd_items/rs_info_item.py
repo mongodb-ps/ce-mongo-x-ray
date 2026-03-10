@@ -1,3 +1,5 @@
+from typing import Optional, TextIO
+
 from x_ray.utils import yellow
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
@@ -14,11 +16,11 @@ class RSInfoItem(BaseItem):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Replica Set Information"
         self.description: str = "Collects and analyzes replica set information from GMD logs."
-        self._rs_status = None
-        self._rs_config = None
-        self._server_status = None
-        self._replication_info = None
-        self._oplog_info = None
+        self._rs_status: Optional[dict] = None
+        self._rs_config: Optional[dict] = None
+        self._server_status: Optional[dict] = None
+        self._replication_info: Optional[dict] = None
+        self._oplog_info: Optional[dict] = None
         self._rs_status_rule: BaseRule = RSStatusRule(config)
         self._rs_config_rule: BaseRule = RSConfigRule(config)
         self._oplog_window_rule: BaseRule = OplogWindowRule(config)
@@ -60,10 +62,11 @@ class RSInfoItem(BaseItem):
         }
         self.watch_all(oplog_window_events, analyze_oplog_window)
 
-    def review_results_markdown(self, output):
+    def review_results_markdown(self, output: TextIO) -> None:
         if not self.all_events_fired():
-            self._logger.warning(yellow("Not all required GMD blocks were captured. Skipping RSInfoItem review."))
+            self._logger.info("Not all required GMD blocks were captured. Skipping RSInfoItem review.")
             return
+        assert self._rs_config is not None
         parsed_output = RSOverviewParser().markdown([(self._rs_config["_id"], self._rs_config)])
         output.write(parsed_output)
         data = {

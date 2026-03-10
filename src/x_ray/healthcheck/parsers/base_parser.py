@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 import os
+from typing import Any
 from x_ray.log_analysis.shared import to_json
 from x_ray.utils import get_script_path
 from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
@@ -9,11 +10,11 @@ from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 
 class BaseParser(ABC):
     @abstractmethod
-    def parse(self, data: object, **kwargs) -> list:
+    def parse(self, data: Any, **kwargs) -> list:
         """
         Parse the given data into tables and charts.
         Args:
-            data (object): The data to be parsed.
+            data (Any): The data to be parsed.
         Returns:
             list (dict): The parsed list. Each element can be either
                         {"type": "table", "caption": str (optional), "header": list, "rows": list} or

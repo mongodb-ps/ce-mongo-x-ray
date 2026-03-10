@@ -17,10 +17,11 @@ class RSDetailsParser(BaseParser):
         Returns:
             list: The parsed replica set detailed information as a list of table items.
         """
-        set_name = data["set_name"]
-        rs_config = data["rs_config"]
-        rs_status = data["rs_status"]
-        oplog_info = data["oplog_info"]
+        set_name: str = data["set_name"]
+        rs_config: dict = data["rs_config"]
+        rs_status: dict = data["rs_status"]
+        oplog_info: dict = data["oplog_info"]
+        rows: list = []
         details_table = {
             "type": "table",
             "caption": f"Component Details - `{set_name}`",
@@ -36,10 +37,10 @@ class RSDetailsParser(BaseParser):
                 "Current Delay (sec)",
                 "Oplog Window Hours",
             ],
-            "rows": [],
+            "rows": rows,
         }
         if rs_config is None or rs_status is None:
-            details_table["rows"].append(["N/A"] * len(details_table["header"]))
+            rows.append(["N/A"] * len(details_table["header"]))
             return [details_table]
         latest_optime = max(m.get("optime", {}).get("ts") for m in rs_status["members"])
         member_delay = {m["name"]: (latest_optime.time - m["optime"]["ts"].time) for m in rs_status["members"]}
@@ -54,7 +55,7 @@ class RSDetailsParser(BaseParser):
                 retention_hours = current_retention_hours
             else:
                 retention_hours = "N/A"
-            details_table["rows"].append(
+            rows.append(
                 [
                     host,
                     m["_id"],

@@ -37,4 +37,5 @@ class GMD_EVENTS(enum.Enum):
     SERVER_STATUS_INFO = "server_status_info"
     ROUTERS = "routers"
     SHARDS = "shards"
+    SERVER_PARAMETERS = "server_parameters"
     UNKNOWN = "unknown"
