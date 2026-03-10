@@ -14,6 +14,7 @@ import logging
 import urllib.parse
 import sys
 from datetime import datetime, timezone
+from typing import Any
 from pymongo import MongoClient
 from x_ray.utils import to_ejson, red
 
@@ -72,8 +73,8 @@ def str_to_md_id(string: str) -> str:
     return md_id
 
 
-active_nodes = {}
-irresponsive_nodes = []
+active_nodes: dict[str, Any] = {}
+irresponsive_nodes: list[dict[str, Any]] = []
 
 
 def connect_and_test(host, uri):
@@ -384,3 +385,36 @@ def enum_result_items(result, **kwargs):
                     func_config_member(set_name, member, level="config_member")
                 else:
                     func_shard_member(set_name, member, level="shard_member")
+
+
+def get_collections(client) -> dict:
+    """
+    Get the collections for each database in the cluster.
+    The result will be a dictionary with database names as keys and list of collection names as values.
+    System databases (admin, local, config) and system collections (collections start with "system.") will be skipped.
+    """
+    result: dict[str, list[str]] = {}
+    dbs = client.admin.command("listDatabases").get("databases", [])
+    for db_obj in dbs:
+        db_name = db_obj.get("name")
+        result[db_name] = []
+        if db_name in ["admin", "local", "config"]:
+            logger.debug("Skipping system database: %s", db_name)
+            continue
+        db = client[db_name]
+        collections = db.list_collections()
+        for coll_info in collections:
+            coll_name = coll_info.get("name")
+            coll_type = coll_info.get("type", "collection")
+            if coll_type != "collection":
+                logger.debug(
+                    "Skipping non-collection type: %s (%s)",
+                    coll_name,
+                    coll_type,
+                )
+                continue
+            if coll_name.startswith("system."):
+                logger.debug("Skipping system collection: %s.%s", db_name, coll_name)
+                continue
+            result[db_name].append(coll_name)
+    return result
