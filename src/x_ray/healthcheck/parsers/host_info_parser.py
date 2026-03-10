@@ -65,9 +65,9 @@ class HostInfoParser(BaseParser):
                 rows_mounts.append(
                     [
                         system["hostname"],
-                        mount["mountPoint"],
-                        mount["type"],
-                        mount["options"],
+                        mount.get("mountPoint", "N/A"),
+                        mount.get("type", "N/A"),
+                        mount.get("options", "N/A"),
                     ]
                 )
         output_list.append(table_hardware)
