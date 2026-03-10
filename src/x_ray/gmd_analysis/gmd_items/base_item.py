@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import logging
 import os
+from typing import Callable
 from bson import json_util
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.shared import SEVERITY
@@ -18,15 +19,15 @@ class BaseItem:
         self._hostname = None
         self._set_name = None
         self._cluster_type = None
-        self._test_result = []
+        self._test_result: list = []
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
 
         # Subscribe some common events that most items care about
         self._cache = None
-        self._watched_events = {}
-        self._watched_all_events = []
-        self._fired_events = set()
+        self._watched_events: dict[GMD_EVENTS, list] = {}
+        self._watched_all_events: list[tuple[set[GMD_EVENTS], Callable]] = []
+        self._fired_events: set[GMD_EVENTS] = set()
 
         def get_version(block):
             sub_sec = block.get("subsection", "")

@@ -1,5 +1,9 @@
+from typing import Any
+
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.healthcheck.rules.base_rule import BaseRule
+from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
 from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
 
@@ -7,11 +11,11 @@ from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
 class BuildInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
-        self.name = "Build Information"
-        self.description = "Collects and analyzes build information from GMD logs."
-        self._build_info = {}
-        self._version_eol_rule = VersionEOLRule(config)
-        self._build_info_parser = BuildInfoParser()
+        self.name: str = "Build Information"
+        self.description: str = "Collects and analyzes build information from GMD logs."
+        self._build_info: dict[str, Any] = {}
+        self._version_eol_rule: BaseRule = VersionEOLRule(config)
+        self._build_info_parser: BaseParser = BuildInfoParser()
 
         def get_build_info(block):
             self._build_info = block.get("output", {})

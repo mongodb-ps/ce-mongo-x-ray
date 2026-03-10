@@ -1,6 +1,7 @@
 from x_ray.utils import yellow
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
 from x_ray.healthcheck.parsers.rs_overview_parser import RSOverviewParser
 from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
@@ -11,16 +12,16 @@ from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
 class RSInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
-        self.name = "Replica Set Information"
-        self.description = "Collects and analyzes replica set information from GMD logs."
+        self.name: str = "Replica Set Information"
+        self.description: str = "Collects and analyzes replica set information from GMD logs."
         self._rs_status = None
         self._rs_config = None
         self._server_status = None
         self._replication_info = None
         self._oplog_info = None
-        self._rs_status_rule = RSStatusRule(config)
-        self._rs_config_rule = RSConfigRule(config)
-        self._oplog_window_rule = OplogWindowRule(config)
+        self._rs_status_rule: BaseRule = RSStatusRule(config)
+        self._rs_config_rule: BaseRule = RSConfigRule(config)
+        self._oplog_window_rule: BaseRule = OplogWindowRule(config)
 
         def get_replica_status(block):
             self._rs_status = block.get("output", {})

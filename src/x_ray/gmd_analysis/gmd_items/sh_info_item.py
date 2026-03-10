@@ -1,5 +1,6 @@
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
 from x_ray.utils import yellow
@@ -8,13 +9,13 @@ from x_ray.utils import yellow
 class SHInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
-        self.name = "Sharded Cluster Information"
-        self.description = "Collects and analyzes sharded cluster information from GMD logs."
+        self.name: str = "Sharded Cluster Information"
+        self.description: str = "Collects and analyzes sharded cluster information from GMD logs."
         self._shards = None
         self._routers = None
         self._converted_routers = None
         self._exec_time = None
-        self._shard_mongos_rule = ShardMongosRule(config)
+        self._shard_mongos_rule: BaseRule = ShardMongosRule(config)
 
         def get_shards(block):
             self._shards = block.get("output", {})
