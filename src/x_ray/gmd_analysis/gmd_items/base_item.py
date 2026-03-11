@@ -57,7 +57,7 @@ class BaseItem:
         self.watch_one(GMD_EVENTS.HOST_INFO, get_host)
         self.watch_one(GMD_EVENTS.ISMASTER, get_cluster_type)
 
-    def test(self, block):
+    def test(self, block) -> None:
         sub_sec = block.get("subsection", "")
         try:
             current_event = GMD_EVENTS(sub_sec)
@@ -114,7 +114,7 @@ class BaseItem:
         with open(self._output_file, "w", encoding="utf-8") as f:
             f.write(to_ejson(data, indent=None))
 
-    def test_result_markdown(self, output):
+    def test_result_markdown(self, output) -> None:
         if len(self._test_result) == 0:
             output.write("<b style='color: green;'>Pass.</b>\n\n")
             return
@@ -128,17 +128,17 @@ class BaseItem:
         output.write("\n")
 
     @abstractmethod
-    def review_results_markdown(self, output):
+    def review_results_markdown(self, output) -> None:
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def append_test_result(self, host: str, severity: SEVERITY, title: str, message: str):
+    def append_test_result(self, host: str, severity: SEVERITY, title: str, message: str) -> None:
         self._test_result.append({"host": host, "severity": severity, "title": title, "message": message})
 
-    def append_test_results(self, items: list):
+    def append_test_results(self, items: list) -> None:
         for item in items:
             self.append_test_result(item["host"], item["severity"], item["title"], item["description"])
 
-    def watch_one(self, event: GMD_EVENTS, func):
+    def watch_one(self, event: GMD_EVENTS, func) -> None:
         """
         Fires when the specified event occurs.
         The order of `watch_one` depends on the order of events in the GMD log, not the order of `watch_one` calls.
@@ -147,7 +147,7 @@ class BaseItem:
             self._watched_events[event] = []
         self._watched_events[event].append(func)
 
-    def watch_all(self, events: set[GMD_EVENTS], func):
+    def watch_all(self, events: set[GMD_EVENTS], func) -> None:
         """
         Fires when all the specified events occured.
         `watch_all` fires after the last `watch_one` fires.

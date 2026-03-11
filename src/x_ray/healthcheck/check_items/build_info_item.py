@@ -8,6 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+from typing import Optional
 from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
 from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
@@ -19,14 +20,14 @@ from x_ray.version import Version
 class BuildInfoItem(BaseItem):
     """Build Info Check Item Module. Used to check MongoDB server build information."""
 
-    def __init__(self, output_folder: str, config: dict = None):
+    def __init__(self, output_folder: str, config: Optional[dict] = None):
         super().__init__(output_folder, config)
         self._name = "Build Information"
         self._description = "Collects & review server build information.\n\n"
         self._description += "- Whether the server is running a supported version.\n"
         self._version_eol_rule = VersionEOLRule(config)
 
-    def test(self, *args, **kwargs):
+    def test(self, *args, **kwargs) -> None:
         client = kwargs.get("client")
         parsed_uri = kwargs.get("parsed_uri")
         nodes = discover_nodes(client, parsed_uri)

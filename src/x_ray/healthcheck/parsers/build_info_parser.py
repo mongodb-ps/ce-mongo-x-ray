@@ -12,20 +12,20 @@ class BuildInfoParser(BaseParser):
         Returns:
             list: The parsed build information as a list of table items.
         """
-        output_list = []
-        rows = []
-        table_build_info = {
+        output_list: list[dict] = []
+        rows: list[list[str]] = []
+        table_build_info: dict = {
             "type": "table",
             "caption": "Server Build Information",
             "header": ["Component", "Host", "Version", "OpenSSL", "Target Arch", "Target OS"],
             "rows": rows,
         }
 
-        build_infos = data
-        ver_count = {}
+        build_infos: list = data
+        ver_count: dict[str, int] = {}
         for name, host, raw_result in build_infos:
             if raw_result is None:
-                table_build_info["rows"].append([name, host, "N/A", "N/A", "N/A", "N/A"])
+                rows.append([name, host, "N/A", "N/A", "N/A", "N/A"])
                 ver_count["N/A"] = ver_count.get("N/A", 0) + 1
                 continue
             build_env = raw_result.get("buildEnvironment", {})

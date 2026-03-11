@@ -32,7 +32,7 @@ class HostInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
         self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.SERVER_BUILD_INFO}, process_build_info)
 
-    def review_results_markdown(self, output):
+    def review_results_markdown(self, output) -> None:
         data = self._host_info
         if data is None:
             return

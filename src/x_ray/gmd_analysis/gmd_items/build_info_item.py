@@ -28,7 +28,7 @@ class BuildInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.SERVER_BUILD_INFO, get_build_info)
         self.watch_all({GMD_EVENTS.SERVER_BUILD_INFO, GMD_EVENTS.HOST_INFO}, process_build_info)
 
-    def review_results_markdown(self, output):
+    def review_results_markdown(self, output) -> None:
         data = self._build_info
         if data is None:
             return

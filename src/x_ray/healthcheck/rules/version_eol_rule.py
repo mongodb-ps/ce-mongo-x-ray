@@ -2,28 +2,32 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
+from typing import Optional
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
 from x_ray.version import Version
 
 
 class VersionEOLRule(BaseRule):
-    def apply(self, data: object, **kwargs) -> tuple:
+    def apply(self, data: dict, **kwargs) -> tuple:
         """Check if the given build info represents a version that is end-of-life (EOL).
 
         Args:
-            data (object): The result from `buildInfo` command.
+            data (Optional[dict]): The result from `buildInfo` command.
             extra_info (dict): Additional information such as host.
         Returns:
             tuple: (list of issues found, list of parsed data)
         """
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_results = []
+        assert data is not None, "BuildInfo data should not be None"
+        assert self._thresholds is not None, "Thresholds should be defined for VersionEOLRule"
         version = Version(data.get("versionArray", [0, 0, 0]))
         eol_version = Version(self._thresholds.get("eol_version", [6, 3, 0]))
         # Check if the version is below EOL version
