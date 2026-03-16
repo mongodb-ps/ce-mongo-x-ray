@@ -31,13 +31,13 @@ class SecurityParser(BaseParser):
                     [
                         escape_markdown(set_name),
                         host,
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
+                        "N/A",
+                        "N/A",
+                        "N/A",
+                        "N/A",
+                        "N/A",
+                        "N/A",
+                        "N/A",
                     ]
                 )
                 continue
