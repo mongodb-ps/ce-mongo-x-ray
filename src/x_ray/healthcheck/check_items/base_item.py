@@ -89,7 +89,7 @@ class BaseItem(ABC):
         }
 
     @property
-    def test_result_markdown(self):
+    def test_result_markdown(self) -> str:
         result = ""
         if len(self._test_result) == 0:
             result += "<b style='color: green;'>Pass.</b>\n\n"
@@ -103,11 +103,11 @@ class BaseItem(ABC):
         return result
 
     @property
-    def review_result(self):
+    def review_result(self) -> dict:
         return {"name": self.name, "description": self.description, "data": []}
 
     @property
-    def review_result_markdown(self):
+    def review_result_markdown(self) -> str:
         result_data = self.review_result["data"]
         result = ""
         if len(result_data) == 0:

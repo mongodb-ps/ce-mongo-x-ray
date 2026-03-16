@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 import os
 from typing import Any
+from uuid import uuid4
 from x_ray.log_analysis.shared import to_json
 from x_ray.utils import get_script_path
 from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
@@ -22,7 +23,7 @@ class BaseParser(ABC):
         """
         raise NotImplementedError("Subclasses must implement the parse method")
 
-    def format_table(self, item, index, caller=None) -> str:
+    def format_table(self, item, i) -> str:
         """
         Parse a table represented by header and rows into markdown.
 
@@ -31,6 +32,7 @@ class BaseParser(ABC):
                 caption (str, optional): The table caption.
                 header (list): List of column names. Accepts strings or dicts {"text": str, "align": "center" | "left" | "right"}.
                 rows (list): List of rows, where each row is a list of values.
+            i (int): The index of the table in the output list, used for generating unique IDs if needed.
         Returns:
             str: Parsed table as a markdown string.
         """
@@ -54,25 +56,28 @@ class BaseParser(ABC):
 
         return output
 
-    def format_chart(self, item, index, caller=None) -> str:
+    def format_chart(self, item, i) -> str:
         """
         Format chart data into markdown. For charts, the parsed data is usually rendered as a javascript block.
         The chart rendering is handled by the frontend `snippets` in the `templates` folder.
 
         Args:
             data (dict): The data for the chart.
+            i (int): The index of the chart in the output list.
         Returns:
             str: Parsed chart as a markdown string.
         """
         if item is None or item.get("type", None) != "chart":
             raise ValueError("Invalid chart item")
+        uniq_name: str = f"{uuid4().hex}"
         output = ""
-        output += f'<div id="container_{caller}_{index}"></div>'
+        output += f'<div id="{uniq_name}"></div>'
         output += "<script type='text/javascript'>\n"
+        output += f"// {self.__class__.__name__}\n"
         output += "(function() {\n"
-        output += f"const container = document.getElementById('container_{caller}_{index}');\n"
+        output += f"const container = document.getElementById('{uniq_name}');\n"
         output += f"let data = {to_json(item.get('data'))};\n"
-        file_name = f"{caller}_{index}.js"
+        file_name = f"{self.__class__.__name__}_{i}.js"
         file_path = os.path.join("templates", "healthcheck", "snippets", file_name)
         file_path = get_script_path(file_path)
         if os.path.exists(file_path):
@@ -91,13 +96,12 @@ class BaseParser(ABC):
         Returns:
             str: The parsed data in markdown format.
         """
-        caller = kwargs.get("caller", None)
-        output_list = self.parse(data, **kwargs)
+        output_list: list = self.parse(data, **kwargs)
         output = ""
         for i, item in enumerate(output_list):
             if item["type"] == "table":
-                output += self.format_table(item, i, caller)
+                output += self.format_table(item, i)
             elif item["type"] == "chart":
-                output += self.format_chart(item, i, caller)
+                output += self.format_chart(item, i)
             output += "\n\n"
         return output
