@@ -10,6 +10,8 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from datetime import datetime, timezone
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser
 from x_ray.healthcheck.rules.index_rule import IndexRule
 from x_ray.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
@@ -18,7 +20,7 @@ from x_ray.healthcheck.shared import (
     enum_result_items,
     get_collections,
 )
-from x_ray.utils import yellow, escape_markdown, format_json_md
+from x_ray.utils import yellow
 
 
 class IndexInfoItem(BaseItem):
@@ -99,57 +101,14 @@ class IndexInfoItem(BaseItem):
         self.captured_sample = result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self) -> str:
         result = self.captured_sample
-        # TODO: display access/hour for each node.
-        table = {
-            "type": "table",
-            "caption": "Index Review",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Namespace", "type": "string"},
-                {"name": "Name", "type": "string"},
-                {"name": "Key", "type": "string", "align": "left"},
-                {"name": "Access per Hour", "type": "string"},
-            ],
-            "rows": [],
-        }
+        output: list[str] = []
 
-        def func_cluster(set_name, node, **kwargs):
+        def func_cluster(set_name, node, **kwargs) -> None:
             raw_result = node.get("rawResult", [])
-            if raw_result is None:
-                table["rows"].append(["n/a", "n/a", "n/a", "n/a", "n/a"])
-                return
-            for item in raw_result:
-                ns = item["ns"]
-                capture_time = item["captureTime"]
-                for stats in item["indexStats"]:
-                    component = stats.get("shard", set_name)
-                    key_md = format_json_md(stats["key"], indent=None)
-                    access = stats["accesses"]
-                    ops = access.get("ops", 0)
-                    since = access.get("since", None)
-                    spec = stats.get("spec", {})
-                    options = get_index_options(spec)
-                    options_md = f"<pre>{format_json_md(options)}</pre>" if len(options) > 0 else ""
-                    access_per_hour = ops / (capture_time - since).total_seconds() / 3600
-                    table["rows"].append(
-                        [
-                            escape_markdown(component),
-                            escape_markdown(ns),
-                            escape_markdown(stats["name"]),
-                            f"`{key_md}`{options_md}",
-                            access_per_hour,
-                        ]
-                    )
+            parser: BaseParser = IndexInfoParser()
+            output.append(parser.markdown(raw_result, set_name=set_name))
 
         enum_result_items(result, func_sh_cluster=func_cluster, func_rs_cluster=func_cluster)
-        return {"name": self.name, "description": self.description, "data": [table]}
-
-
-def get_index_options(spec):
-    options = {}
-    for key, value in spec.items():
-        if key not in ["key", "name", "v"]:
-            options[key] = value
-    return options
+        return "\n\n".join(output)
