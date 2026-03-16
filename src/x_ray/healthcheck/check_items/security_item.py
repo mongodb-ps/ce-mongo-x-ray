@@ -9,6 +9,8 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.healthcheck.parsers.security_parser import SecurityParser
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from x_ray.utils import yellow, escape_markdown
 from x_ray.healthcheck.rules.security_rule import SecurityRule
@@ -65,68 +67,17 @@ class SecurityItem(BaseItem):
         self.captured_sample = result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self) -> str:
         raw_result = self.captured_sample
-        table = {
-            "type": "table",
-            "caption": "Security Information",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Listen", "type": "string"},
-                {"name": "TLS", "type": "string"},
-                {"name": "Authorization", "type": "string"},
-                {"name": "Cluster Auth", "type": "string"},
-                {"name": "Log Redaction", "type": "string"},
-                {"name": "EAR", "type": "string"},
-                {"name": "Auditing", "type": "string"},
-            ],
-            "rows": [],
-        }
+        raw_results: list = []
 
-        def func_node(name, node, **kwargs):
-            raw_result = node["rawResult"]
-            host = node["host"]
-            if raw_result is None:
-                table["rows"].append(
-                    [
-                        escape_markdown(name),
-                        host,
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                        "n/a",
-                    ]
-                )
-                return
-
-            parsed = raw_result.get("parsed", {})
-            net = parsed.get("net", {})
-            security = parsed.get("security", {})
-            audit_log = parsed.get("auditLog", {})
-            port = net.get("port", 27017)
-            tls = net.get("tls", {}).get("mode", "disabled")
-            authorization = security.get("authorization", "disabled")
-            log_redaction = security.get("redactClientLogData", "disabled")
-            eat = security.get("enableEncryption", "false")
-            bind_ip = net.get("bindIp", "127.0.0.1")
-            cluster_auth = security.get("clusterAuthMode", "disabled")
-            audit = "enabled" if audit_log.get("destination", None) is not None else "disabled"
-            table["rows"].append(
-                [
-                    escape_markdown(name),
-                    host,
-                    f"{bind_ip}:{port}",
-                    tls,
-                    authorization,
-                    cluster_auth,
-                    log_redaction,
-                    eat,
-                    audit,
-                ]
+        def func_node(set_name, node, **kwargs):
+            raw_results.append(
+                {
+                    "rawResult": node.get("rawResult"),
+                    "host": node.get("host"),
+                    "set_name": set_name,
+                }
             )
 
         enum_result_items(
@@ -136,5 +87,5 @@ class SecurityItem(BaseItem):
             func_shard_member=func_node,
             func_config_member=func_node,
         )
-
-        return {"name": self.name, "description": self.description, "data": [table]}
+        parser: BaseParser = SecurityParser()
+        return parser.markdown(raw_results)
