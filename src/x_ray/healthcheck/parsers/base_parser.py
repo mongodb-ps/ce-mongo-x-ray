@@ -41,7 +41,10 @@ class BaseParser(ABC):
         header = item.get("header", [])
         rows = item.get("rows", [])
         caption = item.get("caption", None)
+        notes = item.get("notes", None)
         output = f"#### {caption}\n\n" if caption else ""
+        if notes:
+            output += notes + "\n\n"
         if rows is None or len(rows) == 0:
             output += "_No data available._\n"
             return output
