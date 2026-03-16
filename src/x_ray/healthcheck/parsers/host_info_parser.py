@@ -13,9 +13,10 @@ class HostInfoParser(BaseParser):
         Returns:
             list: The parsed host information as a list of table items.
         """
-        output_list = []
-        rows, rows_mounts = [], []
-        table_hardware = {
+        output_list: list[dict] = []
+        rows: list[list[str]] = []
+        rows_mounts: list[list[str]] = []
+        table_hardware: dict = {
             "type": "table",
             "caption": "Host Hardware Information",
             "header": [
@@ -29,7 +30,7 @@ class HostInfoParser(BaseParser):
             "rows": rows,
         }
 
-        table_mounts = {
+        table_mounts: dict = {
             "type": "table",
             "caption": "Mount Points",
             "header": [
@@ -44,9 +45,9 @@ class HostInfoParser(BaseParser):
             if not info:
                 rows.append([host, "N/A", "N/A", "N/A", "N/A", "N/A"])
                 continue
-            system = info["system"]
-            os = info["os"]
-            extra = info["extra"]
+            system: dict = info["system"]
+            os: dict = info["os"]
+            extra: dict = info["extra"]
             if "extra" in extra:
                 # Compatibility for MongoDB 6.0
                 extra = extra["extra"]
@@ -60,7 +61,7 @@ class HostInfoParser(BaseParser):
                     system["numaEnabled"],
                 ]
             )
-            mounts = extra.get("mountInfo", [])
+            mounts: list[dict] = extra.get("mountInfo", [])
             for mount in mounts:
                 rows_mounts.append(
                     [
