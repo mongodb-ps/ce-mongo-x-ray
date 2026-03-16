@@ -27,20 +27,31 @@ const indexFragDatasets = labels.map((label, index) => {
     };
 });
 
-// Collection Fragmentation Chart
-let wrapper1 = document.createElement('div');
-let canvas1 = document.createElement('canvas');
-wrapper1.className = "bar";
-canvas1.className = 'bar';
-container.appendChild(wrapper1);
-wrapper1.appendChild(canvas1);
-const ctx1 = canvas1.getContext('2d');
+const mergedDatasets = [
+    ...collFragDatasets.map(dataset => ({
+        ...dataset,
+        label: `${dataset.label} - Collection`
+    })),
+    ...indexFragDatasets.map(dataset => ({
+        ...dataset,
+        label: `${dataset.label} - Index`
+    }))
+];
 
-const chart1 = new Chart(ctx1, {
+// Combined Fragmentation Chart
+let wrapper = document.createElement('div');
+let canvas = document.createElement('canvas');
+wrapper.className = "bar";
+canvas.className = 'bar';
+container.appendChild(wrapper);
+wrapper.appendChild(canvas);
+const ctx = canvas.getContext('2d');
+
+const chart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: namespaces,
-        datasets: collFragDatasets
+        datasets: mergedDatasets
     },
     options: {
         indexAxis: 'y',
@@ -48,7 +59,7 @@ const chart1 = new Chart(ctx1, {
             x: {
                 title: {
                     display: true,
-                    text: 'Collection Fragmentation (%)'
+                    text: 'Fragmentation (%)'
                 },
                 max: 100
             },
@@ -62,7 +73,7 @@ const chart1 = new Chart(ctx1, {
         plugins: {
             title: {
                 display: true,
-                text: 'Collection Fragmentation by Namespace'
+                text: 'Collection / Index Fragmentation by Namespace'
             },
             legend: {
                 display: true,
@@ -80,60 +91,5 @@ const chart1 = new Chart(ctx1, {
         }
     }
 });
-charts.push(chart1);
-
-// Index Fragmentation Chart
-let wrapper2 = document.createElement('div');
-let canvas2 = document.createElement('canvas');
-wrapper2.className = "bar";
-canvas2.className = 'bar';
-container.appendChild(wrapper2);
-wrapper2.appendChild(canvas2);
-const ctx2 = canvas2.getContext('2d');
-
-const chart2 = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-        labels: namespaces,
-        datasets: indexFragDatasets
-    },
-    options: {
-        indexAxis: 'y',
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: 'Index Fragmentation (%)'
-                },
-                max: 100
-            },
-            y: {
-                title: {
-                    display: true,
-                    text: 'Namespace'
-                }
-            }
-        },
-        plugins: {
-            title: {
-                display: true,
-                text: 'Index Fragmentation by Namespace'
-            },
-            legend: {
-                display: true,
-                position: 'right'
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context) {
-                        const label = context.dataset.label || '';
-                        const value = (context.parsed.x || 0).toFixed(2);
-                        return label + ': ' + value + '%';
-                    }
-                }
-            }
-        }
-    }
-});
-charts.push(chart2);
+charts.push(chart);
 
