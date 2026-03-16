@@ -2,13 +2,19 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from time import sleep
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.healthcheck.parsers.cache_parser import CacheParser
+from x_ray.healthcheck.parsers.conn_parser import ConnParser
+from x_ray.healthcheck.parsers.opcounter_parser import OpcounterParser
+from x_ray.healthcheck.parsers.query_targeting_parser import QueryTargetingParser
 from x_ray.healthcheck.rules.cache_rule import CacheRule
 from x_ray.healthcheck.rules.connections_rule import ConnectionsRule
 from x_ray.healthcheck.rules.query_targeting_rule import QueryTargetingRule
@@ -210,134 +216,30 @@ class ServerStatusItem(BaseItem):
         self.captured_sample = [result1, result2]
 
     @property
-    def review_result(self):
+    def review_result_markdown(self) -> str:
         result = self.captured_sample
-        _, result2 = result
-        data = []
-        conn_table = {
-            "type": "table",
-            "caption": "Connections",
-            "notes": "- `Rejected` is only available for MongoDB 6.3 and later.\n"
-            + "- `Threaded` is only available for MongoDB 5.0 and later.\n",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Current", "type": "decimal"},
-                {"name": "Available", "type": "decimal"},
-                {"name": "Active", "type": "decimal"},
-                {"name": "Created", "type": "decimal"},
-                {"name": "Rejected", "type": "decimal"},
-                {"name": "Threaded", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        current = []
-        active = []
-        data_conn = {}
-        opcounters_table = {
-            "type": "table",
-            "caption": "Operation Counters",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Inserts", "type": "decimal"},
-                {"name": "Queries", "type": "decimal"},
-                {"name": "Updates", "type": "decimal"},
-                {"name": "Deletes", "type": "decimal"},
-                {"name": "Commands", "type": "decimal"},
-                {"name": "Getmores", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        inserts = []
-        queries = []
-        updates = []
-        deletes = []
-        commands = []
-        getmores = []
-        data_ops = {}
-        data.append(conn_table)
-        data.append({"type": "chart", "data": data_conn})
-        data.append(opcounters_table)
-        data.append({"type": "chart", "data": data_ops})
+        result2 = result[1]
+        output: list[str] = []
+        conns: list = []
+        ops: list = []
 
-        def func_all_members(set_name, node, **kwargs):
+        def func_all_members(set_name, node, **kwargs) -> None:
             raw_result = node.get("rawResult", {})
-            if not raw_result:
-                conn_table["rows"].append(
-                    [escape_markdown(set_name), node["host"], "n/a", "n/a", "n/a", "n/a", "n/a", "n/a"]
-                )
-                opcounters_table["rows"].append(
-                    [escape_markdown(set_name), node["host"], "n/a", "n/a", "n/a", "n/a", "n/a", "n/a"]
-                )
-                data_conn[f"{set_name}/{node['host']}"] = {
-                    "current": 0,
-                    "available": 0,
-                    "active": 0,
-                    "totalCreated": 0,
-                    "rejected": 0,
-                    "threaded": 0,
+            host: str = node["host"]
+            conns.append(
+                {
+                    "set_name": set_name,
+                    "host": host,
+                    "connections": raw_result.get("connections", None) if raw_result else None,
                 }
-                data_ops[f"{set_name}/{node['host']}"] = {
-                    "insert": 0,
-                    "query": 0,
-                    "update": 0,
-                    "delete": 0,
-                    "command": 0,
-                    "getmore": 0,
+            )
+            ops.append(
+                {
+                    "set_name": set_name,
+                    "host": host,
+                    "op_counters": raw_result.get("op_counters", None) if raw_result else None,
                 }
-                return
-            host = node["host"]
-            conns = raw_result.get("connections", {})
-            conn_table["rows"].append(
-                [
-                    escape_markdown(set_name),
-                    host,
-                    conns.get("current", 0),
-                    conns.get("available", 0),
-                    conns.get("active", 0),
-                    conns.get("totalCreated", 0),
-                    conns.get("rejected", "n/a"),
-                    conns.get("threaded", "n/a"),
-                ]
             )
-            data_conn[f"{set_name}/{host}"] = {
-                "current": conns.get("current", 0),
-                "available": conns.get("available", 0),
-                "active": conns.get("active", 0),
-                "totalCreated": conns.get("totalCreated", 0),
-                "rejected": conns.get("rejected", 0),
-                "threaded": conns.get("threaded", 0),
-            }
-            active.append(conns.get("active", 0))
-            current.append(conns.get("current", 0) - conns.get("active", 0))
-            opcounters = raw_result.get("op_counters", {})
-            opcounters_table["rows"].append(
-                [
-                    escape_markdown(set_name),
-                    host,
-                    opcounters.get("insert", 0),
-                    opcounters.get("query", 0),
-                    opcounters.get("update", 0),
-                    opcounters.get("delete", 0),
-                    opcounters.get("command", 0),
-                    opcounters.get("getmore", 0),
-                ]
-            )
-            data_ops[f"{set_name}/{host}"] = {
-                "insert": opcounters.get("insert", 0),
-                "query": opcounters.get("query", 0),
-                "update": opcounters.get("update", 0),
-                "delete": opcounters.get("delete", 0),
-                "command": opcounters.get("command", 0),
-                "getmore": opcounters.get("getmore", 0),
-            }
-            inserts.append(opcounters.get("insert", 0))
-            queries.append(opcounters.get("query", 0))
-            updates.append(opcounters.get("update", 0))
-            deletes.append(opcounters.get("delete", 0))
-            commands.append(opcounters.get("command", 0))
-            getmores.append(opcounters.get("getmore", 0))
 
         enum_result_items(
             result2,
@@ -346,85 +248,30 @@ class ServerStatusItem(BaseItem):
             func_shard_member=func_all_members,
             func_config_member=func_all_members,
         )
-        qt_table = {
-            "type": "table",
-            "caption": "Query Targeting",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Scanned / Returned", "type": "decimal"},
-                {"name": "Scanned Objects / Returned", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        cache_table = {
-            "type": "table",
-            "caption": "WiredTiger Cache",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Cache Size", "type": "decimal"},
-                {"name": "In-Cache Size", "type": "decimal"},
-                {"name": "Read Into", "type": "decimal"},
-                {"name": "Written From", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        cache_sizes = []
-        in_cache_sizes = []
-        read_into_sizes = []
-        written_from_sizes = []
-        data_cache = {}
-        data.append(cache_table)
-        data.append({"type": "chart", "data": data_cache})
-        data.append(qt_table)
+        conn_parser: BaseParser = ConnParser()
+        output.append(conn_parser.markdown(conns))
+        ops_parser: BaseParser = OpcounterParser()
+        output.append(ops_parser.markdown(ops))
+
+        qts: list = []
+        caches: list = []
 
         def func_data_member(set_name, node, **kwargs):
             raw_result = node.get("rawResult", {})
             host = node["host"]
-            if not raw_result:
-                cache_table["rows"].append([escape_markdown(set_name), host, "n/a", "n/a", "n/a", "n/a"])
-                qt_table["rows"].append([escape_markdown(set_name), node["host"], "n/a", "n/a"])
-                data_cache[f"{set_name}/{host}"] = {
-                    "cacheSize": 0,
-                    "inCacheSize": 0,
-                    "readInto": 0,
-                    "forUpdates": 0,
-                    "dirty": 0,
-                    "writtenFrom": 0,
+            qts.append(
+                {
+                    "set_name": set_name,
+                    "host": host,
+                    "query_targeting": raw_result.get("query_targeting", None) if raw_result else None,
                 }
-                return
-            cache = raw_result.get("cache", {})
-            cache_table["rows"].append(
-                [
-                    escape_markdown(set_name),
-                    escape_markdown(host),
-                    format_size(cache.get("cacheSize", 0)),
-                    format_size(cache.get("inCacheSize", 0)),
-                    f"{format_size(cache.get('readInto', 0))}/s",
-                    f"{format_size(cache.get('writtenFrom', 0))}/s",
-                ]
             )
-            data_cache[f"{set_name}/{host}"] = {
-                "cacheSize": cache.get("cacheSize", 0),
-                "inCacheSize": cache.get("inCacheSize", 0),
-                "readInto": cache.get("readInto", 0),
-                "forUpdates": cache.get("forUpdates", 0),
-                "dirty": cache.get("dirty", 0),
-                "writtenFrom": cache.get("writtenFrom", 0),
-            }
-            cache_sizes.append(cache.get("cacheSize", 0))
-            in_cache_sizes.append(cache.get("inCacheSize", 0))
-            read_into_sizes.append(cache.get("readInto", 0))
-            written_from_sizes.append(cache.get("writtenFrom", 0))
-            query_targeting = raw_result.get("query_targeting", {})
-            qt_table["rows"].append(
-                [
-                    escape_markdown(set_name),
-                    host,
-                    f"{query_targeting.get('scanned/returned', 0):.2f}",
-                    f"{query_targeting.get('scanned_objects/returned', 0):.2f}",
-                ]
+            caches.append(
+                {
+                    "set_name": set_name,
+                    "host": host,
+                    "cache": raw_result.get("cache", None) if raw_result else None,
+                }
             )
 
         enum_result_items(
@@ -433,5 +280,10 @@ class ServerStatusItem(BaseItem):
             func_shard_member=func_data_member,
             func_config_member=func_data_member,
         )
+        qt_parser: BaseParser = QueryTargetingParser()
+        output.append(qt_parser.markdown(qts))
 
-        return {"name": self.name, "description": self.description, "data": data}
+        cache_parser: BaseParser = CacheParser()
+        output.append(cache_parser.markdown(caches))
+
+        return "\n\n".join(output)
