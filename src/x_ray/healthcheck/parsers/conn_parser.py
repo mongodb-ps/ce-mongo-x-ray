@@ -39,7 +39,7 @@ class ConnParser(BaseParser):
                     str(conns.get("current", "0")),
                     str(conns.get("available", "0")),
                     str(conns.get("active", "0")),
-                    str(conns.get("created", "0")),
+                    str(conns.get("totalCreated", "0")),
                     str(conns.get("rejected", "N/A")),
                     str(conns.get("threaded", "N/A")),
                 ]
