@@ -112,3 +112,40 @@ def test_cache_parser() -> None:
         "dirty": 0,
         "writtenFrom": 0.0,
     }
+
+
+def test_cache_parser_no_data() -> None:
+    parser = CacheParser()
+    result = parser.parse(
+        [
+            {
+                "set_name": "shard01",
+                "host": "localhost:30018",
+                "cache": None,
+            }
+        ]
+    )
+    assert len(result) == 2
+    assert result[0]["type"] == "table"
+    assert result[0]["caption"] == "WiredTiger Cache"
+    assert result[0]["header"] == [
+        "Component",
+        "Host",
+        "Cache Size",
+        "In-Cache Size",
+        "Bytes Dirty",
+        "Read Into",
+        "Written From",
+    ]
+    assert len(result[0]["rows"]) == 1
+    assert result[0]["rows"][0] == ["shard01", "localhost:30018", "N/A", "N/A", "N/A", "N/A", "N/A"]
+    assert result[1]["type"] == "chart"
+    assert len(result[1]["data"]) == 1
+    assert result[1]["data"]["shard01/localhost:30018"] == {
+        "cacheSize": 0,
+        "inCacheSize": 0,
+        "readInto": 0,
+        "forUpdates": 0,
+        "dirty": 0,
+        "writtenFrom": 0,
+    }
