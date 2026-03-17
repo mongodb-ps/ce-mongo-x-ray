@@ -13,7 +13,7 @@ class RSOverviewParser(BaseParser):
         Returns:
             list: The parsed replica set information as a list of table items.
         """
-        rows: list[list[str]] = []
+        rows: list[list] = []
         overview_table = {
             "type": "table",
             "caption": "Components Overview",
@@ -25,10 +25,10 @@ class RSOverviewParser(BaseParser):
                 rows.append([set_name, "N/A" * 4])
                 continue
             members = rs_config["members"]
-            num_members = str(len(members))
-            num_voting = str(sum(1 for m in members if m["votes"] > 0))
-            num_arbiters = str(sum(1 for m in members if m["arbiterOnly"]))
-            num_hidden = str(sum(1 for m in members if m["hidden"]))
+            num_members = len(members)
+            num_voting = sum(1 for m in members if m["votes"] > 0)
+            num_arbiters = sum(1 for m in members if m["arbiterOnly"])
+            num_hidden = sum(1 for m in members if m["hidden"])
             rows.append(
                 [
                     escape_markdown(rs_config["_id"]),
