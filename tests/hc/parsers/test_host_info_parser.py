@@ -1,4 +1,4 @@
-from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
+from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser  # type: ignore
 
 HOST_INFOS = [
     (
