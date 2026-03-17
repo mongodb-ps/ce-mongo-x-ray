@@ -25,7 +25,7 @@ class CollOverviewParser(BaseParser):
         output_list.append(stats_table)
         output_list.append({"type": "chart", "data": data_sizes})
         if data is None:
-            rows.append(["n/a", "n/a", "n/a", "n/a", "n/a", "n/a"])
+            rows.append(["N/A", "N/A", "N/A", "N/A", "N/A", "N/A"])
             return output_list
         for stats in data:
             ns = stats["ns"]
