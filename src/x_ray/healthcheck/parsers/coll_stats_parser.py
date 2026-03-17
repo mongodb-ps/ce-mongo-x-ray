@@ -1,5 +1,5 @@
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown, format_size
+from x_ray.utils import escape_markdown
 
 
 class CollStatsParser(BaseParser):
@@ -51,8 +51,8 @@ class CollStatsParser(BaseParser):
         output_list.append(latency_table)
         output_list.append({"type": "chart", "data": data_latency})
         if data is None:
-            frag_rows.append([host, "n/a", "n/a", "n/a"])
-            lat_rows.append([host, "n/a", "n/a", "n/a", "n/a", "n/a", "n/a"])
+            frag_rows.append([set_name, host, "N/A", "N/A", "N/A"])
+            lat_rows.append([set_name, host, "N/A", "N/A", "N/A", "N/A", "N/A"])
             return output_list
         for stats in data:
             ns = stats["ns"]

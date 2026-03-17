@@ -1,4 +1,4 @@
-from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
+from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser  # type: ignore
 
 BUILD_INFOS = [
     (
