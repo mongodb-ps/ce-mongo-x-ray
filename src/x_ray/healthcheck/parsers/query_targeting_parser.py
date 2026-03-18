@@ -25,7 +25,7 @@ class QueryTargetingParser(BaseParser):
                     escape_markdown(set_name),
                     host,
                     f"{query_targeting.get('scanned/returned', 0):.2f}",
-                    f"{query_targeting.get('scanned_objects/returned', 0):.2f}",
+                    f"{query_targeting.get('scanned_obj/returned', 0):.2f}",
                 ]
             )
         return output_list
