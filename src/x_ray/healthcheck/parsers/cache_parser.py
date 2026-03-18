@@ -37,8 +37,8 @@ class CacheParser(BaseParser):
                     format_size(cache.get("cacheSize", 0)),
                     format_size(cache.get("inCacheSize", 0)),
                     format_size(cache.get("dirty", 0)),
-                    f"{format_size(cache.get('readInto', 0))}/s",
-                    f"{format_size(cache.get('writtenFrom', 0))}/s",
+                    f"{format_size(cache.get('readInto', 0))}/s" if cache.get("readInto", 0) != "N/A" else "N/A",
+                    f"{format_size(cache.get('writtenFrom', 0))}/s" if cache.get("writtenFrom", 0) != "N/A" else "N/A",
                 ]
             )
             cache_data[f"{set_name}/{host}"] = {
