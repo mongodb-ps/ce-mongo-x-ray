@@ -18,7 +18,6 @@ from x_ray.healthcheck.shared import (
     enum_all_nodes,
     enum_result_items,
 )
-from x_ray.utils import format_size, escape_markdown, format_json_md
 
 
 class ShardKeyItem(BaseItem):
@@ -72,7 +71,7 @@ class ShardKeyItem(BaseItem):
         result = self.captured_sample
         output: list = []
 
-        def func_cluster(set_name, node, **kwargs):
+        def func_cluster(set_name, node, **kwargs) -> None:
             raw_result = node["rawResult"]
             parser: BaseParser = ShardKeyParser()
             output.append(parser.markdown(raw_result))

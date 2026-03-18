@@ -24,7 +24,7 @@ class ShardKeyParser(BaseParser):
         }
         output_list.append(table)
         if data is None:
-            rows.append(["n/a", "n/a", "n/a", "n/a", "n/a", "n/a"])
+            rows.append(["N/A", "N/A", "N/A", "N/A", "N/A", "N/A"])
             return output_list
 
         collections = data["shardedCollections"]
