@@ -74,9 +74,9 @@ class SecurityItem(BaseItem):
         def func_node(set_name, node, **kwargs):
             raw_results.append(
                 {
-                    "rawResult": node.get("rawResult"),
-                    "host": node.get("host"),
                     "set_name": set_name,
+                    "host": node.get("host"),
+                    "command_line_opts": node.get("rawResult"),
                 }
             )
 

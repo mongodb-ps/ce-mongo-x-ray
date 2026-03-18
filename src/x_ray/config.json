@@ -101,7 +101,8 @@
                     "HostInfoItem",
                     "RSInfoItem",
                     "SHInfoItem",
-                    "ServerStatusItem"
+                    "ServerStatusItem",
+                    "SecurityItem"
                 ]
             }
         },

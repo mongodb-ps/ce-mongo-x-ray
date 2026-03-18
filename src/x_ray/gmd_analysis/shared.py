@@ -39,3 +39,4 @@ class GMD_EVENTS(enum.Enum):
     SHARDS = "shards"
     SERVER_PARAMETERS = "server_parameters"
     UNKNOWN = "unknown"
+    COMMAND_LINE_INFO = "command_line_info"

@@ -22,6 +22,8 @@ class ServerStatusItem(BaseItem):
         self._query_targeting: Optional[dict[str, Any]] = None
         self._connections: Optional[dict[str, Any]] = None
         self._wt_cache: Optional[dict[str, Any]] = None
+        self._hostname = None
+        self._set_name = None
         self._query_targeting_rule = QueryTargetingRule(config)
         self._connections_rule = ConnectionsRule(config)
         self._cache_rule = CacheRule(config)
@@ -36,6 +38,8 @@ class ServerStatusItem(BaseItem):
             self._host_info = block.get("output", {})
 
         def process_server_status():
+            self._set_name = self._is_master.get("setName", "mongos")
+            self._hostname = self._is_master.get("me", self._host_info["system"]["hostname"])
             if self._server_status["process"] == "mongod":
                 test_result, self._query_targeting = self._query_targeting_rule.apply(
                     self._server_status, extra_info={"host": self._hostname}
@@ -54,22 +58,24 @@ class ServerStatusItem(BaseItem):
         self.watch_one(GMD_EVENTS.ISMASTER, get_is_master)
         self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
 
-        self.watch_all({GMD_EVENTS.SERVER_STATUS_INFO, GMD_EVENTS.ISMASTER}, process_server_status)
+        self.watch_all(
+            {GMD_EVENTS.SERVER_STATUS_INFO, GMD_EVENTS.ISMASTER, GMD_EVENTS.HOST_INFO}, process_server_status
+        )
 
     def review_results_markdown(self, output) -> None:
         assert self._server_status is not None, "Server status data should be available for review."
         assert self._is_master is not None, "IsMaster data should be available for review."
         assert self._host_info is not None, "Host info data should be available for review."
+        assert self._hostname is not None, "Hostname should be available for review."
+        assert self._set_name is not None, "Set name should be available for review."
 
-        set_name: str = self._is_master.get("setName", "mongos")
-        host: str = self._is_master.get("me", self._host_info["system"]["hostname"])
         if self._query_targeting is not None:
             parser: BaseParser = QueryTargetingParser()
             parsed: str = parser.markdown(
                 [
                     {
-                        "set_name": set_name,
-                        "host": host,
+                        "set_name": self._set_name,
+                        "host": self._hostname,
                         "query_targeting": self._query_targeting,
                     }
                 ]
@@ -80,8 +86,8 @@ class ServerStatusItem(BaseItem):
         parsed_output = parser.markdown(
             [
                 {
-                    "set_name": set_name,
-                    "host": host,
+                    "set_name": self._set_name,
+                    "host": self._hostname,
                     "connections": self._connections,
                 }
             ]
@@ -93,8 +99,8 @@ class ServerStatusItem(BaseItem):
             parsed_output = parser.markdown(
                 [
                     {
-                        "set_name": set_name,
-                        "host": host,
+                        "set_name": self._set_name,
+                        "host": self._hostname,
                         "cache": self._wt_cache,
                     }
                 ]

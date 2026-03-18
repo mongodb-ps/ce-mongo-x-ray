@@ -23,7 +23,7 @@ class SecurityParser(BaseParser):
             "rows": rows,
         }
         for item in data:
-            raw_result = item.get("rawResult")
+            raw_result = item.get("command_line_opts")
             host = item.get("host")
             set_name = item.get("set_name", "")
             if raw_result is None:

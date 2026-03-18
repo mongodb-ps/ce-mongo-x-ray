@@ -4,7 +4,7 @@ SECURITY_INFOS = [
     {
         "set_name": "shard01",
         "host": "localhost:30018",
-        "rawResult": {
+        "command_line_opts": {
             "parsed": {
                 "net": {
                     "port": 30018,
@@ -31,7 +31,7 @@ SECURITY_INFOS = [
     {
         "set_name": "shard02",
         "host": "localhost:30021",
-        "rawResult": {
+        "command_line_opts": {
             "parsed": {
                 "net": {"port": 30021},
                 "processManagement": {"fork": True},
@@ -58,7 +58,7 @@ SECURITY_INFOS = [
     {
         "set_name": "configRepl",
         "host": "localhost:30024",
-        "rawResult": {
+        "command_line_opts": {
             "parsed": {
                 "net": {"port": 30024},
                 "processManagement": {"fork": True},
@@ -78,7 +78,7 @@ SECURITY_INFOS = [
     {
         "set_name": "mongos",
         "host": "M-QTFH0WFXLG:30017",
-        "rawResult": {
+        "command_line_opts": {
             "parsed": {
                 "net": {"port": 30017},
                 "processManagement": {"fork": True},
@@ -93,7 +93,7 @@ SECURITY_INFOS = [
     {
         "set_name": "mongos",
         "host": "M-QTFH0WFXLG:30028",
-        "rawResult": None,
+        "command_line_opts": None,
     },
 ]
 
