@@ -181,21 +181,15 @@ class ServerStatusItem(BaseItem):
                     "getmore": ops.get("getmore", 0),
                 }
             else:
-                inserts = ops["insert"]
-                reads = ops["query"]
-                updates = ops["update"]
-                deletes = ops["delete"]
-                commands = ops["command"]
-                getmores = ops["getmore"]
                 op_counters[host] = {
                     "set_name": set_name,
                     "host": host,
-                    "insert": inserts - op_counters[host]["insert"],
-                    "query": reads - op_counters[host]["query"],
-                    "update": updates - op_counters[host]["update"],
-                    "delete": deletes - op_counters[host]["delete"],
-                    "command": commands - op_counters[host]["command"],
-                    "getmore": getmores - op_counters[host]["getmore"],
+                    "insert": (ops["insert"] - op_counters[host]["insert"]) / SERVER_STATUS_INTERVAL,
+                    "query": (ops["query"] - op_counters[host]["query"]) / SERVER_STATUS_INTERVAL,
+                    "update": (ops["update"] - op_counters[host]["update"]) / SERVER_STATUS_INTERVAL,
+                    "delete": (ops["delete"] - op_counters[host]["delete"]) / SERVER_STATUS_INTERVAL,
+                    "command": (ops["command"] - op_counters[host]["command"]) / SERVER_STATUS_INTERVAL,
+                    "getmore": (ops["getmore"] - op_counters[host]["getmore"]) / SERVER_STATUS_INTERVAL,
                 }
                 node["rawResult"]["op_counters"] = op_counters[host]
 

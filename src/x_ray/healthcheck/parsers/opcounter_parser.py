@@ -9,7 +9,16 @@ class OpcounterParser(BaseParser):
         ops_table = {
             "type": "table",
             "caption": "Operation Counters",
-            "header": ["Component", "Host", "Inserts", "Queries", "Updates", "Deletes", "Commands", "Getmores"],
+            "header": [
+                "Component",
+                "Host",
+                "Inserts/s",
+                "Queries/s",
+                "Updates/s",
+                "Deletes/s",
+                "Commands/s",
+                "Getmores/s",
+            ],
             "rows": rows,
         }
         ops_data: dict = {}
