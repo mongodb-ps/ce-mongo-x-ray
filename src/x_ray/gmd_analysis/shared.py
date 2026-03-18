@@ -40,3 +40,4 @@ class GMD_EVENTS(enum.Enum):
     SERVER_PARAMETERS = "server_parameters"
     UNKNOWN = "unknown"
     COMMAND_LINE_INFO = "command_line_info"
+    SHARDED_DATABASES = "sharded_databases"
