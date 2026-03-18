@@ -1,6 +1,5 @@
 from typing import Optional, TextIO
 
-from x_ray.utils import yellow
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.rules.base_rule import BaseRule
