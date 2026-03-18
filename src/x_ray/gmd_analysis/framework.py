@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 import logging
 import markdown
+from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import load_json
 from x_ray.healthcheck.shared import str_to_md_id, to_json
 from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, env
@@ -28,7 +29,7 @@ class Framework:
         self._file_path = file_path
         self._config = config
         self._logger = logging.getLogger(__name__)
-        self._items = []
+        self._items: list[BaseItem] = []
         now = str(datetime.now(tz=timezone.utc))
         self._timestamp = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
         self._logger.debug(to_json(self._config))
@@ -80,11 +81,11 @@ class Framework:
                 self._logger.error(red(f"Failed to parse the getMongoData output as JSON: {ex}"))
                 return
 
-            self._logger.info("Ingesting %s objects from getMongoData output...", green(len(objects)))
+            self._logger.info("Ingesting %s objects from getMongoData output...", green(str(len(objects))))
 
             for i, obj in enumerate(objects):
                 if (i + 1) % 10000 == 0:
-                    self._logger.info("%s objects ingested...", green(i + 1))
+                    self._logger.info("%s objects ingested...", green(str(i + 1)))
                 for item in self._items:
                     try:
                         item.test(obj)
