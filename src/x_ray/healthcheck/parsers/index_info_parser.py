@@ -15,7 +15,7 @@ class IndexInfoParser(BaseParser):
         }
         output_list.append(table)
         if data is None:
-            rows.append(["N/A"] * 5)
+            rows.append([set_name] + ["N/A"] * 4)
             return output_list
         for item in data:
             ns = item["ns"]

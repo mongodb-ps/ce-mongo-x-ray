@@ -1,8 +1,8 @@
-from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
 from bson.timestamp import Timestamp
 from bson.objectid import ObjectId
 
-from x_ray.utils import is_number
+from x_ray.utils import is_number  # type: ignore
+from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser  # type: ignore
 
 RS_INFOS = [
     {
