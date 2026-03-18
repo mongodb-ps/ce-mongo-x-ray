@@ -1,4 +1,4 @@
-from x_ray.gmd_analysis.shared import load_json
+from x_ray.gmd_analysis.shared import load_json  # type: ignore
 
 
 def test_load_json():

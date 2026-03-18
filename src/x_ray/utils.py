@@ -179,11 +179,15 @@ def format_json_md(json_data, **kwargs):
     return json_str
 
 
-def to_ejson(obj, **kwargs):
+def to_ejson(obj, **kwargs) -> str:
     indent = kwargs.pop("indent", 2)
     separators = kwargs.pop("separators", None)
+
+    def enum_func(o: Enum):
+        return o.name
+
     cls_maps = [
-        {"class": Enum, "func": lambda o: o.name},
+        {"class": Enum, "func": enum_func},
         {"class": Version, "func": str},
     ]
     cls_maps.extend(kwargs.pop("cls_maps", []))

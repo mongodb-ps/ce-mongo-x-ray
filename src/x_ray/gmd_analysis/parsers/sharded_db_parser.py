@@ -1,5 +1,5 @@
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown
+from x_ray.utils import escape_markdown, to_ejson
 
 
 class ShardedDBParser(BaseParser):
@@ -25,7 +25,7 @@ class ShardedDBParser(BaseParser):
         sharded_coll_table = {
             "type": "table",
             "caption": "Sharded Collections",
-            "header": ["Namespace", "Shard Key"],
+            "header": ["Namespace", "Shard Key", "Is Unique", "Chunk Distribution"],
             "rows": coll_rows,
         }
         for db in data:
@@ -35,8 +35,11 @@ class ShardedDBParser(BaseParser):
             rows.append([db_name, primary, partitioned])
             for coll in db.get("collections", []):
                 coll_name: str = coll["_id"]
-                shard_key: dict = escape_markdown(coll["key"])
-                coll_rows.append([coll_name, shard_key])
+                shard_key: dict = escape_markdown(to_ejson(coll["key"], indent=None))
+                uniq: bool = coll.get("unique", False)
+                dist: list[str] = [f"{item['shard']}: {item['nChunks']}" for item in coll.get("distribution", [])]
+                dist_md = "<br/>".join(dist)
+                coll_rows.append([coll_name, shard_key, uniq, f"<pre>{dist_md}</pre>"])
 
         output_list.append(sharded_db_table)
         output_list.append(sharded_coll_table)
