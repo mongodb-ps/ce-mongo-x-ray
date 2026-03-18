@@ -135,6 +135,8 @@ def format_size(size_bytes, decimal=2):
     Returns:
         str: The formatted size string.
     """
+    if not isinstance(size_bytes, int):
+        return str(size_bytes)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size_bytes < 1024:
             return f"{size_bytes:.{decimal}f} {unit}"
