@@ -35,6 +35,5 @@ class HostInfoItem(BaseItem):
     def review_results_markdown(self, output) -> None:
         data = self._host_info
         assert data is not None, f"GMD subsection {GMD_EVENTS.HOST_INFO.value} should be available for review."
-        host = data.get("system", {}).get("hostname", "unknown_host")
-        parsed_output = self._host_info_parser.markdown([(host, data)])
+        parsed_output = self._host_info_parser.markdown([(self._hostname, data)])
         output.write(parsed_output)

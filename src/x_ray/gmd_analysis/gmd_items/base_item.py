@@ -50,6 +50,7 @@ class BaseItem:
                     self._set_name = set_name
                 elif msg == "isdbgrid":
                     self._cluster_type = "SH"
+                    self._set_name = "mongos"
                 else:
                     self._cluster_type = "STANDALONE"
 

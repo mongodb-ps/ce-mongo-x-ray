@@ -23,30 +23,16 @@ class SecurityItem(BaseItem):
         self.name: str = "Security Information"
         self.description: str = "Collects and analyzes security information from GMD logs."
         self._command_line_opts: Optional[dict] = None
-        self._is_master: Optional[dict[str, Any]] = None
-        self._host_info: Optional[dict[str, Any]] = None
-        self._hostname = None
-        self._set_name = None
         self._security_rule: SecurityRule = SecurityRule(config)
-
-        def get_is_master(block):
-            self._is_master = block.get("output", {})
-
-        def get_host_info(block):
-            self._host_info = block.get("output", {})
 
         def get_command_line_opts(block):
             self._command_line_opts = block.get("output", {})
 
         def analyze_security():
-            self._set_name = self._is_master.get("setName", "mongos")
-            self._hostname = self._is_master.get("me", self._host_info["system"]["hostname"])
             test_result, _ = self._security_rule.apply(self._command_line_opts, extra_info={"host": self._hostname})
             self.append_test_results(test_result)
 
         self.watch_one(GMD_EVENTS.COMMAND_LINE_INFO, get_command_line_opts)
-        self.watch_one(GMD_EVENTS.ISMASTER, get_is_master)
-        self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
         self.watch_all(
             {
                 GMD_EVENTS.COMMAND_LINE_INFO,
@@ -57,12 +43,6 @@ class SecurityItem(BaseItem):
         )
 
     def review_results_markdown(self, output) -> None:
-        assert (
-            self._is_master is not None
-        ), f"GMD subsection {GMD_EVENTS.ISMASTER.value} should be available for review."
-        assert (
-            self._host_info is not None
-        ), f"GMD subsection {GMD_EVENTS.HOST_INFO.value} should be available for review."
         assert (
             self._command_line_opts is not None
         ), f"GMD subsection {GMD_EVENTS.COMMAND_LINE_INFO.value} should be available for review."
