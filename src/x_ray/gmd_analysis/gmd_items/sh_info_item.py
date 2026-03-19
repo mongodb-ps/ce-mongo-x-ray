@@ -49,11 +49,13 @@ class SHInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
 
     def review_results_markdown(self, output: TextIO) -> None:
-        if not self.all_events_fired():
-            self._logger.info("Not all required GMD blocks were captured. Skipping SHInfoItem review.")
-            return
         # Type assertions: if all events fired, these should not be None
-        assert self._shards is not None and self._routers is not None and self._converted_routers is not None
+        assert self._shards is not None, f"GMD subsection {GMD_EVENTS.SHARDS.value} should be available for review."
+        assert self._routers is not None, f"GMD subsection {GMD_EVENTS.ROUTERS.value} should be available for review."
+        assert (
+            self._csrs is not None
+        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
+
         # Convert the data to the format required by the markdown parser
         data = {
             "type": "SH",

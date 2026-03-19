@@ -62,10 +62,18 @@ class RSInfoItem(BaseItem):
         self.watch_all(oplog_window_events, analyze_oplog_window)
 
     def review_results_markdown(self, output: TextIO) -> None:
-        if not self.all_events_fired():
-            self._logger.info("Not all required GMD blocks were captured. Skipping RSInfoItem review.")
-            return
-        assert self._rs_config is not None
+        assert (
+            self._rs_config is not None
+        ), f"GMD subsection {GMD_EVENTS.REPLICA_SET_CONFIG.value} should be available for review."
+        assert (
+            self._rs_status is not None
+        ), f"GMD subsection {GMD_EVENTS.REPLICA_STATUS.value} should be available for review."
+        assert (
+            self._replication_info is not None
+        ), f"GMD subsection {GMD_EVENTS.REPLICA_INFO.value} should be available for review."
+        assert (
+            self._server_status is not None
+        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
         parsed_output = RSOverviewParser().markdown([(self._rs_config["_id"], self._rs_config)])
         output.write(parsed_output)
         data = {

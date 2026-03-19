@@ -63,11 +63,15 @@ class ServerStatusItem(BaseItem):
         )
 
     def review_results_markdown(self, output) -> None:
-        assert self._server_status is not None, "Server status data should be available for review."
-        assert self._is_master is not None, "IsMaster data should be available for review."
-        assert self._host_info is not None, "Host info data should be available for review."
-        assert self._hostname is not None, "Hostname should be available for review."
-        assert self._set_name is not None, "Set name should be available for review."
+        assert (
+            self._server_status is not None
+        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
+        assert (
+            self._is_master is not None
+        ), f"GMD subsection {GMD_EVENTS.ISMASTER.value} should be available for review."
+        assert (
+            self._host_info is not None
+        ), f"GMD subsection {GMD_EVENTS.HOST_INFO.value} should be available for review."
 
         if self._query_targeting is not None:
             parser: BaseParser = QueryTargetingParser()

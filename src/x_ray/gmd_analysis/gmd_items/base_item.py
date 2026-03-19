@@ -154,9 +154,10 @@ class BaseItem:
         """
         self._watched_all_events.append((events, func))
 
+    @property
     def all_events_fired(self) -> bool:
         """
         Check if all watched events have been fired.
         If not all events are fired, some data may be missing in the GMD.
         """
-        return all(event in self._fired_events for event in self._watched_events.keys())
+        return all(event in self._fired_events for event in self._watched_events)

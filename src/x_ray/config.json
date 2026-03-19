@@ -103,7 +103,7 @@
                     "SHInfoItem",
                     "ServerStatusItem",
                     "SecurityItem",
-                    "ShardedDBItem"
+                    "DBItem"
                 ]
             }
         },

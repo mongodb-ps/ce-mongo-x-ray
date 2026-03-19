@@ -30,8 +30,7 @@ class BuildInfoItem(BaseItem):
 
     def review_results_markdown(self, output) -> None:
         data = self._build_info
-        if data is None:
-            return
+        assert data is not None, f"GMD subsection {GMD_EVENTS.SERVER_BUILD_INFO.value} should be available for review."
         parsed_output = self._build_info_parser.markdown(
             [(self._set_name, self._hostname, data)], caller=self.__class__.__name__
         )

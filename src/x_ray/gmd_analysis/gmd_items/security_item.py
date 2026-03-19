@@ -57,11 +57,15 @@ class SecurityItem(BaseItem):
         )
 
     def review_results_markdown(self, output) -> None:
-        assert self._is_master is not None, "IsMaster data should be available for review."
-        assert self._host_info is not None, "Host info data should be available for review."
-        assert self._hostname is not None, "Hostname should be available for review."
-        assert self._set_name is not None, "Set name should be available for review."
-        assert self._command_line_opts is not None, "Command line options should be available for review."
+        assert (
+            self._is_master is not None
+        ), f"GMD subsection {GMD_EVENTS.ISMASTER.value} should be available for review."
+        assert (
+            self._host_info is not None
+        ), f"GMD subsection {GMD_EVENTS.HOST_INFO.value} should be available for review."
+        assert (
+            self._command_line_opts is not None
+        ), f"GMD subsection {GMD_EVENTS.COMMAND_LINE_INFO.value} should be available for review."
         parser: BaseParser = SecurityParser()
         parsed_output = parser.markdown(
             [
