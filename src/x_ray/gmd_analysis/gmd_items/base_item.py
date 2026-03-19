@@ -6,7 +6,7 @@ from bson import json_util
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.shared import SEVERITY
 from x_ray.gmd_analysis.shared import GMD_EVENTS, to_json
-from x_ray.utils import bold, get_script_path, to_ejson
+from x_ray.utils import bold, to_ejson, yellow
 from x_ray.version import Version
 
 
@@ -71,7 +71,7 @@ class BaseItem:
                     try:
                         func(block)
                     except Exception as e:
-                        self._logger.warning("Error in subscribed function for event %s: %s", event.value, e)
+                        self._logger.warning(yellow("Error in subscribed function for event %s: %s"), event.value, e)
                 self._fired_events.add(event)
 
         # Fire subscribed all events
