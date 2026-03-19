@@ -30,8 +30,6 @@ class DBParser(BaseParser):
         sharded_dbs: list = data.get("sharded_databases", None)
         for db in dbs:
             db_name: str = db["name"]
-            if db_name in ["admin", "config", "local"]:
-                continue
             storage_size: str = format_size(db.get("sizeOnDisk", 0))
             sharded_sizes: list = []
             for shard, size in db.get("shards", {}).items():

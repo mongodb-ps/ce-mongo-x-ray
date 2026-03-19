@@ -52,18 +52,26 @@ def test_db_parser_sharded():
         "Is Partitioned",
         "Primary Database",
     ]
-    assert dbs_table["rows"][0][0] == "foo"
-    assert dbs_table["rows"][0][1].startswith("4.13 MB")
-    assert dbs_table["rows"][0][2] == True
-    assert dbs_table["rows"][0][3] == "shard02"
-    assert dbs_table["rows"][1][0] == "test"
-    assert dbs_table["rows"][1][1].startswith("136.00 KB")
+    assert dbs_table["rows"][0][0] == "admin"
+    assert dbs_table["rows"][0][1].startswith("400.00 KB")
+    assert dbs_table["rows"][0][2] == False
+    assert dbs_table["rows"][0][3] == "N/A"
+    assert dbs_table["rows"][1][0] == "config"
+    assert dbs_table["rows"][1][1].startswith("3.80 MB")
     assert dbs_table["rows"][1][2] == False
-    assert dbs_table["rows"][1][3] == "shard01"
-    assert dbs_table["rows"][2][0] == "test1"
-    assert dbs_table["rows"][2][1].startswith("80.00 KB")
-    assert dbs_table["rows"][2][2] == False
-    assert dbs_table["rows"][2][3] == "shard01"
+    assert dbs_table["rows"][1][3] == "N/A"
+    assert dbs_table["rows"][2][0] == "foo"
+    assert dbs_table["rows"][2][1].startswith("4.13 MB")
+    assert dbs_table["rows"][2][2] == True
+    assert dbs_table["rows"][2][3] == "shard02"
+    assert dbs_table["rows"][3][0] == "test"
+    assert dbs_table["rows"][3][1].startswith("136.00 KB")
+    assert dbs_table["rows"][3][2] == False
+    assert dbs_table["rows"][3][3] == "shard01"
+    assert dbs_table["rows"][4][0] == "test1"
+    assert dbs_table["rows"][4][1].startswith("80.00 KB")
+    assert dbs_table["rows"][4][2] == False
+    assert dbs_table["rows"][4][3] == "shard01"
 
 
 def test_db_parser_non_sharded():
@@ -79,15 +87,23 @@ def test_db_parser_non_sharded():
         "Is Partitioned",
         "Primary Database",
     ]
-    assert dbs_table["rows"][0][0] == "foo"
-    assert dbs_table["rows"][0][1].startswith("4.13 MB")
+    assert dbs_table["rows"][0][0] == "admin"
+    assert dbs_table["rows"][0][1].startswith("400.00 KB")
     assert dbs_table["rows"][0][2] == "N/A"
     assert dbs_table["rows"][0][3] == "N/A"
-    assert dbs_table["rows"][1][0] == "test"
-    assert dbs_table["rows"][1][1].startswith("136.00 KB")
+    assert dbs_table["rows"][1][0] == "config"
+    assert dbs_table["rows"][1][1].startswith("3.80 MB")
     assert dbs_table["rows"][1][2] == "N/A"
     assert dbs_table["rows"][1][3] == "N/A"
-    assert dbs_table["rows"][2][0] == "test1"
-    assert dbs_table["rows"][2][1].startswith("80.00 KB")
+    assert dbs_table["rows"][2][0] == "foo"
+    assert dbs_table["rows"][2][1].startswith("4.13 MB")
     assert dbs_table["rows"][2][2] == "N/A"
     assert dbs_table["rows"][2][3] == "N/A"
+    assert dbs_table["rows"][3][0] == "test"
+    assert dbs_table["rows"][3][1].startswith("136.00 KB")
+    assert dbs_table["rows"][3][2] == "N/A"
+    assert dbs_table["rows"][3][3] == "N/A"
+    assert dbs_table["rows"][4][0] == "test1"
+    assert dbs_table["rows"][4][1].startswith("80.00 KB")
+    assert dbs_table["rows"][4][2] == "N/A"
+    assert dbs_table["rows"][4][3] == "N/A"
