@@ -42,3 +42,4 @@ class GMD_EVENTS(enum.Enum):
     COMMAND_LINE_INFO = "command_line_info"
     SHARDED_DATABASES = "sharded_databases"
     LIST_OF_DATABASES = "list_of_databases"
+    COLLECTION_STATS = "collection_stats_(mb)"
