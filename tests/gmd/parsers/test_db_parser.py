@@ -42,7 +42,7 @@ GMD_DBS = {
 def test_db_parser_sharded():
     parser = DBParser()
     result = parser.parse({"databases": GMD_DBS, "sharded_databases": GMD_SHARDED_DBS})
-    assert len(result) == 1
+    assert len(result) == 2
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
@@ -73,11 +73,25 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][4][2] == False
     assert dbs_table["rows"][4][3] == "shard01"
 
+    dbs_data = result[1]
+    assert dbs_data["type"] == "chart"
+    assert len(dbs_data["data"]) == 5
+    assert dbs_data["data"][0]["name"] == "admin"
+    assert dbs_data["data"][0]["storageSize"] == 409600
+    assert dbs_data["data"][1]["name"] == "config"
+    assert dbs_data["data"][1]["storageSize"] == 3981312
+    assert dbs_data["data"][2]["name"] == "foo"
+    assert dbs_data["data"][2]["storageSize"] == 4329472
+    assert dbs_data["data"][3]["name"] == "test"
+    assert dbs_data["data"][3]["storageSize"] == 139264
+    assert dbs_data["data"][4]["name"] == "test1"
+    assert dbs_data["data"][4]["storageSize"] == 81920
+
 
 def test_db_parser_non_sharded():
     parser = DBParser()
     result = parser.parse({"databases": GMD_DBS})
-    assert len(result) == 1
+    assert len(result) == 2
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
