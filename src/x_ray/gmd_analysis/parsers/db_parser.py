@@ -15,7 +15,7 @@ class DBParser(BaseParser):
         """
         output_list: list = []
         rows: list = []
-        sharded_db_table = {
+        db_table = {
             "type": "table",
             "caption": "Databases",
             "header": [
@@ -26,6 +26,7 @@ class DBParser(BaseParser):
             ],
             "rows": rows,
         }
+        db_data: list = []
         dbs: list = data.get("databases", {}).get("databases", [])
         sharded_dbs: list = data.get("sharded_databases", None)
         for db in dbs:
@@ -44,5 +45,11 @@ class DBParser(BaseParser):
                 partitioned = sharded_db_info["partitioned"] if sharded_db_info else False
                 primary_db = sharded_db_info["primary"] if sharded_db_info else "N/A"
             rows.append([db_name, storage_size, partitioned, primary_db])
-        output_list.append(sharded_db_table)
+
+            data_line = {}
+            data_line["name"] = db_name
+            data_line["storageSize"] = db.get("sizeOnDisk", 0)
+            db_data.append(data_line)
+        output_list.append(db_table)
+        output_list.append({"type": "chart", "data": db_data})
         return output_list
