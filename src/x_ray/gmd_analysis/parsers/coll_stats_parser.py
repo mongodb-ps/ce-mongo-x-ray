@@ -1,5 +1,6 @@
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown, format_size
+from x_ray.gmd_analysis.shared import to_json
+from x_ray.utils import escape_markdown, format_json_md, format_size
 
 
 class CollStatsParser(BaseParser):
@@ -20,7 +21,7 @@ class CollStatsParser(BaseParser):
             "type": "table",
             "caption": "Storage Stats",
             "header": [
-                "NS",
+                {"text": "NS", "align": "left"},
                 {"text": "Count", "align": "left"},
                 {"text": "Data Size", "align": "left"},
                 {"text": "Storage Size", "align": "left"},
@@ -35,6 +36,7 @@ class CollStatsParser(BaseParser):
         output_list.append({"type": "chart", "data": data_sizes})
         for stats in data:
             ns = stats["ns"]
+            shard_key = stats.get("shardKey", None)
             count = stats.get("count", 0)
             size = stats.get("size", 0) * 1024**2
             storage_size = stats.get("storageSize", 0) * 1024**2
@@ -52,6 +54,11 @@ class CollStatsParser(BaseParser):
             cache_ratio = (bytes_in_cache / size) if size > 0 else 0
 
             # display values
+            ns_str = (
+                f"{escape_markdown(ns)} <pre>{format_json_md(shard_key, indent=2)}</pre>"
+                if shard_key
+                else escape_markdown(ns)
+            )
             count_str = f"{count}"
             size_str = format_size(size)
             storage_size_str = format_size(storage_size)
@@ -98,7 +105,7 @@ class CollStatsParser(BaseParser):
                 cache_sum_str = f"{cache_sum_str}<pre>" + "<br>".join(sh_caches) + "</pre>"
             rows.append(
                 [
-                    escape_markdown(ns),
+                    ns_str,
                     count_str,
                     size_str,
                     storage_size_str,

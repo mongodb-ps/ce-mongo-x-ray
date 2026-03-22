@@ -5,8 +5,8 @@ const colors = labels.map((_, index) => `hsl(${(index * 360) / Math.max(labels.l
 const wrapper = document.createElement("div");
 const canvas = document.createElement("canvas");
 
-wrapper.className = "pie";
-canvas.className = "pie";
+wrapper.className = "pie50";
+canvas.className = "pie50";
 
 container.appendChild(wrapper);
 wrapper.appendChild(canvas);

@@ -24,6 +24,7 @@ class CollInfoItem(BaseItem):
         self.name: str = "Collection Information"
         self.description: str = "Collects and analyzes collection information from GMD logs."
         self._collections_stats: list[dict[str, Any]] = []
+        self.shard_keys: dict = {}
         self._data_size_rule = DataSizeRule(config)
         self._fragmentation_rule = FragmentationRule(config)
 
@@ -54,13 +55,26 @@ class CollInfoItem(BaseItem):
             parsed_data = frag_data | output
             self._collections_stats.append(parsed_data)
 
+        def _get_shard_key_info(block) -> None:
+            output: dict = block.get("output", {})
+            for db in output:
+                collections: list = db.get("collections", [])
+                for coll in collections:
+                    self.shard_keys[coll.get("_id", "")] = coll.get("key", {})
+
         self.watch_one(GMD_EVENTS.COLLECTION_STATS, _get_collections_stats)
+        self.watch_one(GMD_EVENTS.SHARDED_DATABASES, _get_shard_key_info)
 
     def review_results_markdown(self, output) -> None:
         assert (
             len(self._collections_stats) > 0
         ), f"GMD subsection {GMD_EVENTS.COLLECTION_STATS.value} should be available for review."
 
+        for stats in self._collections_stats:
+            ns = stats.get("ns", "")
+            shard_key = self.shard_keys.get(ns, {})
+            if shard_key:
+                stats["shardKey"] = shard_key
         parser: BaseParser = CollStatsParser()
         parsed_data = parser.markdown(self._collections_stats)
         output.write(parsed_data)
