@@ -13,7 +13,7 @@ from x_ray.utils import yellow
 class SHInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
-        self.name: str = "Sharded Cluster Information"
+        self.name: str = "Sharded Cluster Architecture"
         self.description: str = "Collects and analyzes sharded cluster information from GMD logs."
         self._shards: Optional[list] = None
         self._routers: Optional[list] = None

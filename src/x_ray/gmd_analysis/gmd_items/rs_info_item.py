@@ -13,7 +13,7 @@ from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
 class RSInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
-        self.name: str = "Replica Set Information"
+        self.name: str = "Replica Set Architecture"
         self.description: str = "Collects and analyzes replica set information from GMD logs."
         self._rs_status: Optional[dict] = None
         self._rs_config: Optional[dict] = None
