@@ -10,6 +10,8 @@ from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 
 
 class BaseParser(ABC):
+    TEMPLATE_FOLDER = os.path.join("templates", "healthcheck", "snippets")
+
     @abstractmethod
     def parse(self, data: Any, **kwargs) -> list:
         """
@@ -81,7 +83,7 @@ class BaseParser(ABC):
         output += f"const container = document.getElementById('{uniq_name}');\n"
         output += f"let data = {to_json(item.get('data'))};\n"
         file_name = f"{self.__class__.__name__}_{i}.js"
-        file_path = os.path.join("templates", "healthcheck", "snippets", file_name)
+        file_path = os.path.join(self.TEMPLATE_FOLDER, file_name)
         file_path = get_script_path(file_path)
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as js_file:

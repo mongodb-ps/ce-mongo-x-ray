@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
