@@ -104,7 +104,8 @@
                     "ServerStatusItem",
                     "SecurityItem",
                     "DBItem",
-                    "CollInfoItem"
+                    "CollInfoItem",
+                    "IndexInfoItem"
                 ]
             }
         },

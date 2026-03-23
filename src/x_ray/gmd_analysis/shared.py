@@ -43,3 +43,5 @@ class GMD_EVENTS(enum.Enum):
     SHARDED_DATABASES = "sharded_databases"
     LIST_OF_DATABASES = "list_of_databases"
     COLLECTION_STATS = "collection_stats_(mb)"
+    INDEXES = "indexes"
+    INDEX_STATS = "index_stats"
