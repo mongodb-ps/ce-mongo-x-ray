@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Any
 
 
 class BaseRule(ABC):
@@ -19,5 +19,5 @@ class BaseRule(ABC):
         self._thresholds = thresholds
 
     @abstractmethod
-    def apply(self, data: dict, **kwargs) -> tuple:
+    def apply(self, data: Any, **kwargs) -> tuple:
         raise NotImplementedError("Subclasses must implement the apply method")
