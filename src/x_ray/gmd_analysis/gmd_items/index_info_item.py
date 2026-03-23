@@ -95,7 +95,7 @@ class IndexInfoItem(BaseItem):
                     "spec": spec,
                 }
                 ns_stats["indexStats"].append(index)
-                indexes.append(ns_stats)
+            indexes.append(ns_stats)
         index_parser: BaseParser = IndexInfoParser()
         parsed_data = index_parser.markdown(indexes, set_name="cluster")
         output.write(parsed_data)
