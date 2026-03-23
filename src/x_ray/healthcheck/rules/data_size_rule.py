@@ -31,11 +31,6 @@ class DataSizeRule(BaseRule):
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
         storage_stats = data.get("storageStats", {})
-        # if "indexDetails" in storage_stats:
-        #     del storage_stats["indexDetails"]
-        # if "wiredTiger" in storage_stats:
-        #     del storage_stats["wiredTiger"]
-        # Check for large collection size
         if storage_stats.get("size", 0) > self._collection_size_gb:
             issue = create_issue(
                 ISSUE.COLLECTION_TOO_LARGE,
