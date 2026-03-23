@@ -153,3 +153,22 @@ x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] [log_file]
 | `-f`, `--format`   | Output format. Can be `markdown` or `html`.       |  `html`   |
 | `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.       |    `1`    |
 | `--top`            | When analyzing the slow queries, only list top N. |   `10`    |
+
+### 3.3 getMongoData Analysis Component
+#### 3.3.1 Examples
+```bash
+# getMongoData output for a sharded cluster
+x-ray gmd misc/getMongoData-sh.json
+# getMongoData output for a replica set
+x-ray gmd misc/getMongoData-rs.json
+```
+
+#### 3.3.2 Full Arguments
+```bash
+x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
+```
+| Argument           | Description                    |  Default  |
+| ------------------ | ------------------------------ | :-------: |
+| `-s`, `--checkset` | Checkset to run.               | `default` |
+| `-o`, `--output`   | Output folder path.            | `output/` |
+| `-f`, `--format`   | Output format (markdown/html). |  `html`   |

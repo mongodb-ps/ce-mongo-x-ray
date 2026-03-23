@@ -110,7 +110,7 @@ For more information on specific commands, use:
     hc_parser.add_argument(
         "-f",
         "--format",
-        help='Output format (markdown/html). Defaults to "markdown".',
+        help='Output format (markdown/html). Defaults to "html".',
         type=str,
         default="html",
         choices=["markdown", "html"],
