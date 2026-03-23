@@ -58,7 +58,7 @@ class IndexInfoItem(BaseItem):
         # construct index structure so we can reuse indexRule for analysis.
         for ns_info in self._ns_indexes:
             ns = ns_info.get("ns", "")
-            indexes: list = list([{"spec": spec} for spec in ns_info.get("specs", [])])
+            indexes = [{"spec": spec} for spec in ns_info.get("specs", [])]
             test_results, _ = self._index_rule.apply(
                 indexes,
                 extra_info={"host": self._hostname, "ns": ns},
