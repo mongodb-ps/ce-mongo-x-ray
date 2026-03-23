@@ -5,13 +5,13 @@ INDEX_INFOS = """[
     {"ns": "foo._test_", "captureTime": {"$date": "2026-03-17T22:08:34.595"}, "indexStats": []},
     {
         "ns": "test.test",
-        "captureTime": {"$date": "2026-03-17T22:08:34.595Z"},
+        "captureTime": {"$date": "2026-03-17T00:01:00Z"},
         "indexStats": [
             {
                 "name": "_id_",
                 "key": {"_id": 1},
                 "host": "M-QTFH0WFXLG:30018",
-                "accesses": {"ops": 100, "since": {"$date": "2026-03-10T13:36:01.712Z"}},
+                "accesses": {"ops": 100, "since": {"$date": "2026-03-17T00:00:00Z"}},
                 "shard": "shard01",
                 "spec": {"v": 2, "key": {"_id": 1}, "name": "_id_"}
             }
@@ -39,7 +39,7 @@ def test_index_info_parser():
     assert table["rows"][0][1] == "test.test"
     assert table["rows"][0][2] == "\_id\_"
     assert table["rows"][0][3] == '`{"_id": 1}`'
-    assert table["rows"][0][4] == 4.370647749508797e-08
+    assert table["rows"][0][4] == "6000.0000"
 
 
 def test_index_info_parser_no_data():

@@ -29,14 +29,14 @@ class IndexInfoParser(BaseParser):
                 spec = stats.get("spec", {})
                 options = get_index_options(spec)
                 options_md = f"<pre>{format_json_md(options)}</pre>" if len(options) > 0 else ""
-                access_per_hour = ops / (capture_time - since).total_seconds() / 3600
+                access_per_hour = ops / (capture_time - since).total_seconds() * 3600
                 rows.append(
                     [
                         escape_markdown(component),
                         escape_markdown(ns),
                         escape_markdown(stats["name"]),
                         f"`{key_md}`{options_md}",
-                        access_per_hour,
+                        f"{access_per_hour:.4f}",
                     ]
                 )
         return output_list
