@@ -2,13 +2,14 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
-from x_ray.healthcheck.issues import ISSUE
-from x_ray.healthcheck.rules.cache_rule import CacheRule
+
+from x_ray.healthcheck.issues import ISSUE  # type: ignore
+from x_ray.healthcheck.rules.cache_rule import CacheRule  # type: ignore
 
 DATA_BASE_SERVER_STATUS = {
     "wiredTiger": {
@@ -117,3 +118,19 @@ def test_cache_rule_critical():
     assert parsed_data["writtenFrom"] == 6000000.0
     assert parsed_data["forUpdates"] == 25000000
     assert parsed_data["dirty"] == 45000000
+
+
+def test_cache_rule_no_base_data():
+    rule = CacheRule(config)
+    result, parsed_data = rule.apply(
+        DATA_SERVER_STATUS_HIGH,
+        extra_info={"host": "localhost"},
+    )
+    assert len(result) == 1
+    assert result[0]["id"] == ISSUE.HIGH_CACHE_FILL_RATIO
+    assert parsed_data["readInto"] == "N/A"
+    assert parsed_data["writtenFrom"] == "N/A"
+    assert parsed_data["forUpdates"] == "N/A"
+    assert parsed_data["dirty"] == "N/A"
+    assert parsed_data["cacheSize"] == 200000000
+    assert parsed_data["inCacheSize"] == 185000000

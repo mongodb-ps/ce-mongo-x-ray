@@ -9,14 +9,15 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from abc import ABC, abstractmethod
+from typing import Optional, Any
 
 
 class BaseRule(ABC):
     """Base class for health check rules."""
 
-    def __init__(self, thresholds: dict = None):
+    def __init__(self, thresholds: Optional[dict] = None):
         self._thresholds = thresholds
 
     @abstractmethod
-    def apply(self, data: object, **kwargs) -> tuple:
+    def apply(self, data: Any, **kwargs) -> tuple:
         raise NotImplementedError("Subclasses must implement the apply method")

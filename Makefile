@@ -28,7 +28,7 @@ deps:
 	python3 -m venv .venv
 	@echo "Installing dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev]"
+	$(PYTHON) -m pip install -e ".[dev]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Install AI dependencies (for build-ai)
@@ -37,7 +37,7 @@ deps-ai:
 	python3 -m venv .venv
 	@echo "Installing AI dependencies from pyproject.toml..."
 	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev,ai]"
+	$(PYTHON) -m pip install -e ".[dev,ai]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
 # Build executable (default to lightweight build)
@@ -146,6 +146,7 @@ help:
 	@echo "  make build        - Build executable (default: lightweight version without AI)"
 	@echo "  make build-lite   - Build lightweight executable without AI support (~15MB)"
 	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"
+	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
 	@echo "  make lint         - Run pylint on code"
 	@echo "  make check-lint   - Run pylint (errors only)"

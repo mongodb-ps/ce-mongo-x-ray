@@ -2,12 +2,14 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from datetime import datetime
+from typing import Optional
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
 
@@ -18,27 +20,27 @@ class IndexRule(BaseRule):
         self._max_num_indexes = thresholds.get("num_indexes", 10)
         self._unused_index_days = thresholds.get("unused_index_days", 7)
 
-    def apply(self, data: object, **kwargs) -> tuple:
+    def apply(self, data: list, **kwargs) -> tuple:
         """Check the index fragmentation for any issues.
 
         Args:
-            data (object): The indexStats data.
+            data (list): The indexStats data.
             extra_info (dict): Additional information such as host.
             check_items (list): List of checks to perform: "num_indexes", "unused_indexes", "redundant_indexes".
         Returns:
             tuple: (list of issues found, list of parsed data)
         """
-        host = kwargs.get("extra_info", {}).get("host", "unknown")
-        ns = kwargs.get("extra_info", {}).get("ns", "unknown")
-        check_items = kwargs.get("check_items", ["num_indexes", "unused_indexes", "redundant_indexes"])
-        test_result = []
-        unique_indexes = set()
+        host: str = kwargs.get("extra_info", {}).get("host", "unknown")
+        ns: str = kwargs.get("extra_info", {}).get("ns", "unknown")
+        check_items: list = kwargs.get("check_items", ["num_indexes", "unused_indexes", "redundant_indexes"])
+        test_result: list = []
+        unique_indexes: set = set()
         for index in data:
             unique_indexes.add(index.get("name"))
             # Check for unused indexes
             if "unused_indexes" in check_items:
                 if index.get("accesses", {}).get("ops", 0) == 0:
-                    last_used = index.get("accesses", {}).get("since", None)
+                    last_used: Optional[datetime] = index.get("accesses", {}).get("since", None)
                     if last_used:
                         if (datetime.now() - last_used).days > self._unused_index_days:
                             issue = create_issue(
@@ -52,7 +54,7 @@ class IndexRule(BaseRule):
                             )
                             test_result.append(issue)
         # Check number of indexes
-        num_indexes = len(unique_indexes)
+        num_indexes: int = len(unique_indexes)
         if "num_indexes" in check_items and num_indexes > self._max_num_indexes:
             issue = create_issue(
                 ISSUE.TOO_MANY_INDEXES,
@@ -66,15 +68,15 @@ class IndexRule(BaseRule):
             test_result.append(issue)
         # Check for redundant indexes
         if "redundant_indexes" in check_items:
-            indexes = [index["spec"] for i, index in enumerate(data)]
-            reverse_indexes = []
+            indexes: list = [index["spec"] for i, index in enumerate(data)]
+            reverse_indexes: list = []
             for index in indexes:
-                reverse_index = {k: v for k, v in index.items() if k != "key"}
+                reverse_index: dict = {k: v for k, v in index.items() if k != "key"}
                 reverse_index["key"] = {
                     k: (v * -1 if isinstance(v, (int, float)) else v) for k, v in index["key"].items()
                 }
                 reverse_indexes.append(reverse_index)
-            index_targets = indexes + reverse_indexes
+            index_targets: list = indexes + reverse_indexes
             for index in indexes:
                 for target in index_targets:
                     if is_redundant(index, target):

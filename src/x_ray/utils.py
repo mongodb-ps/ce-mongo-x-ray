@@ -17,6 +17,7 @@ import pkgutil
 import re
 import hashlib
 import sys
+import numbers
 from enum import Enum
 from pathlib import Path
 from bson import json_util
@@ -110,7 +111,7 @@ def tooltip_html(full, truncated) -> str:
     return html
 
 
-def load_classes(package_name="x_ray.log_analysis.log_items"):
+def load_classes(package_name):
     class_map = {}
     package = import_module(package_name)
     for _, module_name, _ in pkgutil.iter_modules(package.__path__):
@@ -134,6 +135,8 @@ def format_size(size_bytes, decimal=2):
     Returns:
         str: The formatted size string.
     """
+    if not is_number(size_bytes):
+        return str(size_bytes)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size_bytes < 1024:
             return f"{size_bytes:.{decimal}f} {unit}"
@@ -176,11 +179,15 @@ def format_json_md(json_data, **kwargs):
     return json_str
 
 
-def to_ejson(obj, **kwargs):
+def to_ejson(obj, **kwargs) -> str:
     indent = kwargs.pop("indent", 2)
     separators = kwargs.pop("separators", None)
+
+    def enum_func(o: Enum):
+        return o.name
+
     cls_maps = [
-        {"class": Enum, "func": lambda o: o.name},
+        {"class": Enum, "func": enum_func},
         {"class": Version, "func": str},
     ]
     cls_maps.extend(kwargs.pop("cls_maps", []))
@@ -203,6 +210,10 @@ def json_hash(data, digest_size=8):
     json_str = to_ejson(data, indent=None)
     h = hashlib.blake2b(json_str.encode("utf-8"), digest_size=digest_size)
     return h.digest().hex().upper()
+
+
+def is_number(value):
+    return isinstance(value, numbers.Number)
 
 
 def color_code(code):

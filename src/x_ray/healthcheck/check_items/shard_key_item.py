@@ -2,12 +2,15 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.healthcheck.parsers.shard_key_parser import ShardKeyParser
 from x_ray.healthcheck.rules.shard_balance_rule import ShardBalanceRule
 from x_ray.healthcheck.rules.shard_key_rule import ShardKeyRule
 from x_ray.healthcheck.shared import (
@@ -15,7 +18,6 @@ from x_ray.healthcheck.shared import (
     enum_all_nodes,
     enum_result_items,
 )
-from x_ray.utils import format_size, escape_markdown, format_json_md
 
 
 class ShardKeyItem(BaseItem):
@@ -65,62 +67,15 @@ class ShardKeyItem(BaseItem):
         self.captured_sample = result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self) -> str:
         result = self.captured_sample
-        if result is None:
-            return {"name": self.name, "description": self.description, "data": []}
-        table = {
-            "type": "table",
-            "caption": "Shard Keys",
-            "columns": [
-                {"name": "Namespace", "type": "string"},
-                {"name": "Shard Key", "type": "string"},
-                {"name": "Data Size", "type": "object", "align": "left"},
-                {"name": "Storage Size", "type": "object", "align": "left"},
-                {"name": "Index Size", "type": "object", "align": "left"},
-                {"name": "Docs Count", "type": "object", "align": "left"},
-            ],
-            "rows": [],
-        }
+        output: list = []
 
-        def func_cluster(name, node, **kwargs):
+        def func_cluster(set_name, node, **kwargs) -> None:
             raw_result = node["rawResult"]
-            if raw_result is None:
-                table["rows"].append(["n/a", "n/a", "n/a", "n/a", "n/a", "n/a"])
-                return
-            collections = raw_result["shardedCollections"]
-            all_stats = raw_result["stats"]
-            for coll in collections:
-                ns = coll["_id"]
-                key = coll["key"]
-                key_md = escape_markdown(format_json_md(key, indent=None))
-                stats = all_stats.get(ns, {})
-                data_size = sum(s["size"] for s in stats.values())
-                data_size_detail = "<br/>".join(
-                    [f"{escape_markdown(s_name)}: {format_size(s['size'])}" for s_name, s in stats.items()]
-                )
-                storage_size = sum(s["storageSize"] for s in stats.values())
-                storage_size_detail = "<br/>".join(
-                    [f"{escape_markdown(s_name)}: {format_size(s['storageSize'])}" for s_name, s in stats.items()]
-                )
-                index_size = sum(s["totalIndexSize"] for s in stats.values())
-                index_size_detail = "<br/>".join(
-                    [f"{escape_markdown(s_name)}: {format_size(s['totalIndexSize'])}" for s_name, s in stats.items()]
-                )
-                docs_count = sum(s["count"] for s in stats.values())
-                docs_count_detail = "<br/>".join(
-                    [f"{escape_markdown(s_name)}: {s['count']}" for s_name, s in stats.items()]
-                )
-                table["rows"].append(
-                    [
-                        escape_markdown(ns),
-                        key_md,
-                        f"{format_size(data_size)}<br/><pre>{data_size_detail}</pre>",
-                        f"{format_size(storage_size)}<br/><pre>{storage_size_detail}</pre>",
-                        f"{format_size(index_size)}<br/><pre>{index_size_detail}</pre>",
-                        f"{docs_count}<br/><pre>{docs_count_detail}</pre>",
-                    ]
-                )
+            parser: BaseParser = ShardKeyParser()
+            output.append(parser.markdown(raw_result))
 
         enum_result_items(result, func_sh_cluster=func_cluster)
-        return {"name": self.name, "description": self.description, "data": [table]}
+
+        return "\n\n".join(output)

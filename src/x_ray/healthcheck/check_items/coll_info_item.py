@@ -8,7 +8,12 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+from pymongo.errors import OperationFailure
+
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.healthcheck.parsers.coll_overview_parser import CollOverviewParser
+from x_ray.healthcheck.parsers.coll_stats_parser import CollStatsParser
 from x_ray.healthcheck.rules.data_size_rule import DataSizeRule
 from x_ray.healthcheck.rules.fragmentation_rule import FragmentationRule
 from x_ray.healthcheck.rules.op_latency_rule import OpLatencyRule
@@ -17,6 +22,7 @@ from x_ray.healthcheck.shared import (
     discover_nodes,
     enum_all_nodes,
     enum_result_items,
+    get_collections,
 )
 from x_ray.utils import yellow, escape_markdown, format_size
 
@@ -42,7 +48,7 @@ class CollInfoItem(BaseItem):
         client = kwargs.get("client")
         parsed_uri = kwargs.get("parsed_uri")
 
-        def enum_collections(name, node, func, **kwargs):
+        def enum_collections(name, node, func, colls, **kwargs):
             client = node["client"]
             latency = node.get("pingLatencySec", 0)
             host = node["host"] if "host" in node else "cluster"
@@ -51,39 +57,31 @@ class CollInfoItem(BaseItem):
                     yellow(f"Skip {host} because it has been irresponsive for {latency / 60:.2f} minutes.")
                 )
                 return None, None
-            dbs = client.admin.command("listDatabases").get("databases", [])
             raw_result = []
             test_result = []
-            for db_obj in dbs:
-                db_name = db_obj.get("name")
-                if db_name in ["admin", "local", "config"]:
-                    self._logger.debug("Skipping system database: %s", db_name)
-                    continue
-                db = client[db_name]
-                collections = db.list_collections()
-
-                for coll_info in collections:
-                    coll_name = coll_info.get("name")
-                    coll_type = coll_info.get("type", "collection")
-                    # TODO: support timeseries collections
-                    if coll_type != "collection":
-                        self._logger.debug(
-                            "Skipping non-collection type: %s (%s)",
-                            coll_name,
-                            coll_type,
-                        )
-                        continue
-                    if coll_name.startswith("system."):
-                        self._logger.debug("Skipping system collection: %s.%s", db_name, coll_name)
-                        continue
+            for db_name, coll_names in colls.items():
+                for coll_name in coll_names:
                     self._logger.debug("Gathering stats for collection: `%s.%s`", db_name, coll_name)
-
                     args = {"storageStats": {}}
                     args["latencyStats"] = {"histograms": True}
-                    stats = db.get_collection(coll_name).aggregate([{"$collStats": args}]).next()
+                    try:
+                        stats = client[db_name].get_collection(coll_name).aggregate([{"$collStats": args}]).next()
+                    except OperationFailure as e:
+                        if e.code == 26:
+                            self._logger.debug(
+                                "Collection `%s.%s` does not exist. This is expected because the collections may not exist on all shards.",
+                                db_name,
+                                coll_name,
+                            )
+                        else:
+                            self._logger.error(
+                                "Failed to get stats for collection `%s.%s`: %s", db_name, coll_name, str(e)
+                            )
+                        continue
                     t_result, r_result = func(host, stats, **kwargs)
                     test_result.extend(t_result)
                     raw_result.append(r_result)
+
             self.append_test_results(test_result)
             return test_result, raw_result
 
@@ -105,158 +103,41 @@ class CollInfoItem(BaseItem):
             return test_result, frag_data | latency_data | {"ns": ns, "stats": stats}
 
         nodes = discover_nodes(client, parsed_uri)
+        colls = get_collections(client)
         result = enum_all_nodes(
             nodes,
-            func_sh_cluster=lambda name, node, **kwargs: enum_collections(name, node, func_overview, **kwargs),
-            func_rs_cluster=lambda name, node, **kwargs: enum_collections(name, node, func_overview, **kwargs),
-            func_rs_member=lambda name, node, **kwargs: enum_collections(name, node, func_node, **kwargs),
-            func_shard_member=lambda name, node, **kwargs: enum_collections(name, node, func_node, **kwargs),
+            func_sh_cluster=lambda name, node, **kwargs: enum_collections(
+                name, node, func_overview, colls=colls, **kwargs
+            ),
+            func_rs_cluster=lambda name, node, **kwargs: enum_collections(
+                name, node, func_overview, colls=colls, **kwargs
+            ),
+            func_rs_member=lambda name, node, **kwargs: enum_collections(name, node, func_node, colls=colls, **kwargs),
+            func_shard_member=lambda name, node, **kwargs: enum_collections(
+                name, node, func_node, colls=colls, **kwargs
+            ),
         )
         self.captured_sample = result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self) -> str:
         result = self.captured_sample
-        data = []
-        stats_table = {
-            "type": "table",
-            "caption": "Storage Stats",
-            "columns": [
-                {"name": "Namespace", "type": "string"},
-                {"name": "Size", "type": "string"},
-                {"name": "Storage Size", "type": "string"},
-                {"name": "Avg Object Size", "type": "string"},
-                {"name": "Total Index Size", "type": "string"},
-                {"name": "Index / Storage", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        frag_table = {
-            "type": "table",
-            "caption": "Storage Fragmentation",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Namespace", "type": "string"},
-                {"name": "Collection Fragmentation", "type": "string"},
-                {"name": "Index Fragmentation", "type": "decimal", "align": "left"},
-            ],
-            "rows": [],
-        }
-        latency_table = {
-            "type": "table",
-            "caption": "Operation Latency",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Namespace", "type": "string"},
-                {"name": "Read Latency", "type": "string"},
-                {"name": "Write Latency", "type": "decimal"},
-                {"name": "Command Latency", "type": "decimal"},
-                {"name": "Transaction Latency", "type": "decimal"},
-            ],
-            "rows": [],
-        }
-        data_sizes = {}
-        data_frag = []
-        data_latency = []
-        data.append(stats_table)
-        data.append({"type": "chart", "data": data_sizes})
-        data.append(frag_table)
-        data.append({"type": "chart", "data": data_frag})
-        data.append(latency_table)
-        data.append({"type": "chart", "data": data_latency})
+        output: list[str] = []
 
-        def func_overview(set_name, node, **kwargs):
-            raw_result = node["rawResult"]
-            if raw_result is None:
-                stats_table["rows"].append(["n/a", "n/a", "n/a", "n/a", "n/a", "n/a"])
-                return
-            for stats in raw_result:
-                ns = stats["ns"]
-                storage_stats = stats.get("storageStats", {})
-                size = storage_stats.get("size", 0)
-                storage_size = storage_stats.get("storageSize", 0)
-                avg_obj_size = storage_stats.get("avgObjSize", 0)
-                total_index_size = storage_stats.get("totalIndexSize", 0)
-                index_data_ratio = round(total_index_size / storage_size, 4) if size > 0 else 0
-                stats_table["rows"].append(
-                    [
-                        escape_markdown(ns),
-                        format_size(size),
-                        format_size(storage_size),
-                        format_size(avg_obj_size),
-                        format_size(total_index_size),
-                        f"{index_data_ratio:.2%}",
-                    ]
-                )
-                data_sizes[ns] = {"size": size, "index_size": total_index_size}
+        def func_overview(set_name, node, **kwargs) -> None:
+            parser: BaseParser = CollOverviewParser()
+            output.append(parser.markdown(node.get("rawResult", None)))
 
-        def func_node(set_name, node, **kwargs):
-            raw_result = node["rawResult"]
-            host = node["host"]
-            if raw_result is None:
-                frag_table["rows"].append([host, "n/a", "n/a", "n/a"])
-                return
-            for stats in raw_result:
-                ns = stats["ns"]
-                # Fragmentation visualization
-                coll_frag = stats.get("collFragmentation", {}).get("fragmentation", 0)
-                index_frags = stats.get("indexFragmentations", [])
-                total_reusable_size = 0
-                total_index_size = 0
-                index_details = []
-                for index in index_frags:
-                    total_reusable_size += index.get("reusable", 0)
-                    total_index_size += index.get("totalSize", 0)
-                    index_name = escape_markdown(index.get("indexName", ""))
-                    fragmentation = index.get("fragmentation", 0)
-                    index_details.append(f"{index_name}: {fragmentation:.2%}")
-                index_frag = round(total_reusable_size / total_index_size, 4) if total_index_size > 0 else 0
-                frag_table["rows"].append(
-                    [
-                        escape_markdown(set_name),
-                        host,
-                        escape_markdown(ns),
-                        f"{coll_frag:.2%}",
-                        f"{index_frag:.2%}<br/><pre>{'<br/>'.join(index_details)}</pre>",
-                    ]
-                )
-                label = f"{set_name}/{host}"
-                data_frag.append(
-                    {
-                        "label": label,
-                        "ns": ns,
-                        "collFrag": coll_frag,
-                        "indexFrag": index_frag,
-                    }
-                )
-                # Latency visualization
-                avg_reads_latency = stats.get("latencyStats", {}).get("reads_latency", 0)
-                avg_writes_latency = stats.get("latencyStats", {}).get("writes_latency", 0)
-                avg_commands_latency = stats.get("latencyStats", {}).get("commands_latency", 0)
-                avg_transactions_latency = stats.get("latencyStats", {}).get("transactions_latency", 0)
-                latency_table["rows"].append(
-                    [
-                        escape_markdown(set_name),
-                        host,
-                        escape_markdown(ns),
-                        f"{avg_reads_latency:.2f}ms",
-                        f"{avg_writes_latency:.2f}ms",
-                        f"{avg_commands_latency:.2f}ms",
-                        f"{avg_transactions_latency:.2f}ms",
-                    ]
-                )
-                data_latency.append(
-                    {
-                        "label": label,
-                        "ns": ns,
-                        "readsLatency": avg_reads_latency,
-                        "writesLatency": avg_writes_latency,
-                        "commandsLatency": avg_commands_latency,
-                        "transactionsLatency": avg_transactions_latency,
-                    }
-                )
+        def func_node(set_name, node, **kwargs) -> None:
+            host = node["host"] if "host" in node else "cluster"
+            parser: BaseParser = CollStatsParser()
+            output.append(
+                parser.markdown(
+                    node.get("rawResult", None),
+                    host=host,
+                    set_name=set_name,
+                ),
+            )
 
         enum_result_items(
             result,
@@ -265,5 +146,4 @@ class CollInfoItem(BaseItem):
             func_rs_member=func_node,
             func_shard_member=func_node,
         )
-
-        return {"title": self.name, "description": self.description, "data": data}
+        return "\n\n".join(output)

@@ -8,8 +8,10 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+from typing import Optional
 from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
+from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from x_ray.utils import yellow
 from x_ray.version import Version
@@ -18,14 +20,14 @@ from x_ray.version import Version
 class BuildInfoItem(BaseItem):
     """Build Info Check Item Module. Used to check MongoDB server build information."""
 
-    def __init__(self, output_folder: str, config: dict = None):
+    def __init__(self, output_folder: str, config: Optional[dict] = None):
         super().__init__(output_folder, config)
         self._name = "Build Information"
         self._description = "Collects & review server build information.\n\n"
         self._description += "- Whether the server is running a supported version.\n"
         self._version_eol_rule = VersionEOLRule(config)
 
-    def test(self, *args, **kwargs):
+    def test(self, *args, **kwargs) -> None:
         client = kwargs.get("client")
         parsed_uri = kwargs.get("parsed_uri")
         nodes = discover_nodes(client, parsed_uri)
@@ -59,43 +61,14 @@ class BuildInfoItem(BaseItem):
         self.captured_sample = raw_result
 
     @property
-    def review_result(self):
+    def review_result_markdown(self):
         result = self.captured_sample
-        table = {
-            "type": "table",
-            "caption": "Server Build Information",
-            "columns": [
-                {"name": "Component", "type": "string"},
-                {"name": "Host", "type": "string"},
-                {"name": "Version", "type": "string"},
-                {"name": "OpenSSL", "type": "string"},
-                {"name": "Target Arch", "type": "string"},
-                {"name": "Target OS", "type": "string"},
-            ],
-            "rows": [],
-        }
-        versions = {}
+        build_infos = []
 
         def func_node(name, node, **kwargs):
             raw_result = node.get("rawResult", {})
             host = node["host"]
-            if raw_result is None:
-                table["rows"].append([name, host, "n/a", "n/a", "n/a", "n/a"])
-                versions["n/a"] = versions.get("n/a", 0) + 1
-                return
-            build_env = raw_result.get("buildEnvironment", {})
-            v = raw_result.get("version", "")
-            versions[v] = versions.get(v, 0) + 1
-            table["rows"].append(
-                [
-                    name,
-                    host,
-                    v,
-                    raw_result.get("openssl", {}).get("running", ""),
-                    build_env.get("target_arch", ""),
-                    build_env.get("target_os", ""),
-                ]
-            )
+            build_infos.append((name, host, raw_result))
 
         enum_result_items(
             result,
@@ -104,6 +77,6 @@ class BuildInfoItem(BaseItem):
             func_shard_member=func_node,
             func_config_member=func_node,
         )
-        version_pie = {"type": "chart", "data": versions}
+        parser = BuildInfoParser()
 
-        return {"name": self.name, "description": self.description, "data": [table, version_pie]}
+        return parser.markdown(build_infos, caller=self.__class__.__name__)

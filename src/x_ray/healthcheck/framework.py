@@ -12,24 +12,26 @@ from datetime import datetime, timezone
 import re
 import logging
 from pathlib import Path
+from typing import Optional
 
 import markdown
 
 from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
+from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.utils import load_classes, get_script_path, yellow, bold, green, env
 
 CHECKLIST_CLASSES = load_classes("x_ray.healthcheck.check_items")
 
 
 class Framework:
-    _checkset_name: str = None
+    _checkset_name: Optional[str] = None
 
     def __init__(self, config: dict):
-        self._config = config
-        self._logger = logging.getLogger(__name__)
-        self._items = []
-        now = str(datetime.now(tz=timezone.utc))
-        self._timestamp = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
+        self._config: dict = config
+        self._logger: logging.Logger = logging.getLogger(__name__)
+        self._items: list[BaseItem] = []
+        now: str = str(datetime.now(tz=timezone.utc))
+        self._timestamp: str = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
 
     def _get_output_folder(self, output_folder: str):
         if env == "development":
