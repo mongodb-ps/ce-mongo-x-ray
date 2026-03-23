@@ -1,3 +1,13 @@
+"""
+Copyright (c) 2025 MongoDB Inc.
+
+DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
+THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
+THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
+"""
+
 from typing import Optional, TextIO
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
@@ -31,7 +41,10 @@ class RSInfoItem(BaseItem):
 
         def get_replica_set_config(block):
             self._rs_config = block.get("output", {})
-            test_result, _ = self._rs_config_rule.apply(self._rs_config)
+            # Because the result returned by replsetConfig command has an extra "config" layer,
+            # compared to the one returned by rs.conf() in mongo shell.
+            # We need to add this layer for the rule to work properly.
+            test_result, _ = self._rs_config_rule.apply({"config": self._rs_config})
             self.append_test_results(test_result)
 
         def get_server_status(block):
