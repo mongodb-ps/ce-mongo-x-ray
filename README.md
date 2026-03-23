@@ -10,18 +10,25 @@ This project aims to create tools for MongoDB analysis and diagnosis. So far 3 m
 - `getMongoData` visualization module (Under construction).
 
 ## 1 Compatibility Matrix
-### Health Check
+### 1.1 Health Check
 |  Replica Set  | Sharded Cluster | Standalone |
 | :-----------: | :-------------: | :--------: |
 | >=4.2 &check; |  >=4.2 &check;  |  &cross;   |
 
 Older versions are not tested.
 
-### Log Analysis
+### 1.2 Log Analysis
 Log analysis requires JSON format logs, which is supported since 4.4.
 |  Replica Set  | Sharded Cluster |  Standalone   |
 | :-----------: | :-------------: | :-----------: |
 | >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
+
+
+### 1.3 getMongoData Analysis
+Log analysis requires JSON format logs, which is supported since 4.4.
+|  Replica Set  | Sharded Cluster | Standalone |
+| :-----------: | :-------------: | :--------: |
+| >=4.4 &check; |  >=4.4 &check;  |  &cross;   |
 
 ## 2 How to Install
 ### 2.1 PyPi
