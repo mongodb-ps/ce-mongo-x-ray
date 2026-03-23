@@ -8,7 +8,6 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Optional
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
 from x_ray.version import Version

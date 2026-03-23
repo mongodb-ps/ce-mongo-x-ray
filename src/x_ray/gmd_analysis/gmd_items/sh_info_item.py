@@ -7,7 +7,6 @@ from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
-from x_ray.utils import yellow
 
 
 class SHInfoItem(BaseItem):

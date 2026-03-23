@@ -19,7 +19,7 @@ from x_ray.healthcheck.rules.cache_rule import CacheRule
 from x_ray.healthcheck.rules.connections_rule import ConnectionsRule
 from x_ray.healthcheck.rules.query_targeting_rule import QueryTargetingRule
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
-from x_ray.utils import format_size, escape_markdown, green, yellow
+from x_ray.utils import green, yellow
 
 SERVER_STATUS_INTERVAL = 5
 

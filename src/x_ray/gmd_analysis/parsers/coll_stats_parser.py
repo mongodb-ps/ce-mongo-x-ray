@@ -1,5 +1,4 @@
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
-from x_ray.gmd_analysis.shared import to_json
 from x_ray.utils import escape_markdown, format_json_md, format_size
 
 

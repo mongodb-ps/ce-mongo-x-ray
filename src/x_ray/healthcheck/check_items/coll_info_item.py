@@ -24,7 +24,7 @@ from x_ray.healthcheck.shared import (
     enum_result_items,
     get_collections,
 )
-from x_ray.utils import yellow, escape_markdown, format_size
+from x_ray.utils import yellow
 
 
 class CollInfoItem(BaseItem):

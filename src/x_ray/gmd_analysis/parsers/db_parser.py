@@ -1,5 +1,5 @@
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown, format_size, to_ejson
+from x_ray.utils import format_size
 
 
 class DBParser(BaseParser):

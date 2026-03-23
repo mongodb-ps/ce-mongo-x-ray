@@ -10,7 +10,7 @@ from x_ray.utils import bold, to_ejson, yellow
 from x_ray.version import Version
 
 
-class BaseItem:
+class BaseItem:  # pylint: disable=too-many-instance-attributes
     def __init__(self, output_folder: str, config, **kwargs):
         self.config = config
         self._output_file = os.path.join(output_folder, f"{self.__class__.__name__}.json")
