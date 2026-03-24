@@ -25,6 +25,7 @@ class IndexInfoItem(BaseItem):
         self.description: str = "Collects and analyzes index information from GMD logs."
         self._ns_indexes: list = []
         self._index_stats: dict = {}
+        self._full_index_info: list = []
         self._index_rule = IndexRule(config)
 
         def _get_indexes(block) -> None:
@@ -58,22 +59,8 @@ class IndexInfoItem(BaseItem):
         # construct index structure so we can reuse indexRule for analysis.
         for ns_info in self._ns_indexes:
             ns = ns_info.get("ns", "")
-            indexes = [{"spec": spec} for spec in ns_info.get("specs", [])]
-            test_results, _ = self._index_rule.apply(
-                indexes,
-                extra_info={"host": self._hostname, "ns": ns},
-                check_items=["num_indexes", "redundant_indexes"],
-            )
-            self.append_test_results(test_results)
-        super().test_result_markdown(output)
-
-    def review_results_markdown(self, output) -> None:
-        # construct index structure so we can reuse index info parser for visualization.
-        indexes = []
-        for ns_info in self._ns_indexes:
-            ns = ns_info.get("ns", "")
             stats = self._index_stats.get(ns, {})
-            capture_time = stats.get("capture_time", datetime.now().isoformat())
+            capture_time = stats.get("capture_time", datetime.now(timezone.utc))
             ns_stats: dict = {
                 "ns": ns,
                 "captureTime": capture_time,
@@ -95,7 +82,16 @@ class IndexInfoItem(BaseItem):
                     "spec": spec,
                 }
                 ns_stats["indexStats"].append(index)
-            indexes.append(ns_stats)
+            test_results, _ = self._index_rule.apply(
+                ns_stats["indexStats"],
+                extra_info={"host": self._hostname, "ns": ns, "capture_time": capture_time},
+                check_items=["num_indexes", "redundant_indexes", "unused_indexes"],
+            )
+            self.append_test_results(test_results)
+            self._full_index_info.append(ns_stats)
+        super().test_result_markdown(output)
+
+    def review_results_markdown(self, output) -> None:
         index_parser: BaseParser = IndexInfoParser()
-        parsed_data = index_parser.markdown(indexes, set_name="cluster")
+        parsed_data = index_parser.markdown(self._full_index_info, set_name="cluster")
         output.write(parsed_data)

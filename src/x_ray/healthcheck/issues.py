@@ -9,6 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 import enum
+from typing import Optional
 
 from x_ray.healthcheck.shared import SEVERITY
 
@@ -245,7 +246,7 @@ ISSUE_MSG_MAP = {
         "id": ISSUE.UNUSED_INDEX,
         "severity": SEVERITY.LOW,
         "title": "Unused Index",
-        "description": "Index `{index_name}` in collection `{ns}` has not been used for more than `{unused_index_days}` days.",
+        "description": "Index `{index_name}` in collection `{ns}` has not been used for `{current_unused_days}` (>=`{unused_index_days}`) days.",
     },
     ISSUE.TOO_MANY_INDEXES: {
         "id": ISSUE.TOO_MANY_INDEXES,
@@ -406,10 +407,10 @@ ISSUE_MSG_MAP = {
 }
 
 
-def create_issue(issue_id: ISSUE, host: str, params: dict = None) -> dict:
+def create_issue(issue_id: ISSUE, host: str, params: Optional[dict] = None) -> dict:
     if issue_id not in ISSUE_MSG_MAP:
         raise ValueError(f"Unknown issue ID: {issue_id}")
-    issue_template = ISSUE_MSG_MAP[issue_id]
+    issue_template: dict = ISSUE_MSG_MAP[issue_id]
     issue = issue_template | {
         "host": host,
         "description": issue_template["description"] if not params else issue_template["description"].format(**params),
