@@ -8,7 +8,7 @@ data.forEach(d => {
 });
 
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
-chart1 = new Chart(ctx, {
+chart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: bar_labels,
@@ -62,7 +62,7 @@ chart1 = new Chart(ctx, {
         }
     }
 });
-charts.push(chart1);
+charts.push(chart);
 
 var nsCount = {};
 data.forEach(d => {
@@ -139,5 +139,5 @@ var chart3 = new Chart(ctx_byns_ms, {
 });
 charts.push(chart3);
 resetButton.onclick = function () {
-    chart1.resetZoom();
+    chart.resetZoom();
 }

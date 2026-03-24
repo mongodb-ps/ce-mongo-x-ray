@@ -2,11 +2,13 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
+from typing import Optional
 import logging
 import os
 from bson import json_util
@@ -30,19 +32,19 @@ def get_version(log_line):
 
 
 class BaseItem:
-    _cache = None
+    _cache: Optional[dict | list] = None
 
-    def __init__(self, output_folder: str, config, **kwargs):
+    def __init__(self, output_folder: str, config, **kwargs) -> None:
         self.config = config
         self._output_file = os.path.join(output_folder, f"{self.__class__.__name__}.json")
         self._logger = logging.getLogger(__name__)
-        self._row_count = 0
-        self._show_reset = kwargs.get("show_reset", False)
-        self._server_version = None
+        self._row_count: int = 0
+        self._show_reset: bool = kwargs.get("show_reset", False)
+        self._server_version: Optional[Version] = None
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
 
-    def analyze(self, log_line):
+    def analyze(self, log_line) -> None:
         log_id = log_line.get("id", "")
         if log_id == 23403:  # Build Info
             self._server_version = get_version(log_line)
@@ -63,10 +65,10 @@ class BaseItem:
     def description(self, value):
         self._description = value
 
-    def finalize_analysis(self):
+    def finalize_analysis(self) -> None:
         self._write_output()
 
-    def review_results_markdown(self, f):
+    def review_results_markdown(self, f) -> None:
         # Write JS snippet to the file
         file_name = f"{self.__class__.__name__}.js"
         file_path = os.path.join("templates", "log", "snippets", file_name)
@@ -97,7 +99,7 @@ class BaseItem:
         f.write("});\n")
         f.write("</script>\n")
 
-    def _write_output(self):
+    def _write_output(self) -> None:
         # Open file steam and write the cache to file
         # Even if the cache is None, we still write to indicate no data
         with open(self._output_file, "a", encoding="utf-8") as f:

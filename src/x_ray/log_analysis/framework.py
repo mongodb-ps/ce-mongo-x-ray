@@ -2,23 +2,27 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from datetime import datetime, timezone
 import random
 import re
 from pathlib import Path
 import logging
+from typing import Optional
 import markdown
 from bson import json_util
+from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.healthcheck.shared import to_json
 from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, env
 
 logger = logging.getLogger(__name__)
 LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")
+SKIP_LINE_MSG = "HEADER INCLUDED, NOW SKIPPING 64728 LINES ACCORDING TO REQUESTED SIZE LIMIT"
 
 
 class Framework:
@@ -28,12 +32,12 @@ class Framework:
         self._file_path = file_path
         self._config = config
         self._logger = logging.getLogger(__name__)
-        self._items = []
+        self._items: list[BaseItem] = []
         now = str(datetime.now(tz=timezone.utc))
         self._timestamp = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
         self._logger.debug(to_json(self._config))
-        self._log_start = None
-        self._log_end = None
+        self._log_start: Optional[datetime] = None
+        self._log_end: Optional[datetime] = None
         if env == "development":
             self._logger.info(yellow("Running in development mode."))
 
@@ -74,17 +78,20 @@ class Framework:
         log_file = self._file_path
         rate = self._config.get("sample_rate", 1.0)
         # Read the log file line by line and pass each line to the log items for analysis
-        log_line = None
+        log_line: dict = {}
         with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
-            counter = 0
+            counter: int = 0
             for line in f:
                 counter += 1
                 if counter % 10000 == 0:
-                    self._logger.info("%s lines ingested...", green(counter))
+                    self._logger.info("%s lines ingested...", green(str(counter)))
                 # Sampling based on the rate. For dealing with large log files.
                 if random.random() > rate:
                     continue
                 try:
+                    if counter == 101 and line.startswith(SKIP_LINE_MSG):
+                        self._logger.debug("Some lines are skipped due to the size limit. This is expected.")
+                        continue
                     log_line = json_util.loads(line)
                     if self._log_start is None:
                         self._log_start = log_line.get("t", None)
@@ -112,6 +119,9 @@ class Framework:
         self._logger.info("Saving results to: %s", green(output_file))
 
         with open(output_file, "w", encoding="utf-8") as f:
+            assert (
+                self._log_start is not None and self._log_end is not None
+            ), "Log start and end time should be set after analysis."
             f.write("# Log Analysis Report\n")
             f.write(f"Generated at: `{str(datetime.now(tz=timezone.utc))} UTC`\n\n")
             f.write(f"Log path: `{self._file_path}`\n\n")

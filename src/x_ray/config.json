@@ -73,6 +73,7 @@
             "default": {
                 "items": [
                     "ConnectionRateItem",
+                    "LogRateItem",
                     "SlowRateItem",
                     "ClientMetaItem",
                     "TopSlowItem",
