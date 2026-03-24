@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
@@ -30,8 +30,10 @@ class IndexRule(BaseRule):
         Returns:
             tuple: (list of issues found, list of parsed data)
         """
-        host: str = kwargs.get("extra_info", {}).get("host", "unknown")
-        ns: str = kwargs.get("extra_info", {}).get("ns", "unknown")
+        extra_info: dict = kwargs.get("extra_info", {})
+        host: str = extra_info.get("host", "unknown")
+        ns: str = extra_info.get("ns", "unknown")
+        capture_time: datetime = extra_info.get("capture_time", datetime.now(timezone.utc))
         check_items: list = kwargs.get("check_items", ["num_indexes", "unused_indexes", "redundant_indexes"])
         test_result: list = []
         unique_indexes: set = set()
@@ -42,7 +44,8 @@ class IndexRule(BaseRule):
                 if index.get("accesses", {}).get("ops", 0) == 0:
                     last_used: Optional[datetime] = index.get("accesses", {}).get("since", None)
                     if last_used:
-                        if (datetime.now() - last_used).days > self._unused_index_days:
+                        unused_days: int = (capture_time - last_used).days
+                        if unused_days >= self._unused_index_days:
                             issue = create_issue(
                                 ISSUE.UNUSED_INDEX,
                                 host=host,
@@ -50,6 +53,7 @@ class IndexRule(BaseRule):
                                     "index_name": index.get("name"),
                                     "ns": ns,
                                     "unused_index_days": self._unused_index_days,
+                                    "current_unused_days": unused_days,
                                 },
                             )
                             test_result.append(issue)

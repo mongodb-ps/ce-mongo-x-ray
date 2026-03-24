@@ -2,14 +2,15 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from datetime import datetime
-from x_ray.healthcheck.issues import ISSUE
-from x_ray.healthcheck.rules.index_rule import IndexRule
+from x_ray.healthcheck.issues import ISSUE  # type: ignore
+from x_ray.healthcheck.rules.index_rule import IndexRule  # type: ignore
 
 DATA_INDEX_PROBLEM = [
     {
@@ -64,7 +65,11 @@ def test_index_rule():
     )
     issues, _ = rule.apply(
         data=DATA_INDEX_PROBLEM,
-        extra_info={"host": "localhost:30021", "ns": "test.collection"},
+        extra_info={
+            "host": "localhost:30021",
+            "ns": "test.collection",
+            "capture_time": datetime.strptime("2025-10-23T22:48:14.300Z", "%Y-%m-%dT%H:%M:%S.%fZ"),
+        },
         check_items=["num_indexes", "unused_indexes", "redundant_indexes"],
     )
     assert len(issues) == 7

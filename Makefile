@@ -1,4 +1,4 @@
-.PHONY: all clean deps build test install dist init lint format check-lint flake8
+.PHONY: all clean deps build test test-cov install dist init lint format check-lint flake8
 
 # Project name
 PROJECT_NAME = x-ray
@@ -78,6 +78,13 @@ test:
 	$(PYTHON) -m pytest
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
+# Run tests with coverage
+test-cov:
+	@echo "Running tests with coverage..."
+	@$(PYTHON) -m pip show pytest-cov >/dev/null 2>&1 || (echo "Installing pytest-cov..." && $(PYTHON) -m pip install pytest-cov)
+	$(PYTHON) -m pytest --cov=src/x_ray --cov-report=term-missing --cov-report=html
+	@echo "\033[32m✓ Coverage report generated: htmlcov/index.html\033[0m"
+
 # Run pylint
 lint:
 	@echo "Running pylint..."
@@ -148,6 +155,7 @@ help:
 	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"
 	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
+	@echo "  make test-cov     - Run tests with coverage report"
 	@echo "  make lint         - Run pylint on code"
 	@echo "  make check-lint   - Run pylint (errors only)"
 	@echo "  make flake8       - Run flake8 (syntax errors only)"
@@ -166,6 +174,7 @@ help:
 	@echo "  make lint         - Full pylint analysis with warnings"
 	@echo "  make check-lint   - Quick check (errors only)"
 	@echo "  make flake8       - Flake8 syntax error check"
+	@echo "  make test-cov     - Pytest coverage report (terminal + html)"
 	@echo "  make format       - Auto-format code"
 	@echo "  make check        - Run all checks (recommended before commit)"
 	@echo ""

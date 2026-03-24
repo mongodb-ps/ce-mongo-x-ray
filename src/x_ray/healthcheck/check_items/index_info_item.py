@@ -53,7 +53,13 @@ class IndexInfoItem(BaseItem):
 
         def node_check(host, ns, index_stats):
             result, _ = self._index_rule.apply(
-                index_stats, extra_info={"host": host, "ns": ns}, check_items=["unused_indexes"]
+                index_stats,
+                extra_info={
+                    "host": host,
+                    "ns": ns,
+                    "capture_time": datetime.now(),
+                },
+                check_items=["unused_indexes"],
             )
             return result
 
