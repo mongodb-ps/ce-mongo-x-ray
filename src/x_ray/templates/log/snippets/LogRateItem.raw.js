@@ -18,7 +18,6 @@ const datasets = data.map((entry) => {
     };
 });
 
-console.log("Datasets for chart:", datasets);
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'line',

@@ -11,6 +11,8 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 from datetime import datetime
 from x_ray.log_analysis.log_items.base_item import BaseItem
 
+WHITELIST_IDS: list = [22943, 22944, 23234, 23236, 5286306, 51800, 6723801, 6723804, 51803]
+
 
 class LogRateItem(BaseItem):
     def __init__(self, output_folder, config) -> None:
@@ -23,6 +25,8 @@ class LogRateItem(BaseItem):
 
     def analyze(self, log_line) -> None:
         log_id = log_line["id"]
+        if log_id in WHITELIST_IDS:
+            return
         timestamp: datetime = log_line["t"]
         minute_bucket = timestamp.replace(second=0, microsecond=0)
         if log_id not in self._temp_cache:
