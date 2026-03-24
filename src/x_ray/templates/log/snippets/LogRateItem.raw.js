@@ -50,3 +50,7 @@ const chart = new Chart(ctx, {
     }
 });
 charts.push(chart);
+
+resetButton.onclick = function () {
+    chart.resetZoom();
+};
