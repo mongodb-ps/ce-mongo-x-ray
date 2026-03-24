@@ -25,7 +25,7 @@ Log analysis requires JSON format logs, which is supported since 4.4.
 
 
 ### 1.3 getMongoData Analysis
-Log analysis requires JSON format logs, which is supported since 4.4.
+Analyze & visualize the [getMongoData.js](https://github.com/mongodb/support-tools/tree/master/getMongoData) output.
 |  Replica Set  | Sharded Cluster | Standalone |
 | :-----------: | :-------------: | :--------: |
 | >=4.4 &check; |  >=4.4 &check;  |  &cross;   |
