@@ -16,7 +16,7 @@ class BaseRule(ABC):
     """Base class for health check rules."""
 
     def __init__(self, thresholds: Optional[dict] = None):
-        self._thresholds = thresholds
+        self._thresholds: Optional[dict] = thresholds
 
     @abstractmethod
     def apply(self, data: Any, **kwargs) -> tuple:

@@ -93,7 +93,9 @@ class RSInfoItem(BaseItem):
             "set_name": self._rs_config["_id"],
             "rs_config": self._rs_config,
             "rs_status": self._rs_status,
-            "oplog_info": self._oplog_info,
+            "oplog_info": {
+                self._hostname: self._oplog_info,
+            },
         }
         passed_output = RSDetailsParser().markdown(data)
         output.write(passed_output)

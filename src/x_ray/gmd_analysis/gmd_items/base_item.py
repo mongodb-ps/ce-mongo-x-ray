@@ -1,7 +1,7 @@
 from abc import abstractmethod
 import logging
 import os
-from typing import Callable
+from typing import Callable, Optional
 from bson import json_util
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.shared import SEVERITY
@@ -11,48 +11,47 @@ from x_ray.version import Version
 
 
 class BaseItem:  # pylint: disable=too-many-instance-attributes
-    def __init__(self, output_folder: str, config, **kwargs):
-        self.config = config
+    def __init__(self, output_folder: str, config, **kwargs) -> None:
+        self.config: dict = config
         self._output_file = os.path.join(output_folder, f"{self.__class__.__name__}.json")
         self._logger = logging.getLogger(__name__)
-        self._server_version = None
-        self._hostname = None
-        self._set_name = None
-        self._cluster_type = None
+        self._server_version: Optional[Version] = None
+        self._hostname: Optional[str] = None
+        self._set_name: Optional[str] = None
+        self._cluster_type: Optional[str] = None
         self._test_result: list = []
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
 
         # Subscribe some common events that most items care about
         self._cache = None
-        self._watched_events: dict[GMD_EVENTS, list] = {}
+        self._watched_events: dict[GMD_EVENTS, list[Callable]] = {}
         self._watched_all_events: list[tuple[set[GMD_EVENTS], Callable]] = []
         self._fired_events: set[GMD_EVENTS] = set()
 
         def get_version(block):
-            sub_sec = block.get("subsection", "")
-            if sub_sec == "server_build_info":
-                self._server_version = Version.parse(block.get("output", {}).get("version", ""))
+            self._server_version = Version.parse(block.get("output", {}).get("version", ""))
 
         def get_host(block):
-            sub_sec = block.get("subsection", "")
-            if sub_sec == "host_info":
+            if self._hostname is None:
                 self._hostname = block.get("output", {}).get("system", {}).get("hostname", "unknown")
 
         def get_cluster_type(block):
-            sub_sec = block.get("subsection", "")
-            if sub_sec == "ismaster":
-                output = block.get("output", {})
-                set_name = output.get("setName", None)
-                msg = output.get("msg", "")
-                if set_name is not None:
-                    self._cluster_type = "RS"
-                    self._set_name = set_name
-                elif msg == "isdbgrid":
-                    self._cluster_type = "SH"
-                    self._set_name = "mongos"
-                else:
-                    self._cluster_type = "STANDALONE"
+            output = block.get("output", {})
+            set_name = output.get("setName", None)
+            msg = output.get("msg", "")
+            if set_name is not None:
+                self._cluster_type = "RS"
+                self._set_name = set_name
+            elif msg == "isdbgrid":
+                self._cluster_type = "SH"
+                self._set_name = "mongos"
+            else:
+                self._cluster_type = "STANDALONE"
+
+            # Use hostname in ismaster whenever possible
+            if "me" in output:
+                self._hostname = output["me"]
 
         self.watch_one(GMD_EVENTS.SERVER_BUILD_INFO, get_version)
         self.watch_one(GMD_EVENTS.HOST_INFO, get_host)

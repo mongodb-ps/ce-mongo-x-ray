@@ -552,9 +552,9 @@ def test_rs_details_parser():
             configured = oplog_info[host]["configured_retention_hours"]
             current = oplog_info[host]["current_retention_hours"]
             if is_number(current) and is_number(configured):
-                retention = max(configured, current)
+                retention = round(max(configured, current), 2)
             elif is_number(current):
-                retention = current
+                retention = round(current, 2)
             else:
                 retention = "N/A"
             assert retention_hours == retention

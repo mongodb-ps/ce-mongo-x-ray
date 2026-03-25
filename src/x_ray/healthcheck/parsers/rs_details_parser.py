@@ -50,9 +50,9 @@ class RSDetailsParser(BaseParser):
             configured_retention_hours = oplog_info.get(host, {}).get("configured_retention_hours", "N/A")
             current_retention_hours = oplog_info.get(host, {}).get("current_retention_hours", "N/A")
             if is_number(configured_retention_hours) and is_number(current_retention_hours):
-                retention_hours = max(configured_retention_hours, current_retention_hours)
+                retention_hours = round(max(configured_retention_hours, current_retention_hours), 2)
             elif is_number(current_retention_hours):
-                retention_hours = current_retention_hours
+                retention_hours = round(current_retention_hours, 2)
             else:
                 retention_hours = "N/A"
             rows.append(
