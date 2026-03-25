@@ -14,6 +14,7 @@ from pathlib import Path
 import logging
 import markdown
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
+from x_ray.gmd_analysis.gmd_items.summary_item import SummaryItem
 from x_ray.gmd_analysis.shared import load_json
 from x_ray.healthcheck.shared import str_to_md_id, to_json
 from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, env
@@ -104,6 +105,10 @@ class Framework:
             output.write(f"Generated at: `{str(datetime.now(tz=timezone.utc))} UTC`\n\n")
             output.write(f"File path: `{self._file_path}`\n\n")
             output.write("## 1 Review Test Results\n\n")
+            output.write("### Overview\n\n")
+            summary_item = SummaryItem()
+            summary_item.summarize(self._items)
+            summary_item.overview(output)
             for i, item in enumerate(self._items):
                 try:
                     title = f"1.{i + 1} {item.name}"

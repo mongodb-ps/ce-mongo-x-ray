@@ -98,6 +98,10 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         self._description = value
 
     @property
+    def test_result(self):
+        return self._test_result
+
+    @property
     def captured_sample(self):
         try:
             with open(self._output_file, "r", encoding="utf-8") as f:
