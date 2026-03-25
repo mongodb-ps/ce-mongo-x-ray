@@ -11,8 +11,6 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 from datetime import datetime
 from x_ray.log_analysis.log_items.base_item import BaseItem
 
-WHITELIST_IDS: list = [22943, 22944, 23234, 23236, 5286306, 5626700, 51800, 6723801, 6723804, 51803]
-
 
 class LogRateItem(BaseItem):
     def __init__(self, output_folder, config) -> None:
@@ -20,14 +18,14 @@ class LogRateItem(BaseItem):
         self._temp_cache: dict = {}
         self.name: str = "Log Rate Analysis"
         self.description: str = (
-            "The rate of different logs (grouped by ID) over time. \nOnly showing log IDs that constantly appear."
+            "The rate of different logs (grouped by ID) over time. \nOnly showing INFO log IDs that constantly appear."
         )
 
     def analyze(self, log_line) -> None:
         log_id = log_line["id"]
         severity = log_line["s"]
         # Warning/Error/Fatal logs can be seen in WEFItem, so we focus on other log IDs. Also whitelist some common log IDs that are not actionable.
-        if log_id in WHITELIST_IDS or severity in ["W", "E", "F"]:
+        if log_id in self.config.get("WhiteListIDs", []) or severity in ["W", "E", "F"]:
             return
         timestamp: datetime = log_line["t"]
         minute_bucket = timestamp.replace(second=0, microsecond=0)

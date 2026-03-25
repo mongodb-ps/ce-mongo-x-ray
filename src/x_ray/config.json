@@ -90,6 +90,20 @@
             },
             "TopSlowItem": {
                 "top": 10
+            },
+            "LogRateItem": {
+                "WhiteListIDs": [
+                    22943,
+                    22944,
+                    23234,
+                    23236,
+                    5286306,
+                    5626700,
+                    51800,
+                    6723801,
+                    6723804,
+                    51803
+                ]
             }
         },
         "template": "log/full.html"
