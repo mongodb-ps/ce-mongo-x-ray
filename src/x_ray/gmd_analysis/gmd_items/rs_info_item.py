@@ -64,7 +64,10 @@ class RSInfoItem(BaseItem):
                 {
                     "serverStatus": self._server_status,
                     "timeDelta": time_delta,
-                }
+                },
+                extra_info={
+                    "host": self._hostname,
+                },
             )
             self.append_test_results(test_result)
 
