@@ -7,8 +7,13 @@ const allTimes = Array.from(allTimesSet).sort();
 
 // Build one dataset per filteredData entry (colors assigned automatically by Chart.js)
 const datasets = data.map((entry) => {
-    const bucketMap = {};
-    entry.buckets.forEach(b => { bucketMap[b.time] = b.count; });
+    const bucketMap = {
+        count: 0
+    };
+    entry.buckets.forEach(b => {
+        bucketMap.count += b.count;
+        bucketMap[b.time] = b.count;
+    });
     return {
         label: `[${entry.id}] ${entry.sample.msg}`,
         data: allTimes.map(t => bucketMap[t] || 0),
@@ -17,6 +22,8 @@ const datasets = data.map((entry) => {
         pointRadius: 2
     };
 });
+// Sort by total count (descending)
+datasets.sort((a, b) => b.data.reduce((sum, val) => sum + val, 0) - a.data.reduce((sum, val) => sum + val, 0));
 
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
 const chart = new Chart(ctx, {
