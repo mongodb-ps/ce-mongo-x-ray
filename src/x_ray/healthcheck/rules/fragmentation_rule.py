@@ -16,6 +16,7 @@ class FragmentationRule(BaseRule):
     def __init__(self, thresholds=None):
         super().__init__(thresholds)
         self._fragmentation_ratio = self._thresholds.get("fragmentation_ratio", 0.5)
+        self._rule_desc.append("Checks if the collection / index fragmentation ratio is too high.")
 
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the fragmentation ratio for any issues.

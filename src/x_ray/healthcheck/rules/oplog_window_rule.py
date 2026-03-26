@@ -13,6 +13,10 @@ from x_ray.healthcheck.issues import ISSUE, create_issue
 
 
 class OplogWindowRule(BaseRule):
+    def __init__(self, thresholds=None):
+        super().__init__(thresholds)
+        self._rule_desc.append("Checks if the oplog window is large enough.")
+
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the oplog window for any issues.
 

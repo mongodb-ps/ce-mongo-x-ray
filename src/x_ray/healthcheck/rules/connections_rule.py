@@ -16,6 +16,7 @@ class ConnectionsRule(BaseRule):
     def __init__(self, thresholds=None):
         super().__init__(thresholds)
         self._used_connection_ratio = thresholds.get("used_connection_ratio", 0.8)
+        self._rule_desc.append("Checks if the ratio of used connections to total connections is too high.")
 
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the connections usage for any issues.

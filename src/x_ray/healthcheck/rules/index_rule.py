@@ -19,6 +19,8 @@ class IndexRule(BaseRule):
         super().__init__(thresholds)
         self._max_num_indexes = thresholds.get("num_indexes", 10)
         self._unused_index_days = thresholds.get("unused_index_days", 7)
+        self._rule_desc.append("Checks for unused and redundant indexes.")
+        self._rule_desc.append("Checks if there are too many indexes")
 
     def apply(self, data: list, **kwargs) -> tuple:
         """Check the index fragmentation for any issues.

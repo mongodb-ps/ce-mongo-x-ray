@@ -13,6 +13,10 @@ from x_ray.healthcheck.issues import ISSUE, create_issue
 
 
 class SecurityRule(BaseRule):
+    def __init__(self, thresholds=None):
+        super().__init__(thresholds)
+        self._rule_desc.append("Checks the security settings of the MongoDB instance.")
+
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the security settings for any issues.
 

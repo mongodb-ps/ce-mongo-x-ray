@@ -13,6 +13,10 @@ from x_ray.healthcheck.issues import ISSUE, create_issue
 
 
 class NumaRule(BaseRule):
+    def __init__(self, thresholds=None):
+        super().__init__(thresholds)
+        self._rule_desc.append("Checks if NUMA is correctly configured based on MongoDB version.")
+
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the NUMA node configuration for any issues.
 

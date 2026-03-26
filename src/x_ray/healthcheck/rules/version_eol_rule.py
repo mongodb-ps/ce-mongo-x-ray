@@ -14,6 +14,11 @@ from x_ray.version import Version
 
 
 class VersionEOLRule(BaseRule):
+    def __init__(self, config):
+        super().__init__(config)
+        self._rule_desc.append("Checks if the MongoDB version is end-of-life (EOL).")
+        self._rule_desc.append("Checks if the MongoDB version is a rapid release or development release.")
+
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check if the given build info represents a version that is end-of-life (EOL).
 

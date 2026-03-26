@@ -22,11 +22,10 @@ class IndexInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Index Information"
-        self.description: str = "Collects and analyzes index information from GMD logs."
         self._ns_indexes: list = []
         self._index_stats: dict = {}
         self._full_index_info: list = []
-        self._index_rule = IndexRule(config)
+        self._rules["index"] = IndexRule(config)
 
         def _get_indexes(block) -> None:
             output: dict = block.get("output", {})
@@ -82,7 +81,7 @@ class IndexInfoItem(BaseItem):
                     "spec": spec,
                 }
                 ns_stats["indexStats"].append(index)
-            test_results, _ = self._index_rule.apply(
+            test_results, _ = self._rules["index"].apply(
                 ns_stats["indexStats"],
                 extra_info={"host": self._hostname, "ns": ns, "capture_time": capture_time},
                 check_items=["num_indexes", "redundant_indexes", "unused_indexes"],

@@ -14,7 +14,6 @@ from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.sh_details_parser import SHDetailsParser
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
 
@@ -23,13 +22,12 @@ class SHInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Sharded Cluster Architecture"
-        self.description: str = "Collects and analyzes sharded cluster information from GMD logs."
         self._shards: Optional[list] = None
         self._routers: Optional[list] = None
         self._csrs: Optional[str] = None
         self._converted_routers: Optional[dict] = None
         self._exec_time = None
-        self._shard_mongos_rule: BaseRule = ShardMongosRule(config)
+        self._rules["shard_mongos"] = ShardMongosRule(config)
 
         def get_shards(block):
             self._shards = block.get("output", {})
@@ -46,7 +44,7 @@ class SHInfoItem(BaseItem):
                 }
                 for mongos in self._routers
             ]
-            test_result, _ = self._shard_mongos_rule.apply(all_mongos)
+            test_result, _ = self._rules["shard_mongos"].apply(all_mongos)
             self.append_test_results(test_result)
             self._converted_routers = {mongos["host"]: mongos for mongos in all_mongos}
 

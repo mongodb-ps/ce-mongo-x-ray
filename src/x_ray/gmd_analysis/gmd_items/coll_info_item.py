@@ -22,11 +22,10 @@ class CollInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Collection Information"
-        self.description: str = "Collects and analyzes collection information from GMD logs."
         self._collections_stats: list[dict[str, Any]] = []
         self.shard_keys: dict = {}
-        self._data_size_rule = DataSizeRule(config)
-        self._fragmentation_rule = FragmentationRule(config)
+        self._rules["data_size"] = DataSizeRule(config)
+        self._rules["fragmentation"] = FragmentationRule(config)
 
         def _get_collections_stats(block) -> None:
             # rebuild the collection stats data structure to match the one used in health check for easier review
@@ -48,9 +47,9 @@ class CollInfoItem(BaseItem):
                     },
                 },
             }
-            test_result, _ = self._data_size_rule.apply(stats, extra_info={"host": "cluster"})
+            test_result, _ = self._rules["data_size"].apply(stats, extra_info={"host": "cluster"})
             self.append_test_results(test_result)
-            test_result, frag_data = self._fragmentation_rule.apply(stats, extra_info={"host": "cluster"})
+            test_result, frag_data = self._rules["fragmentation"].apply(stats, extra_info={"host": "cluster"})
             self.append_test_results(test_result)
             parsed_data = frag_data | output
             self._collections_stats.append(parsed_data)

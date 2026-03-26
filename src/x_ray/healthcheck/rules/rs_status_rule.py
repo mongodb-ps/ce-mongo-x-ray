@@ -2,22 +2,27 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
 from x_ray.healthcheck.shared import MEMBER_STATE
 
 
 class RSStatusRule(BaseRule):
-    def apply(self, data: object, **kwargs) -> tuple:
+    def __init__(self, thresholds=None):
+        super().__init__(thresholds)
+        self._rule_desc.append("Checks the replica set status for any issues.")
+
+    def apply(self, data: dict, **kwargs) -> tuple:
         """Check the replica set status for any issues.
 
         Args:
-            data (object): The result from `replSetGetStatus` command.
+            data (dict): The result from `replSetGetStatus` command.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             tuple: (list of issues found, list of parsed data)
@@ -34,6 +39,7 @@ class RSStatusRule(BaseRule):
             result.append(issue)
 
         # Check member states
+        assert self._thresholds is not None, "Thresholds must be set for RSStatusRule"
         max_delay = self._thresholds.get("replication_lag_seconds", 60)
         set_name = data.get("set", "Unknown Set")
         for member in data["members"]:
@@ -57,7 +63,7 @@ class RSStatusRule(BaseRule):
                 result.append(issue)
 
             # Check replication lag
-            if state == 2 and not no_primary:  # SECONDARY
+            if state == 2 and not no_primary and primary_member:  # SECONDARY
                 p_time = primary_member["optime"]["ts"]
                 s_time = member["optime"]["ts"]
                 lag = p_time.time - s_time.time

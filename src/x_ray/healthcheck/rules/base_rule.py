@@ -17,7 +17,16 @@ class BaseRule(ABC):
 
     def __init__(self, thresholds: Optional[dict] = None):
         self._thresholds: Optional[dict] = thresholds
+        self._rule_desc: list[str] = []
 
     @abstractmethod
     def apply(self, data: Any, **kwargs) -> tuple:
         raise NotImplementedError("Subclasses must implement the apply method")
+
+    @property
+    def description(self) -> list[str]:
+        return self._rule_desc
+
+    @property
+    def description_md(self) -> str:
+        return "\n".join(f"- {desc}" for desc in self._rule_desc)

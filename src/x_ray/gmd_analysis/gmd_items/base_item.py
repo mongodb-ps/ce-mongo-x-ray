@@ -4,6 +4,7 @@ import os
 from typing import Callable, Optional
 from bson import json_util
 from x_ray.healthcheck.check_items.base_item import colorize_severity
+from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.shared import SEVERITY
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.utils import bold, to_ejson, yellow
@@ -20,6 +21,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         self._set_name: Optional[str] = None
         self._cluster_type: Optional[str] = None
         self._test_result: list = []
+        self._rules: dict[str, BaseRule] = {}
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
 
@@ -82,27 +84,26 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
                     self._logger.warning("Error in subscribed all-events function for events %s: %s", events, e)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self._name = value
 
     @property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, value):
-        self._description = value
+    def description(self) -> str:
+        desc: str = ""
+        for rule in self._rules.values():
+            desc += rule.description_md + "\n"
+        return desc
 
     @property
-    def test_result(self):
+    def test_result(self) -> list:
         return self._test_result
 
     @property
-    def captured_sample(self):
+    def captured_sample(self) -> Optional[dict]:
         try:
             with open(self._output_file, "r", encoding="utf-8") as f:
                 return json_util.loads(f.read())
@@ -114,7 +115,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             return None
 
     @captured_sample.setter
-    def captured_sample(self, data):
+    def captured_sample(self, data: Optional[dict]) -> None:
         with open(self._output_file, "w", encoding="utf-8") as f:
             f.write(to_ejson(data, indent=None))
 

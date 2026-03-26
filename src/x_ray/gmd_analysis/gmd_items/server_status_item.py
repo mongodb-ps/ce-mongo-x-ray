@@ -15,29 +15,28 @@ class ServerStatusItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Server Status"
-        self.description: str = "Collects and analyzes server status information from GMD logs."
         self._server_status: Optional[dict[str, Any]] = None
         self._query_targeting: Optional[dict[str, Any]] = None
         self._connections: Optional[dict[str, Any]] = None
         self._wt_cache: Optional[dict[str, Any]] = None
-        self._query_targeting_rule = QueryTargetingRule(config)
-        self._connections_rule = ConnectionsRule(config)
-        self._cache_rule = CacheRule(config)
+        self._rules["query_targeting"] = QueryTargetingRule(config)
+        self._rules["connections"] = ConnectionsRule(config)
+        self._rules["cache"] = CacheRule(config)
 
         def get_server_status(block):
             self._server_status = block.get("output", {})
 
         def process_server_status():
             if self._server_status["process"] == "mongod":
-                test_result, self._query_targeting = self._query_targeting_rule.apply(
+                test_result, self._query_targeting = self._rules["query_targeting"].apply(
                     self._server_status, extra_info={"host": self._hostname}
                 )
                 self.append_test_results(test_result)
-                test_result, self._wt_cache = self._cache_rule.apply(
+                test_result, self._wt_cache = self._rules["cache"].apply(
                     self._server_status, extra_info={"host": self._hostname}
                 )
                 self.append_test_results(test_result)
-            test_result, self._connections = self._connections_rule.apply(
+            test_result, self._connections = self._rules["connections"].apply(
                 self._server_status, extra_info={"host": self._hostname}
             )
             self.append_test_results(test_result)

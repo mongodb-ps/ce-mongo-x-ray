@@ -18,6 +18,8 @@ class DataSizeRule(BaseRule):
         self._collection_size_gb = self._thresholds.get("collection_size_gb", 2048) * 1024**3
         self._obj_size_bytes = self._thresholds.get("obj_size_kb", 32) * 1024
         self._index_size_ratio = self._thresholds.get("index_size_ratio", 0.2)
+        self._rule_desc.append("Checks if the collection size exceeds the specified threshold.")
+        self._rule_desc.append("Checks if the average object size exceeds the specified threshold.")
 
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the data size for any issues.

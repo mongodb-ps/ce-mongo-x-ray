@@ -2,11 +2,12 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
 
@@ -15,12 +16,13 @@ class OpLatencyRule(BaseRule):
     def __init__(self, thresholds=None):
         super().__init__(thresholds)
         self._op_latency_ms = self._thresholds.get("op_latency_ms", 100)  # in milliseconds
+        self._rule_desc.append("Checks if the average operation latency is too high.")
 
-    def apply(self, data: object, **kwargs) -> tuple:
+    def apply(self, data: dict, **kwargs) -> tuple:
         """Check the operation latency for any issues.
 
         Args:
-            data (object): The collStats data.
+            data (dict): The collStats data.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             tuple: (list of issues found, list of parsed data)

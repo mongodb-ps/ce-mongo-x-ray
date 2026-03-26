@@ -17,6 +17,7 @@ class QueryTargetingRule(BaseRule):
         super().__init__(thresholds)
         self._max_query_targeting = thresholds.get("query_targeting", 0.1)
         self._max_query_targeting_obj = thresholds.get("query_targeting_obj", 0.1)
+        self._rule_desc.append("Checks if the query targeting is too high.")
 
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check query targeting efficiency.

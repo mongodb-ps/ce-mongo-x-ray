@@ -13,6 +13,10 @@ from x_ray.healthcheck.issues import ISSUE, create_issue
 
 
 class RSConfigRule(BaseRule):
+    def __init__(self, thresholds=None):
+        super().__init__(thresholds)
+        self._rule_desc.append("Checks the replica set configuration for common issues.")
+
     def apply(self, data: dict, **kwargs) -> tuple[list, dict]:
         """Check the replica set configuration for any issues.
 

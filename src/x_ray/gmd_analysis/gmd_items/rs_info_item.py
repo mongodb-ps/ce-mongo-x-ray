@@ -24,19 +24,18 @@ class RSInfoItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Replica Set Architecture"
-        self.description: str = "Collects and analyzes replica set information from GMD logs."
         self._rs_status: Optional[dict] = None
         self._rs_config: Optional[dict] = None
         self._server_status: Optional[dict] = None
         self._replication_info: Optional[dict] = None
         self._oplog_info: Optional[dict] = None
-        self._rs_status_rule: BaseRule = RSStatusRule(config)
-        self._rs_config_rule: BaseRule = RSConfigRule(config)
-        self._oplog_window_rule: BaseRule = OplogWindowRule(config)
+        self._rules["rs_status"] = RSStatusRule(config)
+        self._rules["rs_config"] = RSConfigRule(config)
+        self._rules["oplog_window"] = OplogWindowRule(config)
 
         def get_replica_status(block):
             self._rs_status = block.get("output", {})
-            test_result, _ = self._rs_status_rule.apply(self._rs_status)
+            test_result, _ = self._rules["rs_status"].apply(self._rs_status)
             self.append_test_results(test_result)
 
         def get_replica_set_config(block):
@@ -44,7 +43,7 @@ class RSInfoItem(BaseItem):
             # Because the result returned by replsetConfig command has an extra "config" layer,
             # compared to the one returned by rs.conf() in mongo shell.
             # We need to add this layer for the rule to work properly.
-            test_result, _ = self._rs_config_rule.apply({"config": self._rs_config})
+            test_result, _ = self._rules["rs_config"].apply({"config": self._rs_config})
             self.append_test_results(test_result)
 
         def get_server_status(block):
@@ -60,7 +59,7 @@ class RSInfoItem(BaseItem):
 
         def analyze_oplog_window():
             time_delta = self._replication_info.get("timeDiff", 0)
-            test_result, self._oplog_info = self._oplog_window_rule.apply(
+            test_result, self._oplog_info = self._rules["oplog_window"].apply(
                 {
                     "serverStatus": self._server_status,
                     "timeDelta": time_delta,

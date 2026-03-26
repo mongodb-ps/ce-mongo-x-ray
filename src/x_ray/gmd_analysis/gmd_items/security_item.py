@@ -21,15 +21,14 @@ class SecurityItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Security Information"
-        self.description: str = "Collects and analyzes security information from GMD logs."
         self._command_line_opts: Optional[dict] = None
-        self._security_rule: SecurityRule = SecurityRule(config)
+        self._rules["security"] = SecurityRule(config)
 
         def get_command_line_opts(block):
             self._command_line_opts = block.get("output", {})
 
         def analyze_security():
-            test_result, _ = self._security_rule.apply(self._command_line_opts, extra_info={"host": self._hostname})
+            test_result, _ = self._rules["security"].apply(self._command_line_opts, extra_info={"host": self._hostname})
             self.append_test_results(test_result)
 
         self.watch_one(GMD_EVENTS.COMMAND_LINE_INFO, get_command_line_opts)

@@ -19,6 +19,10 @@ class CacheRule(BaseRule):
         self._updates_ratio_threshold = thresholds.get("updates_ratio", [0.08, 0.1])
         self._dirty_ratio_threshold = thresholds.get("dirty_ratio", [0.15, 0.2])
         self._cache_fill_ratio_threshold = thresholds.get("cache_fill_ratio", [0.9, 0.95])
+        self._rule_desc.append("Checks if the cache read into cache (swap in) is too high.")
+        self._rule_desc.append("Checks if the ratio of bytes allocated for updates to cache size is too high.")
+        self._rule_desc.append("Checks if the ratio of dirty bytes in the cache is too high.")
+        self._rule_desc.append("Checks if the cache fill ratio is too high.")
 
     def apply(self, data: dict, **kwargs) -> tuple:
         """Check the cache fill ratio for any issues.

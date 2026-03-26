@@ -20,7 +20,6 @@ class DBItem(BaseItem):
     def __init__(self, output_folder: str, config, **kwargs):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Databases"
-        self.description: str = "Collects and analyzes database information from GMD logs."
         self._sharded_databases: Optional[dict[str, Any]] = None
         self._databases: Optional[dict[str, Any]] = None
 
