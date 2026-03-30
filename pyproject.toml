@@ -57,7 +57,7 @@ dev = [
   "pytest-cov==7.0.0",
   "pluggy==1.6.0",
   "iniconfig==2.1.0",
-  "tomli==2.4.0",
+  "tomli==2.4.1",
   "pyinstaller==6.19.0",
   "pyinstaller-hooks-contrib==2026.3",
   "macholib==1.16.4",
