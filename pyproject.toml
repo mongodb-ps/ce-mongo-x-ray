@@ -81,7 +81,7 @@ ai = [
   "regex==2026.1.15",
   "tqdm==4.67.3",
   "pydantic==2.12.5",
-  "pydantic_core==2.42.0",
+  "pydantic_core==2.44.0",
   "annotated-types==0.7.0",
   "typing_extensions==4.15.0",
   "jiter==0.13.0",
