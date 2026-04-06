@@ -34,7 +34,7 @@ dependencies = [
   "packaging==26.0",
   "Pygments==2.19.2",
   "PyYAML==6.0.3",
-  "requests==2.32.5",
+  "requests==2.33.1",
   "urllib3==2.6.3",
   "openai==2.29.0",
   "httpx==0.28.1",
