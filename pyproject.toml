@@ -73,7 +73,7 @@ ai = [
   "safetensors==0.7.0",
   "tokenizers==0.22.2",
   "filelock==3.19.1",
-  "fsspec==2025.10.0",
+  "fsspec==2026.3.0",
   "hf-xet==1.4.2",
   "numpy==2.0.2",
   "scipy==1.15.3",
