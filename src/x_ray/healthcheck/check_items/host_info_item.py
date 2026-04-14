@@ -20,11 +20,8 @@ class HostInfoItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Host Information"
-        self._description = "Collects and reviews host hardware and OS information.  \n\n"
-        self._description += "- Whether the hosts are using the same hardware.\n\n"
-        self._description += "- Whether NUMA is enabled on the hosts.\n"
-        self._host_info_rule = HostInfoRule(config)
-        self._numa_rule = NumaRule(config)
+        self._rules["host_info"] = HostInfoRule(config)
+        self._rules["numa"] = NumaRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -47,7 +44,7 @@ class HostInfoItem(BaseItem):
                 )
                 return None, None
             host_info = client.admin.command("hostInfo")
-            test_result, _ = self._numa_rule.apply(host_info, extra_info={"host": node["host"], "version": version})
+            test_result, _ = self._rules["numa"].apply(host_info, extra_info={"host": node["host"], "version": version})
             self.append_test_results(test_result)
             if name not in host_infos:
                 host_infos[name] = []
@@ -62,7 +59,7 @@ class HostInfoItem(BaseItem):
             func_config_member=func_single,
         )
         for set_name, info in host_infos.items():
-            test_result, _ = self._host_info_rule.apply(info, extra_info={"set_name": set_name})
+            test_result, _ = self._rules["host_info"].apply(info, extra_info={"set_name": set_name})
             self.append_test_results(test_result)
             if result["type"] == "SH":
                 cluster_map = result["map"]

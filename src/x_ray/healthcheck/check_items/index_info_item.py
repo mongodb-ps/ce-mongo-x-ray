@@ -31,11 +31,7 @@ class IndexInfoItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Index Information"
-        self._description = "Collects & review index statistics.\n\n"
-        self._description += "- Whether the number of indexes in the collection is too many.\n"
-        self._description += "- Whether there are unused indexes in the collection.\n"
-        self._description += "- Whether there are redundant indexes in the collection.\n"
-        self._index_rule = IndexRule(config)
+        self._rules["index"] = IndexRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -44,7 +40,7 @@ class IndexInfoItem(BaseItem):
 
         def cluster_check(host, ns, index_stats):
             # Check number of indexes and redundant indexes
-            result, _ = self._index_rule.apply(
+            result, _ = self._rules["index"].apply(
                 index_stats,
                 extra_info={"host": host, "ns": ns},
                 check_items=["num_indexes", "redundant_indexes"],
@@ -52,7 +48,7 @@ class IndexInfoItem(BaseItem):
             return result
 
         def node_check(host, ns, index_stats):
-            result, _ = self._index_rule.apply(
+            result, _ = self._rules["index"].apply(
                 index_stats,
                 extra_info={
                     "host": host,

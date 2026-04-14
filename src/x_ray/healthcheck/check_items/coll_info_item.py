@@ -35,14 +35,9 @@ class CollInfoItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Collection Information"
-        self._description = "Collects & review collection statistics.\n\n"
-        self._description += "- Whether average object size is too big.\n"
-        self._description += "- Whether collections are big enough for sharding.\n"
-        self._description += "- Whether collections and indexes are fragmented.\n"
-        self._description += "- Whether operation latency exceeds thresholds.\n"
-        self._data_size_rule = DataSizeRule(config)
-        self._fragmentation_rule = FragmentationRule(config)
-        self._op_latency_rule = OpLatencyRule(config)
+        self._rules["data_size"] = DataSizeRule(config)
+        self._rules["fragmentation"] = FragmentationRule(config)
+        self._rules["op_latency"] = OpLatencyRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -87,17 +82,17 @@ class CollInfoItem(BaseItem):
 
         def func_overview(host, stats, **kwargs):
             # Check data size
-            test_result, _ = self._data_size_rule.apply(stats, extra_info={"host": host})
+            test_result, _ = self._rules["data_size"].apply(stats, extra_info={"host": host})
             return test_result, stats
 
         def func_node(host, stats, **kwargs):
             ns = stats["ns"]
             test_result = []
             # Check fragmentation
-            result_1, frag_data = self._fragmentation_rule.apply(stats, extra_info={"host": host})
+            result_1, frag_data = self._rules["fragmentation"].apply(stats, extra_info={"host": host})
             test_result.extend(result_1)
             # Check operation latency
-            result_2, latency_data = self._op_latency_rule.apply(stats, extra_info={"host": host})
+            result_2, latency_data = self._rules["op_latency"].apply(stats, extra_info={"host": host})
             test_result.extend(result_2)
 
             return test_result, frag_data | latency_data | {"ns": ns, "stats": stats}

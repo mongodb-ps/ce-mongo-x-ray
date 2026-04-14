@@ -14,6 +14,7 @@ import logging
 from abc import ABC, abstractmethod
 import gzip
 from bson import json_util
+from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.shared import SEVERITY, to_json
 from x_ray.utils import env, get_script_path, to_ejson
 
@@ -41,11 +42,12 @@ class BaseItem(ABC):
     _test_result: list
     _config: Optional[dict]
 
-    def __init__(self, output_folder: str, config: Optional[dict] = None, **kwargs):
-        self._config = config or {}
-        self._test_result = []
+    def __init__(self, output_folder: str, config: Optional[dict] = None, **kwargs) -> None:
+        self._config: dict = config or {}
+        self._test_result: list = []
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._output_folder = output_folder if output_folder.endswith("/") else f"{output_folder}/"
+        self._output_folder: str = output_folder if output_folder.endswith("/") else f"{output_folder}/"
+        self._rules: dict[str, BaseRule] = {}
 
     @abstractmethod
     def test(self, *args, **kwargs) -> None:

@@ -28,16 +28,9 @@ class ServerStatusItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Server Status Information"
-        self._description = "Collects and reviews server status metrics.\n\n"
-        self._description += "- Whether used/total connection ratio is too high.\n"
-        self._description += "- Whether query targeting is poor.\n"
-        self._description += "- Whether the cache read into rate is too high.\n"
-        self._description += "- Whether updates ratio is too high.\n"
-        self._description += "- Whether dirty data ratio is too high.\n"
-        self._description += "- Whether cache fill ratio is too high.\n"
-        self._query_targeting_rule = QueryTargetingRule(config)
-        self._connections_rule = ConnectionsRule(config)
-        self._cache_rule = CacheRule(config)
+        self._rules["query_targeting"] = QueryTargetingRule(config)
+        self._rules["connections"] = ConnectionsRule(config)
+        self._rules["cache"] = CacheRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -53,9 +46,9 @@ class ServerStatusItem(BaseItem):
 
         def func_2nd_req(set_name, node, server_status):
             host = node["host"]
-            test_result1, raw_result1 = self._connections_rule.apply(server_status, extra_info={"host": host})
+            test_result1, raw_result1 = self._rules["connections"].apply(server_status, extra_info={"host": host})
             test_result2, raw_result2 = (
-                self._query_targeting_rule.apply(server_status, extra_info={"host": host})
+                self._rules["query_targeting"].apply(server_status, extra_info={"host": host})
                 if set_name != "mongos"
                 else ([], None)
             )
@@ -129,7 +122,7 @@ class ServerStatusItem(BaseItem):
                 cache[host] = raw_result
             else:
                 # Enumerating result2
-                test_result, parsed_data = self._cache_rule.apply(
+                test_result, parsed_data = self._rules["cache"].apply(
                     raw_result["server_status"],
                     extra_info={"host": host, "server_status": cache[host]["server_status"]},
                 )

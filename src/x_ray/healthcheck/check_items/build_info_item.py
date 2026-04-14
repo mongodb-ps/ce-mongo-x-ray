@@ -23,9 +23,7 @@ class BuildInfoItem(BaseItem):
     def __init__(self, output_folder: str, config: Optional[dict] = None):
         super().__init__(output_folder, config)
         self._name = "Build Information"
-        self._description = "Collects & review server build information.\n\n"
-        self._description += "- Whether the server is running a supported version.\n"
-        self._version_eol_rule = VersionEOLRule(config)
+        self._rules["version_eol"] = VersionEOLRule(config)
 
     def test(self, *args, **kwargs) -> None:
         client = kwargs.get("client")
@@ -43,7 +41,7 @@ class BuildInfoItem(BaseItem):
                 return None, None
             client = node["client"]
             raw_result = client.admin.command("buildInfo")
-            test_result, _ = self._version_eol_rule.apply(raw_result, extra_info={"host": host})
+            test_result, _ = self._rules["version_eol"].apply(raw_result, extra_info={"host": host})
             running_version = Version(raw_result.get("versionArray", None))
             node["version"] = running_version
             self.append_test_results(test_result)

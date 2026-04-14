@@ -29,17 +29,10 @@ class ClusterItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Cluster Information"
-        self._description = "Collects and reviews cluster configuration and status.\n\n"
-        self._description += "- The following items apply to replica set, shards and CSRS:\n"
-        self._description += "    - Replication status check.\n"
-        self._description += "    - Replication config check.\n"
-        self._description += "    - Oplog window check (Both `oplogMinRetentionHours` and oplog size are considered).\n"
-        self._description += "- Whether there are irresponsive mongos nodes.\n"
-        self._description += "- Whether active mongos nodes are enough.\n"
-        self._rs_status_rule = RSStatusRule(config)
-        self._rs_config_rule = RSConfigRule(config)
-        self._shard_mongos_rule = ShardMongosRule(config)
-        self._oplog_window_rule = OplogWindowRule(config)
+        self._rules["rs_status"] = RSStatusRule(config)
+        self._rules["rs_config"] = RSConfigRule(config)
+        self._rules["shard_mongos"] = ShardMongosRule(config)
+        self._rules["oplog_window"] = OplogWindowRule(config)
 
     def _check_rs(self, set_name, node, **kwargs):
         """
@@ -61,9 +54,9 @@ class ClusterItem(BaseItem):
         }
 
         # Check replica set status and config
-        result, _ = self._rs_status_rule.apply(replset_status)
+        result, _ = self._rules["rs_status"].apply(replset_status)
         test_result.extend(result)
-        result, _ = self._rs_config_rule.apply(replset_config)
+        result, _ = self._rules["rs_config"].apply(replset_config)
         test_result.extend(result)
 
         self.append_test_results(test_result)
@@ -74,7 +67,7 @@ class ClusterItem(BaseItem):
         """
         Check if the sharded cluster is available and connected.
         """
-        test_result, _ = self._shard_mongos_rule.apply(node["map"]["mongos"]["members"])
+        test_result, _ = self._rules["shard_mongos"].apply(node["map"]["mongos"]["members"])
         self.append_test_results(test_result)
         raw_result = {
             mongos["host"]: {
@@ -102,7 +95,7 @@ class ClusterItem(BaseItem):
         server_status = client.admin.command("serverStatus")
         last_oplog = next(client.local.oplog.rs.find().sort("$natural", -1).limit(1))["ts"].time
         first_oplog = next(client.local.oplog.rs.find().sort("$natural", 1).limit(1))["ts"].time
-        test_result, parsed_data = self._oplog_window_rule.apply(
+        test_result, parsed_data = self._rules["oplog_window"].apply(
             {
                 "serverStatus": server_status,
                 "firstOplogEntry": first_oplog,

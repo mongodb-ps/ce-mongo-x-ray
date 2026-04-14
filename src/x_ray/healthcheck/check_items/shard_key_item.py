@@ -24,11 +24,8 @@ class ShardKeyItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Shard Key Information"
-        self._description = "Collects and reviews shard key configuration for collections in a sharded cluster.\n\n"
-        self._description += "- Whether the shard key is set to `{_id: 1}` or `{_id: -1}`.\n"
-        self._description += "- Whether collections are imbalanced."
-        self._shard_key_rule = ShardKeyRule(config)
-        self._shard_balance_rule = ShardBalanceRule(config)
+        self._rules["shard_key"] = ShardKeyRule(config)
+        self._rules["shard_balance"] = ShardBalanceRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -50,12 +47,12 @@ class ShardKeyItem(BaseItem):
             for c in collections:
                 # Check if the collection is using `{_id: 1}` as shard key
                 ns = c["_id"]
-                result1, _ = self._shard_key_rule.apply(c)
+                result1, _ = self._rules["shard_key"].apply(c)
                 test_result.extend(result1)
                 # Gather sharding stats
                 db_name, coll_name = ns.split(".")
                 stats = client[db_name].command("collStats", coll_name)
-                result2, parsed_data = self._shard_balance_rule.apply(stats, extra_info={"shards": shards})
+                result2, parsed_data = self._rules["shard_balance"].apply(stats, extra_info={"shards": shards})
                 test_result.extend(result2)
                 raw_result["stats"][ns] = parsed_data
 

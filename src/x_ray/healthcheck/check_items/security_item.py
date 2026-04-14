@@ -24,15 +24,7 @@ class SecurityItem(BaseItem):
     def __init__(self, output_folder, config=None):
         super().__init__(output_folder, config)
         self._name = "Authentication & Security"
-        self._description = "Collects & review security related information.\n\n"
-        self._description += "- Whether authorization is enabled.\n"
-        self._description += "- Whether log redaction is enabled.\n"
-        self._description += "- Whether TLS is enabled and required.\n"
-        self._description += "- Whether the bind IP is too permissive.\n"
-        self._description += "- Whether the default port is used.\n"
-        self._description += "- Whether auditing is enabled.\n"
-        self._description += "- Whether encryption at rest is enabled and properly configured.\n"
-        self._security_rule = SecurityRule(config)
+        self._rules["security"] = SecurityRule(config)
 
     def test(self, *args, **kwargs):
         client = kwargs.get("client")
@@ -51,7 +43,7 @@ class SecurityItem(BaseItem):
                 )
                 return None, None
             raw_result = client.admin.command("getCmdLineOpts")
-            test_result, _ = self._security_rule.apply(raw_result, extra_info={"host": host})
+            test_result, _ = self._rules["security"].apply(raw_result, extra_info={"host": host})
             self.append_test_results(test_result)
 
             return test_result, raw_result
