@@ -18,6 +18,7 @@ import re
 import hashlib
 import sys
 import numbers
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from bson import json_util
@@ -177,6 +178,12 @@ def format_json_md(json_data, **kwargs):
     else:
         json_str = to_ejson(json_data, **kwargs).replace(" ", "&nbsp;").replace("\n", "<br>")
     return json_str
+
+
+def as_utc_datetime(value: datetime) -> datetime:
+    if value.tzinfo is None or value.tzinfo.utcoffset(value) is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def to_ejson(obj, **kwargs) -> str:

@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from x_ray.healthcheck.issues import ISSUE  # type: ignore
 from x_ray.healthcheck.rules.index_rule import IndexRule  # type: ignore
 
@@ -77,3 +77,25 @@ def test_index_rule():
     assert ISSUE.TOO_MANY_INDEXES in issue_ids
     assert ISSUE.UNUSED_INDEX in issue_ids
     assert ISSUE.REDUNDANT_INDEX in issue_ids
+
+
+def test_index_rule_handles_mixed_timezone_datetimes():
+    rule = IndexRule({"unused_index_days": 30})
+    issues, _ = rule.apply(
+        data=[
+            {
+                "name": "a_1",
+                "key": {"a": 1},
+                "accesses": {"ops": 0, "since": datetime(2025, 9, 23, 22, 48, 14)},
+                "spec": {"v": 2, "key": {"a": 1}, "name": "a_1"},
+            }
+        ],
+        extra_info={
+            "host": "localhost:30021",
+            "ns": "test.collection",
+            "capture_time": datetime(2025, 10, 23, 22, 48, 14, tzinfo=timezone.utc),
+        },
+        check_items=["unused_indexes"],
+    )
+    assert len(issues) == 1
+    assert issues[0]["id"] == ISSUE.UNUSED_INDEX

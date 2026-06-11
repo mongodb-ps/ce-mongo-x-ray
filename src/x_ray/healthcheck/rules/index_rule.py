@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.issues import ISSUE, create_issue
+from x_ray.utils import as_utc_datetime
 
 
 class IndexRule(BaseRule):
@@ -35,7 +36,7 @@ class IndexRule(BaseRule):
         extra_info: dict = kwargs.get("extra_info", {})
         host: str = extra_info.get("host", "unknown")
         ns: str = extra_info.get("ns", "unknown")
-        capture_time: datetime = extra_info.get("capture_time", datetime.now(timezone.utc))
+        capture_time: datetime = as_utc_datetime(extra_info.get("capture_time", datetime.now(timezone.utc)))
         check_items: list = kwargs.get("check_items", ["num_indexes", "unused_indexes", "redundant_indexes"])
         test_result: list = []
         unique_indexes: set = set()
@@ -46,6 +47,7 @@ class IndexRule(BaseRule):
                 if index.get("accesses", {}).get("ops", 0) == 0:
                     last_used: Optional[datetime] = index.get("accesses", {}).get("since", None)
                     if last_used:
+                        last_used = as_utc_datetime(last_used)
                         unused_days: int = (capture_time - last_used).days
                         if unused_days >= self._unused_index_days:
                             issue = create_issue(

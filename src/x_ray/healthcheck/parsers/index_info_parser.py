@@ -1,5 +1,5 @@
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown, format_json_md
+from x_ray.utils import as_utc_datetime, escape_markdown, format_json_md
 
 
 class IndexInfoParser(BaseParser):
@@ -19,13 +19,13 @@ class IndexInfoParser(BaseParser):
             return output_list
         for item in data:
             ns = item["ns"]
-            capture_time = item["captureTime"]
+            capture_time = as_utc_datetime(item["captureTime"])
             for stats in item["indexStats"]:
                 component = stats.get("shard", set_name)
                 key_md = format_json_md(stats["key"], indent=None)
                 access = stats["accesses"]
                 ops = access.get("ops", 0)
-                since = access.get("since", None)
+                since = as_utc_datetime(access.get("since", None))
                 spec = stats.get("spec", {})
                 options = get_index_options(spec)
                 options_md = f"<pre>{format_json_md(options)}</pre>" if len(options) > 0 else ""

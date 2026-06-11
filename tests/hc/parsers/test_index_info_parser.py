@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from bson import json_util  # type: ignore
 from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser  # type: ignore
 
@@ -58,3 +60,26 @@ def test_index_info_parser_no_data():
     ]
     assert len(table["rows"]) == 1
     assert table["rows"][0] == ["test_set"] + ["N/A"] * 4
+
+
+def test_index_info_parser_handles_mixed_timezone_datetimes():
+    parser = IndexInfoParser()
+    result = parser.parse(
+        [
+            {
+                "ns": "test.test",
+                "captureTime": datetime(2026, 3, 17, 0, 1, 0),
+                "indexStats": [
+                    {
+                        "name": "_id_",
+                        "key": {"_id": 1},
+                        "host": "M-QTFH0WFXLG:30018",
+                        "accesses": {"ops": 100, "since": datetime(2026, 3, 17, 0, 0, 0, tzinfo=timezone.utc)},
+                        "shard": "shard01",
+                        "spec": {"v": 2, "key": {"_id": 1}, "name": "_id_"},
+                    }
+                ],
+            }
+        ]
+    )
+    assert result[0]["rows"][0][4] == "6000.0000"

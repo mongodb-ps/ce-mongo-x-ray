@@ -16,6 +16,7 @@ from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.rules.index_rule import IndexRule
 from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser
+from x_ray.utils import as_utc_datetime
 
 
 class IndexInfoItem(BaseItem):
@@ -40,11 +41,11 @@ class IndexInfoItem(BaseItem):
             index_stats = output.get("cursor", {}).get("firstBatch", [])
             self._index_stats[ns] = {
                 "ns": ns,
-                "capture_time": block.get("ts", {}).get("start", "").replace(tzinfo=timezone.utc),
+                "capture_time": as_utc_datetime(block.get("ts", {}).get("start", datetime.now(timezone.utc))),
                 "index_stats": [
                     {
                         "ops": stat.get("stats", 0)[0]["accesses"],
-                        "since": parser.parse(stat.get("stats", "")[0]["since"]),
+                        "since": as_utc_datetime(parser.parse(stat.get("stats", "")[0]["since"])),
                         "key": stat.get("key", {}),
                     }
                     for stat in index_stats
@@ -76,7 +77,7 @@ class IndexInfoItem(BaseItem):
                     "host": self._hostname,
                     "accesses": {
                         "ops": matched_stats.get("ops", 0),
-                        "since": matched_stats.get("since", datetime.now()),
+                        "since": matched_stats.get("since", datetime.now(timezone.utc)),
                     },
                     "spec": spec,
                 }

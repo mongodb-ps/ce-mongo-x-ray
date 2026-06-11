@@ -53,7 +53,7 @@ class IndexInfoItem(BaseItem):
                 extra_info={
                     "host": host,
                     "ns": ns,
-                    "capture_time": datetime.now(),
+                    "capture_time": datetime.now(timezone.utc),
                 },
                 check_items=["unused_indexes"],
             )
