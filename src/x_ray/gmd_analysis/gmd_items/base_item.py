@@ -25,6 +25,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         if os.path.isfile(self._output_file):
             os.remove(self._output_file)
 
+        self._in_complete_flag = False
         # Subscribe some common events that most items care about
         self._cache = None
         self._watched_events: dict[GMD_EVENTS, list[Callable]] = {}
@@ -61,6 +62,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
 
     def test(self, block) -> None:
         sub_sec = block.get("subsection", "")
+        sub_sec = sub_sec.replace("INCOMPLETE_", "")
         try:
             current_event = GMD_EVENTS(sub_sec)
         except ValueError:
@@ -68,6 +70,8 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         # Fire subscribed single events
         for event, funcs in self._watched_events.items():
             if current_event == event:
+                if block.get("subsection", "").startswith("INCOMPLETE_"):
+                    self._in_complete_flag = True
                 for func in funcs:
                     try:
                         func(block)

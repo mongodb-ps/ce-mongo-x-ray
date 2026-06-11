@@ -42,8 +42,13 @@ class RSDetailsParser(BaseParser):
         if rs_config is None or rs_status is None:
             rows.append(["N/A"] * len(details_table["header"]))
             return [details_table]
-        latest_optime = max(m.get("optime", {}).get("ts") for m in rs_status["members"])
-        member_delay = {m["name"]: (latest_optime.time - m["optime"]["ts"].time) for m in rs_status["members"]}
+        # optime is not available for arbiters and unreachable members
+        latest_optime = max(
+            m.get("optime", {}).get("ts") for m in rs_status["members"] if "optime" in m if "optime" in m
+        )
+        member_delay = {
+            m["name"]: (latest_optime.time - m["optime"]["ts"].time) for m in rs_status["members"] if "optime" in m
+        }
 
         for m in rs_config["members"]:
             host = m["host"]

@@ -110,6 +110,10 @@ class Framework:
             summary_item.summarize(self._items)
             summary_item.overview(output)
             for i, item in enumerate(self._items):
+                if item._in_complete_flag:
+                    self._logger.warning(
+                        yellow(f"GMD item '{item.name}' is incomplete because of too many databases/collections.")
+                    )
                 try:
                     title = f"1.{i + 1} {item.name}"
                     review_title = f"2.{i + 1} Review {item.name}"
