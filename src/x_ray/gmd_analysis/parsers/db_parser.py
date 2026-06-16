@@ -24,6 +24,10 @@ class DBParser(BaseParser):
                 {"text": "Storage Size", "align": "left"},
                 "Is Sharded",
                 "Is Primary",
+                "# Collections",
+                "# Views",
+                "# Objects",
+                "# Indexes",
             ],
             "rows": rows,
         }
@@ -35,6 +39,10 @@ class DBParser(BaseParser):
             db_name: str = db["name"]
             stats: dict = db_stats.get(db_name, {})
             data_size: str = format_size(stats.get("dataSize", 0) * 1024 * 1024)
+            num_collections: int = stats.get("collections", 0)
+            num_views: int = stats.get("views", 0)
+            num_objects: int = stats.get("objects", 0)
+            num_indexes: int = stats.get("indexes", 0)
             storage_size: str = format_size(db.get("sizeOnDisk", 0))
             sharded_sizes: list = []
             for shard, size in db.get("shards", {}).items():
@@ -48,12 +56,28 @@ class DBParser(BaseParser):
                 sharded_db_info = next((item for item in sharded_dbs if item["_id"] == db_name), None)
                 partitioned = sharded_db_info["partitioned"] if sharded_db_info else False
                 primary_db = sharded_db_info["primary"] if sharded_db_info else "N/A"
-            rows.append([db_name, data_size, storage_size, partitioned, primary_db])
+            rows.append(
+                [
+                    db_name,
+                    data_size,
+                    storage_size,
+                    partitioned,
+                    primary_db,
+                    num_collections,
+                    num_views,
+                    num_objects,
+                    num_indexes,
+                ]
+            )
 
             data_line = {}
             data_line["name"] = db_name
             data_line["dataSize"] = stats.get("dataSize", 0)
             data_line["storageSize"] = db.get("sizeOnDisk", 0)
+            data_line["collections"] = stats.get("collections", 0)
+            data_line["views"] = stats.get("views", 0)
+            data_line["objects"] = stats.get("objects", 0)
+            data_line["indexes"] = stats.get("indexes", 0)
             db_data.append(data_line)
         output_list.append(db_table)
         output_list.append({"type": "chart", "data": db_data})

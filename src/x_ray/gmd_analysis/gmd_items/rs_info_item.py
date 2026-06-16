@@ -77,7 +77,7 @@ class RSInfoItem(BaseItem):
 
     def review_results_markdown(self, output: TextIO) -> None:
         if self._rs_config is None and self._rs_status is None and self._replication_info is None:
-            self._logger.warning("No replica set information is available. Skipping Replica Set Architecture section.")
+            self._logger.info("No replica set information is available. Skipping Replica Set Architecture section.")
             return
         assert (
             self._rs_config is not None
