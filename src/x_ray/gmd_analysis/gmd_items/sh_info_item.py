@@ -56,6 +56,9 @@ class SHInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
 
     def review_results_markdown(self, output: TextIO) -> None:
+        if self._shards is None and self._routers is None and self._csrs is None:
+            self._logger.warning("No sharding information is available. Skipping Sharding Architecture section.")
+            return
         # Type assertions: if all events fired, these should not be None
         assert self._shards is not None, f"GMD subsection {GMD_EVENTS.SHARDS.value} should be available for review."
         assert self._routers is not None, f"GMD subsection {GMD_EVENTS.ROUTERS.value} should be available for review."

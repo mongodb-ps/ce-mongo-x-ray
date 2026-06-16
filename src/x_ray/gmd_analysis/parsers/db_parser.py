@@ -20,17 +20,21 @@ class DBParser(BaseParser):
             "caption": "Databases",
             "header": [
                 "Database Name",
+                {"text": "Data Size", "align": "left"},
                 {"text": "Storage Size", "align": "left"},
-                "Is Partitioned",
-                "Primary Database",
+                "Is Sharded",
+                "Is Primary",
             ],
             "rows": rows,
         }
         db_data: list = []
         dbs: list = data.get("databases", {}).get("databases", [])
         sharded_dbs: list = data.get("sharded_databases", None)
+        db_stats: dict = data.get("db_stats", {})
         for db in dbs:
             db_name: str = db["name"]
+            stats: dict = db_stats.get(db_name, {})
+            data_size: str = format_size(stats.get("dataSize", 0) * 1024 * 1024)
             storage_size: str = format_size(db.get("sizeOnDisk", 0))
             sharded_sizes: list = []
             for shard, size in db.get("shards", {}).items():
@@ -44,10 +48,11 @@ class DBParser(BaseParser):
                 sharded_db_info = next((item for item in sharded_dbs if item["_id"] == db_name), None)
                 partitioned = sharded_db_info["partitioned"] if sharded_db_info else False
                 primary_db = sharded_db_info["primary"] if sharded_db_info else "N/A"
-            rows.append([db_name, storage_size, partitioned, primary_db])
+            rows.append([db_name, data_size, storage_size, partitioned, primary_db])
 
             data_line = {}
             data_line["name"] = db_name
+            data_line["dataSize"] = stats.get("dataSize", 0)
             data_line["storageSize"] = db.get("sizeOnDisk", 0)
             db_data.append(data_line)
         output_list.append(db_table)

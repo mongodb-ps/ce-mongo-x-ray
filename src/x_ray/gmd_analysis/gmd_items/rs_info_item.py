@@ -76,6 +76,9 @@ class RSInfoItem(BaseItem):
         self.watch_all(oplog_window_events, analyze_oplog_window)
 
     def review_results_markdown(self, output: TextIO) -> None:
+        if self._rs_config is None and self._rs_status is None and self._replication_info is None:
+            self._logger.warning("No replica set information is available. Skipping Replica Set Architecture section.")
+            return
         assert (
             self._rs_config is not None
         ), f"GMD subsection {GMD_EVENTS.REPLICA_SET_CONFIG.value} should be available for review."
