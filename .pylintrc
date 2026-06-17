@@ -3,6 +3,10 @@ py-version=3.9
 jobs=1
 ignore=CVS,.git,__pycache__,.venv,build,dist,.pytest_cache,ai.py
 ignore-patterns=test_.*?\.py,conftest\.py
+ignore-paths=
+    ^.*\.egg-info/.*$,
+    ^.*\.py[co]$,
+    ^.*\.spec$
 load-plugins=
 extension-pkg-allow-list=
     astroid.brain.brain_ctypes
