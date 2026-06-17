@@ -10,6 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from typing import Any
 
+from x_ray.utils import yellow
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.healthcheck.parsers.base_parser import BaseParser
@@ -69,11 +70,16 @@ class CollInfoItem(BaseItem):
             len(self._collections_stats) > 0
         ), f"GMD subsection {GMD_EVENTS.COLLECTION_STATS.value} should be available for review."
 
+        coll_stats: list[dict[str, Any]] = []
         for stats in self._collections_stats:
+            if stats["ok"] != 1:
+                self._logger.warning(yellow(f"Collection stats command failed: {stats.get('errmsg', 'Unknown error')}"))
+                continue
             ns = stats.get("ns", "")
             shard_key = self.shard_keys.get(ns, {})
             if shard_key:
                 stats["shardKey"] = shard_key
+            coll_stats.append(stats)
         parser: BaseParser = CollStatsParser()
-        parsed_data = parser.markdown(self._collections_stats)
+        parsed_data = parser.markdown(coll_stats)
         output.write(parsed_data)
