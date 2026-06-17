@@ -55,7 +55,7 @@ class IndexInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.INDEXES, _get_indexes)
         self.watch_one(GMD_EVENTS.INDEX_STATS, _get_index_stats)
 
-    def test_result_markdown(self, output) -> None:
+    def finalize_analysis(self) -> None:
         # construct index structure so we can reuse indexRule for analysis.
         for ns_info in self._ns_indexes:
             ns = ns_info.get("ns", "")
@@ -89,7 +89,6 @@ class IndexInfoItem(BaseItem):
             )
             self.append_test_results(test_results)
             self._full_index_info.append(ns_stats)
-        super().test_result_markdown(output)
 
     def review_results_markdown(self, output) -> None:
         index_parser: BaseParser = IndexInfoParser()

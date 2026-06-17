@@ -136,6 +136,12 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             )
         output.write("\n")
 
+    def finalize_analysis(self) -> None:
+        """
+        This function will be called after all GMD data is ingested and before generating the report.
+        You can do some final analysis here that requires all data to be available.
+        """
+
     @abstractmethod
     def review_results_markdown(self, output) -> None:
         raise NotImplementedError("Subclasses should implement this method.")

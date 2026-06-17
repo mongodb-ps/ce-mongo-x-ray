@@ -94,6 +94,13 @@ class Framework:
                         self._logger.warning(yellow(f"GMD analysis item '{item.name}' failed: {e}"))
                         continue
 
+            for item in self._items:
+                try:
+                    item.finalize_analysis()
+                except Exception as e:
+                    self._logger.warning(yellow(f"GMD analysis item '{item.name}' finalization failed: {e}"))
+                    continue
+
     def output_results(self, output_folder: str = "output/", fmt: str = "html"):
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
