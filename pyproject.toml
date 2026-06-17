@@ -29,7 +29,7 @@ dependencies = [
   "pymongo==4.17.0",
   "Jinja2==3.1.6",
   "Markdown==3.10.2",
-  "types-Markdown==3.10.2.20260211",
+  "types-Markdown==3.10.2.20260518",
   "MarkupSafe==3.0.3",
   "packaging==26.0",
   "Pygments==2.20.0",
