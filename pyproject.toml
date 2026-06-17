@@ -53,7 +53,7 @@ dev = [
   "black==26.3.1",
   "pylint==4.0.5",
   "flake8==7.3.0",
-  "pytest==8.4.2",
+  "pytest==9.1.0",
   "pytest-cov==7.1.0",
   "pluggy==1.6.0",
   "iniconfig==2.1.0",
