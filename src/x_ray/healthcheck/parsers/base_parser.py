@@ -38,8 +38,6 @@ class BaseParser(ABC):
         Returns:
             str: Parsed table as a markdown string.
         """
-        if item is None or item.get("type", None) != "table":
-            raise ValueError("Invalid table item")
         header = item.get("header", [])
         rows = item.get("rows", [])
         caption = item.get("caption", None)
@@ -72,8 +70,6 @@ class BaseParser(ABC):
         Returns:
             str: Parsed chart as a markdown string.
         """
-        if item is None or item.get("type", None) != "chart":
-            raise ValueError("Invalid chart item")
         uniq_name: str = f"{uuid4().hex}"
         output = ""
         output += f'<div id="{uniq_name}"></div>'
@@ -93,6 +89,26 @@ class BaseParser(ABC):
         output += "</script>\n"
         return output
 
+    def format_code(self, item, i) -> str:
+        """
+        Format code block into markdown.
+
+        Args:
+            item (dict): The code item containing
+                caption (str, optional): The code block caption.
+                language (str): The programming language for syntax highlighting.
+                code (str): The code content.
+            i (int): The index of the code block in the output list.
+        Returns:
+            str: Parsed code block as a markdown string.
+        """
+        caption = item.get("caption", None)
+        language = item.get("language", "")
+        code = item.get("code", "")
+        output = f"#### {caption}\n\n" if caption else ""
+        output += f"```{language}\n{code}\n```\n"
+        return output
+
     def markdown(self, data: object, **kwargs) -> str:
         """
         Parse the data and return as markdown.
@@ -108,5 +124,7 @@ class BaseParser(ABC):
                 output += self.format_table(item, i)
             elif item["type"] == "chart":
                 output += self.format_chart(item, i)
+            elif item["type"] == "code":
+                output += self.format_code(item, i)
             output += "\n\n"
         return output

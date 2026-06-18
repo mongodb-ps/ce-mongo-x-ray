@@ -8,12 +8,21 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
     </link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+        media="(prefers-color-scheme: light)">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+        media="(prefers-color-scheme: dark)">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
     <script type="text/javascript">
         VIEWPORT_WIDTH = 1200;
         linkElms = [];
         titleElms = [];
         charts = [];
+        hljs.addPlugin(new CopyButtonPlugin({
+            hook: (_, el) => el.textContent
+        }));
 
         function getWindowHeight() {
             return window.innerHeight ||
@@ -108,6 +117,7 @@
             expand.onclick = click;
             highLightOutline();
             window.onscroll = highLightOutline;
+            hljs.highlightAll();
         };
         function formatSize(sizeBytes, decimal = 2) {
             const units = ["B", "KB", "MB", "GB", "TB"];
@@ -160,6 +170,23 @@
         a.in-view {
             background-color: #eee;
             font-weight: bold;
+        }
+
+        .hljs-copy-wrapper {
+            position: relative;
+        }
+
+        .hljs-copy-button {
+            background-color: var(--bgColor-default);
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0.6;
         }
     </style>
 </head>

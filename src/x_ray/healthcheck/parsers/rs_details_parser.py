@@ -1,5 +1,5 @@
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import is_number
+from x_ray.utils import is_number, to_ejson
 
 
 class RSDetailsParser(BaseParser):
@@ -74,4 +74,6 @@ class RSDetailsParser(BaseParser):
                     retention_hours,
                 ]
             )
-        return [details_table]
+        details_status = {"type": "code", "caption": "RAW Status", "language": "json", "code": to_ejson(rs_status)}
+        details_config = {"type": "code", "caption": "RSW Config", "language": "json", "code": to_ejson(rs_config)}
+        return [details_table, details_status, details_config]
