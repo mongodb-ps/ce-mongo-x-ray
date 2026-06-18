@@ -44,7 +44,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       - name: Install Make (Windows)
         if: runner.os == 'Windows'
@@ -126,7 +126,7 @@ jobs:
           fi
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ./artifacts/**/*
           tag_name: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
