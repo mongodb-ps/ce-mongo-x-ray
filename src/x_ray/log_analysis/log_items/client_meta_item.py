@@ -8,6 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+from typing import Optional
 from re import search, split
 from importlib.resources import files
 import json
@@ -151,6 +152,12 @@ def is_driver_compatible(log_driver_name: str, log_driver_version: str, server_v
                 driver_name = k
                 min_version = v
 
+        assert (
+            driver_name is not None
+        ), f"Driver name not found in compatibility matrix for log driver name: {log_driver_name}"
+        assert (
+            min_version is not None
+        ), f"Minimum driver version not found for driver: {driver_name} in compatibility matrix"
         driver_ver = parse_version_from_log(log_driver_name, log_driver_version, driver_name)
         return not driver_ver or driver_ver >= min_version
     except Exception as e:
@@ -158,7 +165,7 @@ def is_driver_compatible(log_driver_name: str, log_driver_version: str, server_v
         return True
 
 
-def parse_version_from_log(driver_name: str, driver_version: str, target_driver_name: str) -> Version:
+def parse_version_from_log(driver_name: str, driver_version: str, target_driver_name: str) -> Optional[Version]:
     """Parse driver version from log line"""
     # Driver version from the log can have different forms. Some examples are:
     #  - {"name":"mongo-csharp-driver","version":"2.21.0.0"}
