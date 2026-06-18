@@ -38,40 +38,88 @@ GMD_DBS = {
     ]
 }
 
+DB_STATS = {
+    "admin": {"db": "admin", "dataSize": 4, "collections": 3, "views": 0, "objects": 5, "indexes": 5},
+    "config": {"db": "config", "dataSize": 5, "collections": 8, "views": 0, "objects": 10, "indexes": 10},
+    "foo": {"db": "foo", "dataSize": 6, "collections": 12, "views": 0, "objects": 15, "indexes": 15},
+    "test": {"db": "test", "dataSize": 7, "collections": 2, "views": 0, "objects": 3, "indexes": 3},
+    "test1": {"db": "test1", "dataSize": 8, "collections": 1, "views": 0, "objects": 1, "indexes": 1},
+}
+
 
 def test_db_parser_sharded():
     parser = DBParser()
-    result = parser.parse({"databases": GMD_DBS, "sharded_databases": GMD_SHARDED_DBS})
+    result = parser.parse(
+        {
+            "databases": GMD_DBS,
+            "sharded_databases": GMD_SHARDED_DBS,
+            "db_stats": DB_STATS,
+        }
+    )
     assert len(result) == 2
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
     assert dbs_table["header"] == [
         "Database Name",
+        {"text": "Data Size", "align": "left"},
         {"text": "Storage Size", "align": "left"},
-        "Is Partitioned",
-        "Primary Database",
+        "Is Sharded",
+        "Is Primary",
+        "# Collections",
+        "# Views",
+        "# Objects",
+        "# Indexes",
     ]
     assert dbs_table["rows"][0][0] == "admin"
-    assert dbs_table["rows"][0][1].startswith("400.00 KB")
-    assert dbs_table["rows"][0][2] == False
-    assert dbs_table["rows"][0][3] == "N/A"
+    assert dbs_table["rows"][0][1].startswith("4.00 MB")
+    assert dbs_table["rows"][0][2].startswith("400.00 KB")
+    assert dbs_table["rows"][0][3] == False
+    assert dbs_table["rows"][0][4] == "N/A"
+    assert dbs_table["rows"][0][5] == 3
+    assert dbs_table["rows"][0][6] == 0
+    assert dbs_table["rows"][0][7] == 5
+    assert dbs_table["rows"][0][8] == 5
+
     assert dbs_table["rows"][1][0] == "config"
-    assert dbs_table["rows"][1][1].startswith("3.80 MB")
-    assert dbs_table["rows"][1][2] == False
-    assert dbs_table["rows"][1][3] == "N/A"
+    assert dbs_table["rows"][1][1].startswith("5.00 MB")
+    assert dbs_table["rows"][1][2].startswith("3.80 MB")
+    assert dbs_table["rows"][1][3] == False
+    assert dbs_table["rows"][1][4] == "N/A"
+    assert dbs_table["rows"][1][5] == 8
+    assert dbs_table["rows"][1][6] == 0
+    assert dbs_table["rows"][1][7] == 10
+    assert dbs_table["rows"][1][8] == 10
+
     assert dbs_table["rows"][2][0] == "foo"
-    assert dbs_table["rows"][2][1].startswith("4.13 MB")
-    assert dbs_table["rows"][2][2] == True
-    assert dbs_table["rows"][2][3] == "shard02"
+    assert dbs_table["rows"][2][1].startswith("6.00 MB")
+    assert dbs_table["rows"][2][2].startswith("4.13 MB")
+    assert dbs_table["rows"][2][3] == True
+    assert dbs_table["rows"][2][4] == "shard02"
+    assert dbs_table["rows"][2][5] == 12
+    assert dbs_table["rows"][2][6] == 0
+    assert dbs_table["rows"][2][7] == 15
+    assert dbs_table["rows"][2][8] == 15
+
     assert dbs_table["rows"][3][0] == "test"
-    assert dbs_table["rows"][3][1].startswith("136.00 KB")
-    assert dbs_table["rows"][3][2] == False
-    assert dbs_table["rows"][3][3] == "shard01"
+    assert dbs_table["rows"][3][1].startswith("7.00 MB")
+    assert dbs_table["rows"][3][2].startswith("136.00 KB")
+    assert dbs_table["rows"][3][3] == False
+    assert dbs_table["rows"][3][4] == "shard01"
+    assert dbs_table["rows"][3][5] == 2
+    assert dbs_table["rows"][3][6] == 0
+    assert dbs_table["rows"][3][7] == 3
+    assert dbs_table["rows"][3][8] == 3
+
     assert dbs_table["rows"][4][0] == "test1"
-    assert dbs_table["rows"][4][1].startswith("80.00 KB")
-    assert dbs_table["rows"][4][2] == False
-    assert dbs_table["rows"][4][3] == "shard01"
+    assert dbs_table["rows"][4][1].startswith("8.00 MB")
+    assert dbs_table["rows"][4][2].startswith("80.00 KB")
+    assert dbs_table["rows"][4][3] == False
+    assert dbs_table["rows"][4][4] == "shard01"
+    assert dbs_table["rows"][4][5] == 1
+    assert dbs_table["rows"][4][6] == 0
+    assert dbs_table["rows"][4][7] == 1
+    assert dbs_table["rows"][4][8] == 1
 
     dbs_data = result[1]
     assert dbs_data["type"] == "chart"
@@ -90,34 +138,75 @@ def test_db_parser_sharded():
 
 def test_db_parser_non_sharded():
     parser = DBParser()
-    result = parser.parse({"databases": GMD_DBS})
+    result = parser.parse({"databases": GMD_DBS, "db_stats": DB_STATS})
     assert len(result) == 2
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
     assert dbs_table["header"] == [
         "Database Name",
+        {"text": "Data Size", "align": "left"},
         {"text": "Storage Size", "align": "left"},
-        "Is Partitioned",
-        "Primary Database",
+        "Is Sharded",
+        "Is Primary",
+        "# Collections",
+        "# Views",
+        "# Objects",
+        "# Indexes",
     ]
     assert dbs_table["rows"][0][0] == "admin"
-    assert dbs_table["rows"][0][1].startswith("400.00 KB")
-    assert dbs_table["rows"][0][2] == "N/A"
+    assert dbs_table["rows"][0][1].startswith("4.00 MB")
+    assert dbs_table["rows"][0][2].startswith("400.00 KB")
     assert dbs_table["rows"][0][3] == "N/A"
+    assert dbs_table["rows"][0][4] == "N/A"
+    assert dbs_table["rows"][0][5] == 3
+    assert dbs_table["rows"][0][6] == 0
+    assert dbs_table["rows"][0][7] == 5
+    assert dbs_table["rows"][0][8] == 5
+
     assert dbs_table["rows"][1][0] == "config"
-    assert dbs_table["rows"][1][1].startswith("3.80 MB")
-    assert dbs_table["rows"][1][2] == "N/A"
+    assert dbs_table["rows"][1][1].startswith("5.00 MB")
+    assert dbs_table["rows"][1][2].startswith("3.80 MB")
     assert dbs_table["rows"][1][3] == "N/A"
+    assert dbs_table["rows"][1][4] == "N/A"
+    assert dbs_table["rows"][1][5] == 8
+    assert dbs_table["rows"][1][6] == 0
+    assert dbs_table["rows"][1][7] == 10
+    assert dbs_table["rows"][1][8] == 10
+
     assert dbs_table["rows"][2][0] == "foo"
-    assert dbs_table["rows"][2][1].startswith("4.13 MB")
-    assert dbs_table["rows"][2][2] == "N/A"
+    assert dbs_table["rows"][2][1].startswith("6.00 MB")
+    assert dbs_table["rows"][2][2].startswith("4.13 MB")
     assert dbs_table["rows"][2][3] == "N/A"
+    assert dbs_table["rows"][2][4] == "N/A"
+    assert dbs_table["rows"][2][5] == 12
+    assert dbs_table["rows"][2][6] == 0
+    assert dbs_table["rows"][2][7] == 15
+    assert dbs_table["rows"][2][8] == 15
+
     assert dbs_table["rows"][3][0] == "test"
-    assert dbs_table["rows"][3][1].startswith("136.00 KB")
-    assert dbs_table["rows"][3][2] == "N/A"
+    assert dbs_table["rows"][3][1].startswith("7.00 MB")
+    assert dbs_table["rows"][3][2].startswith("136.00 KB")
     assert dbs_table["rows"][3][3] == "N/A"
+    assert dbs_table["rows"][3][4] == "N/A"
+    assert dbs_table["rows"][3][5] == 2
+    assert dbs_table["rows"][3][6] == 0
+    assert dbs_table["rows"][3][7] == 3
+    assert dbs_table["rows"][3][8] == 3
+
     assert dbs_table["rows"][4][0] == "test1"
-    assert dbs_table["rows"][4][1].startswith("80.00 KB")
-    assert dbs_table["rows"][4][2] == "N/A"
+    assert dbs_table["rows"][4][1].startswith("8.00 MB")
+    assert dbs_table["rows"][4][2].startswith("80.00 KB")
     assert dbs_table["rows"][4][3] == "N/A"
+    assert dbs_table["rows"][4][4] == "N/A"
+    assert dbs_table["rows"][4][5] == 1
+    assert dbs_table["rows"][4][6] == 0
+    assert dbs_table["rows"][4][7] == 1
+    assert dbs_table["rows"][4][8] == 1
+
+    dbs_data = result[1]
+    assert dbs_data["type"] == "chart"
+    assert len(dbs_data["data"]) == 5
+    assert dbs_data["data"][0]["name"] == "admin"
+    assert dbs_data["data"][0]["dataSize"] == 4
+    assert dbs_data["data"][0]["storageSize"] == 409600
