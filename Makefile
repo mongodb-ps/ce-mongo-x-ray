@@ -31,21 +31,9 @@ deps:
 	$(PYTHON) -m pip install -e ".[dev]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
-# Install AI dependencies (for build-ai)
-deps-ai:
-	@echo "Creating virtual environment..."
-	python3 -m venv .venv
-	@echo "Installing AI dependencies from pyproject.toml..."
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev,ai]" --config-settings editable_mode=compat
-	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
-
-# Build executable (default to lightweight build)
-build: build-lite
-
-# Build executable without AI support (lightweight)
-build-lite:
-	@echo "Building lightweight executable (without AI support)..."
+# Build executable
+build:
+	@echo "Building executable..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME) \
 		--add-data="src/x_ray/templates$(DELIMITER)x_ray/templates" \
 		--add-data="src/x_ray/config.json$(DELIMITER)x_ray" \
@@ -53,24 +41,7 @@ build-lite:
 		--additional-hooks-dir=hooks \
 		--icon="misc/x-ray.ico" \
 		src/x_ray/__main__.py
-	@echo "\033[32m✓ Lightweight build complete: dist/x-ray\033[0m"
-
-# Build executable with AI support (includes torch, transformers)
-build-ai:
-	@echo "Building full executable (with AI support)..."
-	BUILD_WITH_AI=1 $(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME)-ai \
-		--add-data="src/x_ray/templates$(DELIMITER)x_ray/templates" \
-		--add-data="src/x_ray/config.json$(DELIMITER)x_ray" \
-		--add-data="src/x_ray/compatibility_matrix.json$(DELIMITER)x_ray" \
-		--additional-hooks-dir=hooks \
-		--hidden-import torch \
-		--hidden-import transformers \
-		--hidden-import transformers.models.qwen2 \
-		--hidden-import tokenizers \
-		--icon="misc/x-ray.ico" \
-		src/x_ray/__main__.py
-	@echo "\033[32m✓ Full build complete: dist/x-ray-ai\033[0m"
-	@echo "\033[33m⚠ Note: This does NOT include model weights. Models will be downloaded on first use.\033[0m"
+	@echo "\033[32m✓ Build complete: dist/x-ray\033[0m"
 
 # Run tests 
 test:
@@ -150,9 +121,7 @@ help:
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
-	@echo "  make build        - Build executable (default: lightweight version without AI)"
-	@echo "  make build-lite   - Build lightweight executable without AI support (~15MB)"
-	@echo "  make build-ai     - *Experimental* Build full executable with AI libraries (~2GB, models downloaded separately)"
+	@echo "  make build        - Build executable"
 	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
 	@echo "  make test-cov     - Run tests with coverage report"
@@ -166,10 +135,6 @@ help:
 	@echo "  make all          - Install dependencies and build executable"
 	@echo "  make help         - Display this help information"
 	@echo ""
-	@echo "Build modes:"
-	@echo "  build-lite: Excludes torch/transformers (recommended for distribution)"
-	@echo "  build-ai:   Includes AI libraries but NOT model weights (downloaded on first use)"
-	@echo ""
 	@echo "Quality checks:"
 	@echo "  make lint         - Full pylint analysis with warnings"
 	@echo "  make check-lint   - Quick check (errors only)"
@@ -180,7 +145,6 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make deps       - First-time setup in a new environment"
-	@echo "  make build      - Build without AI (recommended for distribution)"
-	@echo "  make build-ai   - Build with AI support (for local AI analysis)"
+	@echo "  make build      - Build the executable"
 	@echo "  make check      - Run all quality checks before committing"
 	@echo "  make clean      - Clean build artifacts"

@@ -79,7 +79,7 @@
         },
         "item_config": {
             "WEFItem": {
-                "ai_support": "local"
+                "ai_support": "none"
             },
             "TopSlowItem": {
                 "top": 10

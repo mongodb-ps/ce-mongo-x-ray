@@ -60,12 +60,10 @@ x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use
 git clone https://github.com/zhangyaoxing/x-ray
 cd x-ray
 make deps # if it's the first time you build the project
-make # equal to `make build` and `make build-lite`
+make # equal to `make build`
 ```
 
 There are other make targets. Use `make help` to find out.
-
-You can also build the tool with AI modules for log analysis. For more details refer to: [Build with AI Support](https://github.com/zhangyaoxing/x-ray/wiki/Build-with-AI-Support).
 
 For Windows users, if `make` command is not available. You can use Python commands to build the binary:
 ```powershell

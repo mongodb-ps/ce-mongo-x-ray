@@ -2,11 +2,12 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
 from random import randint
 from bson import json_util
 from x_ray.log_analysis.log_items.base_item import BaseItem
@@ -43,24 +44,7 @@ class WEFItem(BaseItem):
         self._cache = list(self._cache.values())
         cache = self._cache
 
-        # Lazy import AI modules (only if needed)
-        if self._ai_support == "local":
-            try:
-                from x_ray.ai import MODEL_NAME, analyze_log_line_local, load_model
-
-                tokenizer, model, gen_config = load_model(MODEL_NAME)
-                self._logger.info(
-                    "Local AI model (%s) loaded for W/E/F log analysis. This can take a few minutes...",
-                    green(bold(MODEL_NAME)),
-                )
-                for item in cache:
-                    item["ai_analysis"] = analyze_log_line_local(item["sample"], tokenizer, model, gen_config)
-                    self._logger.debug("AI analyzed log: %s", item["id"])
-            except ImportError as e:
-                self._logger.error("AI support enabled but AI libraries not available: %s", e)
-                self._logger.error("Please install AI dependencies or disable AI support in config.json")
-                self._ai_support = False
-        elif self._ai_support == "gpt":
+        if self._ai_support == "gpt":
             try:
                 from x_ray.ai import GPT_MODEL, analyze_log_line_gpt
 
@@ -77,8 +61,8 @@ class WEFItem(BaseItem):
                     self._logger.debug("AI analyzed log: %s", item["id"])
 
             except ImportError as e:
-                self._logger.error("AI support enabled but AI libraries not available: %s", e)
-                self._logger.error("Please install AI dependencies or disable AI support in config.json")
+                self._logger.error("OpenAI support enabled but the OpenAI library is not available: %s", e)
+                self._logger.error("Please install the OpenAI dependency or disable AI support in config.json")
                 self._ai_support = False
 
         super().finalize_analysis()
