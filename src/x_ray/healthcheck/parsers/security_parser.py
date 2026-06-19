@@ -1,6 +1,6 @@
 from typing import Any
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown
+from x_ray.utils import escape_markdown, to_ejson
 
 
 class SecurityParser(BaseParser):
@@ -22,6 +22,7 @@ class SecurityParser(BaseParser):
             ],
             "rows": rows,
         }
+        cfgs: list[dict] = []
         for item in data:
             raw_result = item.get("command_line_opts")
             host = item.get("host")
@@ -66,4 +67,12 @@ class SecurityParser(BaseParser):
                     audit,
                 ]
             )
-        return [table]
+            cfgs.append(
+                {
+                    "type": "code",
+                    "language": "json",
+                    "caption": f"Raw Config for `{host}`",
+                    "code": to_ejson(raw_result),
+                }
+            )
+        return [table] + cfgs
