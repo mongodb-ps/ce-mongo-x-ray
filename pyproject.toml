@@ -31,7 +31,7 @@ dependencies = [
   "Markdown==3.10.2",
   "types-Markdown==3.10.2.20260518",
   "MarkupSafe==3.0.3",
-  "packaging==26.0",
+  "packaging==26.2",
   "Pygments==2.20.0",
   "PyYAML==6.0.3",
   "requests==2.33.1",
