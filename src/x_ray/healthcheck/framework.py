@@ -128,8 +128,7 @@ class Framework:
             with open(html_file, "w", encoding="utf-8") as f:
                 with open(output_file, "r", encoding="utf-8") as md_file:
                     md_text = md_file.read()
-                html = markdown.markdown(md_text, extensions=["tables", "toc"])
-                html = self._compact_html(html)
+                html = markdown.markdown(md_text, extensions=["tables", "fenced_code", "toc", "md_in_html"])
 
                 with open(template_file, "r", encoding="utf-8") as template:
                     template_content = template.read()
@@ -137,10 +136,3 @@ class Framework:
                 f.write(html)
 
         self._logger.info(bold(green("All checks complete.")))
-
-    def _compact_html(self, html: str) -> str:
-        html = re.sub(r">\s+<", "><", html)
-        html = re.sub(r"\s{2,}", " ", html)
-        html = re.sub(r"\n\s*\n", "\n", html)
-        html = html.strip()
-        return html

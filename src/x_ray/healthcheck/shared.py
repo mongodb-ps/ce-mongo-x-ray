@@ -364,6 +364,8 @@ def enum_result_items(result, **kwargs):
     func_shard_member = kwargs.get("func_shard_member", lambda s, n, **kwargs: None)
     func_config = kwargs.get("func_config", lambda s, n, **kwargs: None)
     func_config_member = kwargs.get("func_config_member", lambda s, n, **kwargs: None)
+    if result is None:
+        return
     if result["type"] == "RS":
         func_rs_cluster(result["setName"], result, level="rs_cluster")
         for member in result["members"]:

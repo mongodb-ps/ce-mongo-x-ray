@@ -38,7 +38,6 @@ TABLE_ALIGNMENT = {
 
 class BaseItem(ABC):
     _name: str
-    _description: str
     _test_result: list
     _config: Optional[dict]
 
@@ -59,7 +58,10 @@ class BaseItem(ABC):
 
     @property
     def description(self):
-        return self._description
+        desc: str = ""
+        for rule in self._rules.values():
+            desc += rule.description_md + "\n"
+        return desc
 
     @property
     def captured_sample(self):
