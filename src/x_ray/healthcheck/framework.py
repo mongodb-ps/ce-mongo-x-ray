@@ -81,7 +81,8 @@ class Framework:
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("# Deployment Health Check\n\n")
             # Display irresponsive nodes
-            f.write("## 0 Overview\n\n")
+            f.write("## Overview\n\n")
+            f.write("### By Severity\n\n")
             f.write(
                 "|<span style='color: red;'>HIGH</span>|<span style='color: orange;'>MEDIUM</span>|<span style='color: green;'>LOW</span>|<span style='color: gray;'>INFO</span>|\n"
             )
@@ -95,6 +96,14 @@ class Framework:
             low_count = all_severity.count("LOW")
             info_count = all_severity.count("INFO")
             f.write(f"|{high_count}|{medium_count}|{low_count}|{info_count}|\n\n")
+            f.write("### By Category\n\n")
+            all_categories = [result["title"] for result in all_test_result]
+            category_counts = {category: all_categories.count(category) for category in set(all_categories)}
+            f.write("|Category|Count|\n")
+            f.write("|---|---|\n")
+            for category, count in category_counts.items():
+                f.write(f"|{category}|**{count}**|\n")
+            f.write("\n")
             if len(irresponsive_nodes) > 0:
                 f.write("The following nodes have been detected as irresponsive during the checks:\n\n")
                 for node in irresponsive_nodes:
