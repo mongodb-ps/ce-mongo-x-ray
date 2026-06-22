@@ -99,7 +99,7 @@ def test_version_parser():
 def test_is_driver_compatible():
     # Assume server version is 7.0.0 for testing
     server_version = Version.parse("7.0.0")
-    with open(COMPATIBILITY_MATRIX_JSON, "r") as f:
+    with COMPATIBILITY_MATRIX_JSON.open("r") as f:
         compatibility_matrix = json.load(f)
     matrix_70 = {k: Version(v) for k, v in compatibility_matrix.get("7.0", {}).items()}
     expected_compatibility = [True, True, False, True, True, False, True]

@@ -27,7 +27,7 @@ class ServerStatusItem(BaseItem):
             self._server_status = block.get("output", {})
 
         def process_server_status():
-            if self._server_status["process"] == "mongod":
+            if self._server_status and self._server_status["process"] == "mongod":
                 test_result, self._query_targeting = self._rules["query_targeting"].apply(
                     self._server_status, extra_info={"host": self._hostname}
                 )

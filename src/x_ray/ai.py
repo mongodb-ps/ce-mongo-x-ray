@@ -47,7 +47,7 @@ def analyze_log_line_gpt(log_line):
             max_tokens=MAX_TOKENS,
             temperature=0.3,  # Lower temperature for more focused responses
         )
-        return response.choices[0].message.content.strip()
+        return (response.choices[0].message.content or "").strip()
     except Exception as e:
         logger.error("Failed to analyze log line with GPT: %s", e)
         return ""

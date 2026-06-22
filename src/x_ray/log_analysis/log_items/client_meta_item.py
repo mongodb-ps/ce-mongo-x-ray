@@ -96,7 +96,7 @@ class ClientMetaItem(BaseItem):
                 driver_name = driver.get("name", "Unknown")
                 driver_version = driver.get("version", "Unknown")
                 full_driver = escape_markdown(f"{driver_name} {driver_version}")
-                is_compatible = is_driver_compatible(
+                is_compatible = self._server_version is None or is_driver_compatible(
                     driver_name,
                     driver_version,
                     self._server_version,

@@ -42,7 +42,7 @@ class SHInfoItem(BaseItem):
                     "pingLatencySec": (self._exec_time - mongos["ping"]).total_seconds(),
                     "lastPing": mongos["ping"],
                 }
-                for mongos in self._routers
+                for mongos in self._routers or []
             ]
             test_result, _ = self._rules["shard_mongos"].apply(all_mongos)
             self.append_test_results(test_result)

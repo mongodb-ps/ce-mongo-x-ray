@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Optional
+from typing import Optional, Union
 import os
 import logging
 from abc import ABC, abstractmethod
@@ -38,9 +38,8 @@ TABLE_ALIGNMENT = {
 
 class BaseItem(ABC):
     _name: str
-    _description: str
     _test_result: list
-    _config: Optional[dict]
+    _config: dict
 
     def __init__(self, output_folder: str, config: Optional[dict] = None, **kwargs) -> None:
         self._config: dict = config or {}
@@ -58,11 +57,15 @@ class BaseItem(ABC):
         return self._name
 
     @property
-    def description(self):
-        return self._description
+    def description(self) -> str:
+        desc: str = ""
+        for rule in self._rules.values():
+            desc += rule.description_md + "\n"
+        return desc
 
     @property
-    def captured_sample(self):
+
+    def captured_sample(self) -> Optional[Union[dict, list]]:
         try:
             if self.cache_file_name.endswith(".gz"):
                 with gzip.open(self.cache_file_name, "rt") as f:
@@ -74,7 +77,7 @@ class BaseItem(ABC):
             return None
 
     @captured_sample.setter
-    def captured_sample(self, data):
+    def captured_sample(self, data: Union[dict, list]) -> None:
         if self.cache_file_name.endswith(".gz"):
             with gzip.open(self.cache_file_name, "wt") as f:
                 f.write(to_ejson(data))
@@ -83,7 +86,7 @@ class BaseItem(ABC):
                 f.write(to_ejson(data))
 
     @property
-    def test_result(self):
+    def test_result(self) -> dict:
         return {
             "name": self.name,
             "description": self.description,
@@ -152,14 +155,14 @@ class BaseItem(ABC):
         return result
 
     @property
-    def cache_file_name(self):
+    def cache_file_name(self) -> str:
         if env == "development":
             return f"{self._output_folder}{self.__class__.__name__}_raw.json"
         return f"{self._output_folder}{self.__class__.__name__}_raw.json.gz"
 
-    def append_test_result(self, host: str, severity: SEVERITY, title: str, message: str):
+    def append_test_result(self, host: str, severity: SEVERITY, title: str, message: str) -> None:
         self._test_result.append({"host": host, "severity": severity, "title": title, "message": message})
 
-    def append_test_results(self, items: list):
+    def append_test_results(self, items: list) -> None:
         for item in items:
             self.append_test_result(item["host"], item["severity"], item["title"], item["description"])

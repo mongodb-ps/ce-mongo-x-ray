@@ -1,4 +1,5 @@
-.PHONY: all clean deps build test test-cov install dist init lint format check-lint flake8
+.DEFAULT_GOAL := build
+.PHONY: build clean deps test check-lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
@@ -18,9 +19,6 @@ else
 	MKDIR = mkdir -p
 	DELIMITER = :
 endif
-
-# Default target
-all: deps test build
 
 # Install dependencies
 deps:
@@ -49,52 +47,17 @@ test:
 	$(PYTHON) -m pytest
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
-# Run tests with coverage
-test-cov:
-	@echo "Running tests with coverage..."
-	@$(PYTHON) -m pip show pytest-cov >/dev/null 2>&1 || (echo "Installing pytest-cov..." && $(PYTHON) -m pip install pytest-cov)
-	$(PYTHON) -m pytest --cov=src/x_ray --cov-report=term-missing --cov-report=html
-	@echo "\033[32m✓ Coverage report generated: htmlcov/index.html\033[0m"
-
-# Run pylint
-lint:
-	@echo "Running pylint..."
-	$(PYTHON) -m pylint src/x_ray/ --rcfile=.pylintrc
-	@echo "\033[32m✓ Linting complete!\033[0m"
-
 # Run pylint and show only errors
 check-lint:
 	@echo "Running pylint (errors only)..."
 	$(PYTHON) -m pylint src/x_ray/ --rcfile=.pylintrc --errors-only
 	@echo "\033[32m✓ No errors found!\033[0m"
 
-# Run flake8 for syntax errors
-flake8:
-	@echo "Running flake8 (syntax errors only)..."
-	$(PYTHON) -m flake8 src/x_ray/ --select=E9,F63,F7,F82 --show-source --statistics
-	@echo "\033[32m✓ No syntax errors!\033[0m"
-
-# Format code with black
-format:
-	@echo "Formatting code with black..."
-	$(PYTHON) -m black src/x_ray/ tests/
-	@echo "\033[32m✓ Code formatted!\033[0m"
-
 # Minify templates
 minify:
 	@echo "Minifying templates..."
 	cd src/x_ray/templates && ./minify.sh
 	@echo "\033[32m✓ Templates minified!\033[0m"
-
-# Check formatting without making changes
-check-format:
-	@echo "Checking code format..."
-	$(PYTHON) -m black src/x_ray/ tests/ --check
-	@echo "\033[32m✓ Code format is correct!\033[0m"
-
-# Run all quality checks
-check: check-format check-lint flake8 test
-	@echo "\033[32m✓ All checks passed!\033[0m"
 
 # Clean build artifacts
 clean:
@@ -124,27 +87,6 @@ help:
 	@echo "  make build        - Build executable"
 	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
-	@echo "  make test-cov     - Run tests with coverage report"
-	@echo "  make lint         - Run pylint on code"
 	@echo "  make check-lint   - Run pylint (errors only)"
-	@echo "  make flake8       - Run flake8 (syntax errors only)"
-	@echo "  make format       - Format code with black"
-	@echo "  make check-format - Check code formatting without changes"
-	@echo "  make check        - Run all quality checks (format + lint + flake8 + test)"
 	@echo "  make clean        - Clean build artifacts"
-	@echo "  make all          - Install dependencies and build executable"
 	@echo "  make help         - Display this help information"
-	@echo ""
-	@echo "Quality checks:"
-	@echo "  make lint         - Full pylint analysis with warnings"
-	@echo "  make check-lint   - Quick check (errors only)"
-	@echo "  make flake8       - Flake8 syntax error check"
-	@echo "  make test-cov     - Pytest coverage report (terminal + html)"
-	@echo "  make format       - Auto-format code"
-	@echo "  make check        - Run all checks (recommended before commit)"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make deps       - First-time setup in a new environment"
-	@echo "  make build      - Build the executable"
-	@echo "  make check      - Run all quality checks before committing"
-	@echo "  make clean      - Clean build artifacts"

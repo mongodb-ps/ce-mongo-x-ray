@@ -15,8 +15,8 @@ from x_ray.healthcheck.issues import ISSUE, create_issue
 class QueryTargetingRule(BaseRule):
     def __init__(self, thresholds=None):
         super().__init__(thresholds)
-        self._max_query_targeting = thresholds.get("query_targeting", 0.1)
-        self._max_query_targeting_obj = thresholds.get("query_targeting_obj", 0.1)
+        self._max_query_targeting = self._thresholds.get("query_targeting", 0.1)
+        self._max_query_targeting_obj = self._thresholds.get("query_targeting_obj", 0.1)
         self._rule_desc.append("Checks if the query targeting is too high.")
 
     def apply(self, data: dict, **kwargs) -> tuple:

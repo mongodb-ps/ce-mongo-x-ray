@@ -18,11 +18,11 @@ class ShardMongosRule(BaseRule):
         super().__init__(thresholds)
         self._rule_desc.append("Checks the sharded cluster mongos nodes for any issues.")
 
-    def apply(self, data: dict, **kwargs) -> tuple:
+    def apply(self, data: list[dict], **kwargs) -> tuple:
         """Check the sharded cluster mongos nodes for any issues.
 
         Args:
-            data (dict): The sharded cluster status data.
+            data (list[dict]): The sharded cluster mongos nodes.
             extra_info (dict, optional): Extra information such as host. Defaults to None.
         Returns:
             tuple: (list of issues found, list of parsed data)
