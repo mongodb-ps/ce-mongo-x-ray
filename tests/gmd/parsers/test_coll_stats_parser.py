@@ -94,7 +94,7 @@ def test_coll_stats_parser() -> None:
     assert table_item["rows"][0][5] == "1.00 MB"
     assert table_item["rows"][0][6] == "50.00%"
     assert table_item["rows"][0][7] == "100.00 MB / 9.77%"
-    assert table_item["rows"][1][0] == 'foo.sharded\_collection <pre>{<br>&nbsp;&nbsp;"_id":&nbsp;"hashed"<br>}</pre>'
+    assert table_item["rows"][1][0] == r'foo.sharded\_collection <pre>{<br>&nbsp;&nbsp;"_id":&nbsp;"hashed"<br>}</pre>'
     assert table_item["rows"][1][1] == "100000<pre>shard1: 49000<br>shard2: 51000</pre>"
     assert table_item["rows"][1][2] == "1.00 GB<pre>shard1: 512.00 MB<br>shard2: 512.00 MB</pre>"
     assert table_item["rows"][1][3] == "512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>"

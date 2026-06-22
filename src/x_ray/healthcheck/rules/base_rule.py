@@ -16,7 +16,7 @@ class BaseRule(ABC):
     """Base class for health check rules."""
 
     def __init__(self, thresholds: Optional[dict] = None):
-        self._thresholds: Optional[dict] = thresholds
+        self._thresholds: dict = thresholds or {}
         self._rule_desc: list[str] = []
 
     @abstractmethod

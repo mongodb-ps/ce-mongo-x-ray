@@ -44,22 +44,31 @@ slow_findandmodify = json_util.loads(
 
 def test_query_analyzer():
     pattern = analyze_query_pattern(slow_insert)
+    assert pattern is not None
     assert pattern["pattern"] == {} and pattern["type"] == "insert"
     pattern = analyze_query_pattern(slow_find)
+    assert pattern is not None
     assert pattern["pattern"] == {"size": 1} and pattern["type"] == "find"
     pattern = analyze_query_pattern(slow_aggregate)
+    assert pattern is not None
     assert pattern["pattern"] == {"size": {"$in": 1}} and pattern["type"] == "aggregate"
     pattern = analyze_query_pattern(slow_cmd)
+    assert pattern is not None
     assert pattern["pattern"] == {} and pattern["type"] == "command"
     pattern = analyze_query_pattern(slow_getmore)
+    assert pattern is not None
     assert pattern["pattern"] == {"size": {"$in": 1}} and pattern["type"] == "getmore"
     pattern = analyze_query_pattern(slow_delete)
+    assert pattern is not None
     assert pattern["pattern"] == {"type": 1} and pattern["type"] == "remove"
     pattern = analyze_query_pattern(slow_delete_cmd)
+    assert pattern is not None
     assert pattern["pattern"] == [{"type": 1}] and pattern["type"] == "remove.$cmd"
     pattern = analyze_query_pattern(slow_update)
+    assert pattern is not None
     assert pattern["pattern"] == {"type": 1} and pattern["type"] == "update"
     pattern = analyze_query_pattern(slow_update_cmd)
+    assert pattern is not None
     assert pattern["pattern"] == [{"type": 1}] and pattern["type"] == "update.$cmd"
 
 

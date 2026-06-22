@@ -70,6 +70,8 @@ class ServerStatusItem(BaseItem):
             client = node["client"]
             server_status = client.admin.command("serverStatus")
             func_req = kwargs.get("func_req")
+            if func_req is None:
+                raise ValueError("func_req is required")
             test_result, raw_result = func_req(set_name, node, server_status)
             return test_result, raw_result
 
@@ -205,6 +207,8 @@ class ServerStatusItem(BaseItem):
     @property
     def review_result_markdown(self) -> str:
         result = self.captured_sample
+        if not isinstance(result, list) or len(result) < 2:
+            return "(No data)\n\n"
         result2 = result[1]
         output: list[str] = []
         conns: list = []

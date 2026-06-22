@@ -57,7 +57,7 @@ class RSInfoItem(BaseItem):
         self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
 
         def analyze_oplog_window():
-            time_delta = self._replication_info.get("timeDiff", 0)
+            time_delta = (self._replication_info or {}).get("timeDiff", 0)
             test_result, self._oplog_info = self._rules["oplog_window"].apply(
                 {
                     "serverStatus": self._server_status,

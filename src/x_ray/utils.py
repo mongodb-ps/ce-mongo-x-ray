@@ -45,7 +45,7 @@ def get_script_path(filename=None):
     # Check if running in a PyInstaller bundle
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         # Running in a PyInstaller bundle
-        base_path = sys._MEIPASS
+        base_path = getattr(sys, "_MEIPASS")
         if filename is None:
             return base_path
         # In PyInstaller, resources are under x_ray/ subdirectory

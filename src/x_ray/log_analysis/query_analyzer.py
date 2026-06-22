@@ -8,6 +8,8 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+from typing import Any
+
 from x_ray.utils import json_hash
 
 
@@ -180,7 +182,7 @@ def analyze_query_pattern(log_line):
 
 
 def query_to_pattern(query):
-    shape = {}
+    shape: Any = {}
     if isinstance(query, list):
         shape = [query_to_pattern(i) for i in query]
         # If all elements are 1, simplify to 1
@@ -196,7 +198,7 @@ def query_to_pattern(query):
 
 
 def _query_to_pattern(query):
-    shape = {}
+    shape: Any = {}
     if isinstance(query, list):
         shape = [_query_to_pattern(i) for i in query]
         # If all elements are 1, simplify to 1

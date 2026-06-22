@@ -39,7 +39,7 @@ def test_index_info_parser():
     assert len(table["rows"]) == 1
     assert table["rows"][0][0] == "shard01"
     assert table["rows"][0][1] == "test.test"
-    assert table["rows"][0][2] == "\_id\_"
+    assert table["rows"][0][2] == r"\_id\_"
     assert table["rows"][0][3] == '`{"_id": 1}`'
     assert table["rows"][0][4] == "6000.0000"
 

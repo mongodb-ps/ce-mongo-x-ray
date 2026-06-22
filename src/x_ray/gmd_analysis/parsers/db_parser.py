@@ -1,3 +1,5 @@
+from typing import Optional
+
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
 from x_ray.utils import format_size
 
@@ -33,7 +35,7 @@ class DBParser(BaseParser):
         }
         db_data: list = []
         dbs: list = data.get("databases", {}).get("databases", [])
-        sharded_dbs: list = data.get("sharded_databases", None)
+        sharded_dbs: Optional[list] = data.get("sharded_databases")
         db_stats: dict = data.get("db_stats", {})
         for db in dbs:
             db_name: str = db["name"]

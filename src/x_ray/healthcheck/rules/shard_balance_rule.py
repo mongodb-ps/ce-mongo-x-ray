@@ -16,7 +16,7 @@ from x_ray.utils import format_size
 class ShardBalanceRule(BaseRule):
     def __init__(self, thresholds=None):
         super().__init__(thresholds)
-        self._imbalance_percentage = thresholds.get("sharding_imbalance_percentage", 0.2)
+        self._imbalance_percentage = self._thresholds.get("sharding_imbalance_percentage", 0.2)
         self._rule_desc.append("Checks if shards have an imbalance")
 
     def apply(self, data: dict, **kwargs) -> tuple:

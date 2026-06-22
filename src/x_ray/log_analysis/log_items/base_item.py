@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Optional
+from typing import Any, Optional
 import logging
 import os
 from bson import json_util
@@ -32,7 +32,7 @@ def get_version(log_line):
 
 
 class BaseItem:
-    _cache: Optional[dict | list] = None
+    _cache: Any = None
 
     def __init__(self, output_folder: str, config, **kwargs) -> None:
         self.config = config
