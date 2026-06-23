@@ -100,7 +100,7 @@ class Framework:
             all_categories = [result["title"] for result in all_test_result]
             category_counts = {category: all_categories.count(category) for category in set(all_categories)}
             f.write("|Category|Count|\n")
-            f.write("|---|---|\n")
+            f.write("|---:|:---:|\n")
             for category, count in category_counts.items():
                 f.write(f"|{category}|**{count}**|\n")
             f.write("\n")
