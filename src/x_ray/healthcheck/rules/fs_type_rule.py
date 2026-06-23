@@ -31,14 +31,16 @@ class FSTypeRule(BaseRule):
         host = extra_info.get("host", "unknown")
         host_info = data.get("hostInfo", {})
         mongo_conf = data.get("serverCmdLineOpts", {}).get("parsed", {})
+        issues: list = []
         db_path = mongo_conf.get("storage", {}).get("dbPath", None)
-        extra = host_info.get("extra")
+        if not db_path:
+            return issues, data
+        extra = host_info.get("extra", {})
         if "extra" in extra:
             # Compatibility for MongoDB 6.0
             extra = extra["extra"]
         mounts = extra.get("mountInfo", [])
         mounts = sorted(mounts, key=lambda x: len(x.get("mountPoint", "")), reverse=True)
-        issues: list = []
         for mount in mounts:
             mount_point = mount.get("mountPoint")
             if db_path.startswith(mount_point):
@@ -64,4 +66,5 @@ class FSTypeRule(BaseRule):
                         params={"fs_type": fs_type, "mount_point": mount_point, "db_path": db_path},
                     )
                     issues.append(issue)
+                break
         return issues, data
