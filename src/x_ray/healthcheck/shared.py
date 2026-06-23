@@ -295,7 +295,6 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
                 "rawResult": None,
                 "testResult": None,
             }
-            test_result, raw_result = None, None
             try:
                 if component_name == "mongos":
                     test_result, raw_result = func_all_mongos(set_name, host_info, level="all_mongos")
