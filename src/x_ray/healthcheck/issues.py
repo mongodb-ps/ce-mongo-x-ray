@@ -83,6 +83,9 @@ class ISSUE(enum.Enum):
     HOSTS_DIFFERENT_HARDWARE = 1500
     NUMA_ENABLED = 1501
     NUMA_DISABLED = 1502
+    FS_TYPE = 1503
+    FS_TYPE_EXT4 = 1504
+    FS_TYPE_EXT4_NOATIME = 1505
 
 
 ISSUE_MSG_MAP = {
@@ -403,6 +406,24 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.LOW,
         "title": "NUMA Disabled",
         "description": "NUMA is disabled on host `{host}` (MongoDB `{version}`). It is recommended to enable NUMA for database servers running MongoDB >= 8.0 to improve performance.",
+    },
+    ISSUE.FS_TYPE: {
+        "id": ISSUE.FS_TYPE,
+        "severity": SEVERITY.HIGH,
+        "title": "Unsupported Filesystem Type",
+        "description": "`{fs_type}` (`{mount_point}`) is not recommended for `dbPath` `{db_path}`. Use `xfs` to avoid known issues.",
+    },
+    ISSUE.FS_TYPE_EXT4: {
+        "id": ISSUE.FS_TYPE_EXT4,
+        "severity": SEVERITY.MEDIUM,
+        "title": "Unsupported Filesystem Type",
+        "description": "`{fs_type}` (`{mount_point}`) is not recommended for `dbPath` `{db_path}`. Use `xfs` to avoid known issues.",
+    },
+    ISSUE.FS_TYPE_EXT4_NOATIME: {
+        "id": ISSUE.FS_TYPE_EXT4_NOATIME,
+        "severity": SEVERITY.MEDIUM,
+        "title": "Filesystem Configuration Issue",
+        "description": "When using `ext4` for `dbPath`, `noatime` option is recommended to avoid performance issues.",
     },
 }
 

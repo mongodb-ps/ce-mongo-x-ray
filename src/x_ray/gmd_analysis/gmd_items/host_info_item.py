@@ -4,6 +4,7 @@ from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
 from x_ray.healthcheck.rules.numa_rule import NumaRule
+from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
 
 
 class HostInfoItem(BaseItem):
@@ -11,12 +12,17 @@ class HostInfoItem(BaseItem):
         super().__init__(output_folder, config, **kwargs)
         self.name: str = "Host Information"
         self._host_info = None
+        self.server_cmd_line_opts = None
         self._rules["host_info"] = HostInfoRule(config)
         self._rules["numa"] = NumaRule(config)
+        self._rules["fs_type"] = FSTypeRule(config)
         self._host_info_parser: BaseParser = HostInfoParser()
 
         def get_host_info(block):
             self._host_info = block.get("output", {})
+
+        def get_server_cmd_line_opts(block):
+            self.server_cmd_line_opts = block.get("output", {})
 
         def process_build_info():
             test_result, _ = self._rules["host_info"].apply([self._host_info], extra_info={"host": self._hostname})
@@ -25,10 +31,21 @@ class HostInfoItem(BaseItem):
                 self._host_info, extra_info={"version": self._server_version, "host": self._hostname}
             )
             self.append_test_results(test_result)
-            # self.captured_sample = self._host_info
+
+        def process_fs_type():
+            test_result, _ = self._rules["fs_type"].apply(
+                {
+                    "hostInfo": self._host_info,
+                    "serverCmdLineOpts": self.server_cmd_line_opts,
+                },
+                extra_info={"version": self._server_version, "host": self._hostname},
+            )
+            self.append_test_results(test_result)
 
         self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
+        self.watch_one(GMD_EVENTS.COMMAND_LINE_INFO, get_server_cmd_line_opts)
         self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.SERVER_BUILD_INFO}, process_build_info)
+        self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.COMMAND_LINE_INFO}, process_fs_type)
 
     def review_results_markdown(self, output) -> None:
         data = self._host_info

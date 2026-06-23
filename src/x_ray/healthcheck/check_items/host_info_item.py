@@ -10,6 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
+from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
 from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
 from x_ray.healthcheck.rules.numa_rule import NumaRule
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
@@ -22,6 +23,7 @@ class HostInfoItem(BaseItem):
         self._name = "Host Information"
         self._rules["host_info"] = HostInfoRule(config)
         self._rules["numa"] = NumaRule(config)
+        self._rules["fs_type"] = FSTypeRule(config)
 
     def test(self, *args, **kwargs):
         """
@@ -44,7 +46,13 @@ class HostInfoItem(BaseItem):
                 )
                 return None, None
             host_info = client.admin.command("hostInfo")
+            cmd_line_opts = client.admin.command("getCmdLineOpts")
             test_result, _ = self._rules["numa"].apply(host_info, extra_info={"host": node["host"], "version": version})
+            fs_test_result, _ = self._rules["fs_type"].apply(
+                {"hostInfo": host_info, "serverCmdLineOpts": cmd_line_opts},
+                extra_info={"host": node["host"]},
+            )
+            test_result += fs_test_result
             self.append_test_results(test_result)
             if name not in host_infos:
                 host_infos[name] = []

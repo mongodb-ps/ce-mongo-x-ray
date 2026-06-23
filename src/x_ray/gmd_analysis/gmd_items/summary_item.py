@@ -51,7 +51,7 @@ class SummaryItem:
         )
         output.write("#### By Category\n\n")
         output.write("|Category|Count|\n")
-        output.write("|:---:|:---:|\n")
+        output.write("|---:|:---:|\n")
         for title, count in self._summary_title.items():
-            output.write(f"|{title}|{count}|\n")
+            output.write(f"|{title}|**{count}**|\n")
         output.write("\n")
