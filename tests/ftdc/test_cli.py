@@ -15,3 +15,10 @@ def test_ftdc_range_defaults_to_none():
 
     assert args.start_time is None
     assert args.end_time is None
+    assert args.rate == 0.1
+
+
+def test_ftdc_accepts_sample_rate():
+    args = setup_parser().parse_args(["ftdc", "/diagnostic.data", "-r", "0.25"])
+
+    assert args.rate == 0.25

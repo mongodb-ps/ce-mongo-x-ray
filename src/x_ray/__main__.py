@@ -36,6 +36,17 @@ def utc_iso_datetime(value: str) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
+def sample_rate(value: str) -> float:
+    """Parse a sampling rate in the interval (0, 1]."""
+    try:
+        rate = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid sample rate: {value}") from exc
+    if not 0 < rate <= 1:
+        raise argparse.ArgumentTypeError("sample rate must be greater than 0 and at most 1")
+    return rate
+
+
 def setup_parser():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -271,6 +282,13 @@ For more information on specific commands, use:
         default="html",
         choices=["markdown", "html"],
     )
+    ftdc_parser.add_argument(
+        "-r",
+        "--rate",
+        help="FTDC sampling rate. Defaults to 0.1.",
+        type=sample_rate,
+        default=0.1,
+    )
 
     return parser
 
@@ -359,6 +377,7 @@ def ftdc_analysis_command(args):
     logger.info("Analyzing FTDC data: %s", args.ftdc_path)
     try:
         config = load_config(args.config)["ftdc"]
+        config.setdefault("item_config", {}).setdefault("OverviewItem", {})["sample_rate"] = args.rate
     except FileNotFoundError:
         logger.error("Config file not found: %s", args.config)
         logger.info("Please provide a valid path to config.json.")
