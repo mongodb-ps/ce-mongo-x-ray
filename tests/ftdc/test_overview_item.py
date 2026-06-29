@@ -1,8 +1,49 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from pyftdc import DataPoint
 
 from x_ray.ftdc_analysis.ftdc_items.overview_item import OverviewItem
+
+
+def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    calls = []
+
+    class Reader:
+        def __init__(self, source):
+            assert source == tmp_path / "metrics.test"
+
+        def list_metrics(self):
+            return [
+                OverviewItem._CPU_USER,
+                OverviewItem._CPU_SYSTEM,
+                OverviewItem._CPU_CORES,
+                "systemMetrics.disks.sda.reads",
+                "unrelated.metric",
+            ]
+
+        def get_metric(self, names, start, end, sample_rate=1.0):
+            calls.append((names, start, end, sample_rate))
+            return {name: [DataPoint(timestamp=timestamp, value=10)] for name in names}
+
+    monkeypatch.setattr(
+        "x_ray.ftdc_analysis.ftdc_items.overview_item.MongoFTDCReader",
+        Reader,
+    )
+    item = OverviewItem(str(tmp_path), {"sample_rate": 0.5})
+
+    item.analyze(tmp_path / "metrics.test")
+
+    requested = calls[0][0]
+    assert requested == {
+        item._CPU_USER,
+        item._CPU_SYSTEM,
+        item._CPU_CORES,
+        "systemMetrics.disks.sda.reads",
+    }
+    assert calls[0][3] == 0.5
+    assert "unrelated.metric" not in item._series
 
 
 def test_overview_calculates_cpu_and_iops(tmp_path):

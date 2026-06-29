@@ -21,24 +21,35 @@ class OverviewItem(BaseItem):
         self._start_time = kwargs.get("start_time") or datetime.min.replace(tzinfo=timezone.utc)
         self._end_time = kwargs.get("end_time") or datetime.max.replace(tzinfo=timezone.utc)
         self._max_gap = float(config.get("max_sample_gap_seconds", 5))
+        self._sample_rate = float(config.get("sample_rate", 1.0))
         self._series: dict[str, dict[datetime, float]] = {}
         self._disk_metrics: set[str] = set()
         self._results: list[dict] = []
 
     def analyze(self, file_path: Path) -> None:
         reader = MongoFTDCReader(file_path)
+        available = set(reader.list_metrics())
         wanted = {self._CPU_USER, self._CPU_SYSTEM, self._CPU_CORES}
-        series = reader.get_metrics(
+        wanted.update(
+            metric
+            for metric in available
+            if metric.startswith("systemMetrics.disks.") and (metric.endswith(".reads") or metric.endswith(".writes"))
+        )
+        wanted.intersection_update(available)
+        if not wanted:
+            return
+
+        series = reader.get_metric(
             wanted,
             self._start_time,
             self._end_time,
-            include_disk_operations=True,
+            sample_rate=self._sample_rate,
         )
         for metric, points in series.items():
             if metric.startswith("systemMetrics.disks."):
                 self._disk_metrics.add(metric)
             target = self._series.setdefault(metric, {})
-            target.update(points)
+            target.update((point.timestamp, float(point.value)) for point in points)
 
     def finalize_analysis(self) -> None:
         self._results = [
