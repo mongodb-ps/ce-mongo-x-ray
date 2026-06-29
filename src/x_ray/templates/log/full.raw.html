@@ -117,7 +117,7 @@
                 li.appendChild(createList(children));
             }
             outline.appendChild(ul);
-            var outlineWidth = outline.offsetWidth;
+            var outlineWidth = outline.offsetWidth + 20;
             body.style.margin = '0 auto 0 ' + outlineWidth + 'px';
             expand = document.getElementById('expand-outline');
             collapse = document.getElementById('collapse-outline');
@@ -178,37 +178,59 @@
             box-sizing: border-box;
             min-width: 200px;
             max-width: 1200px;
-            margin: 0 auto 0 350px;
+            margin: 0 auto 0 300px;
             padding: 45px;
         }
 
-        @media(max-width:90%) {
-            .markdown-body {
-                padding: 15px;
-            }
+        #outline {
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            padding: 40px 24px;
+            overflow-y: auto;
+            background: var(--bgColor-muted, #f6f8fa);
+            border-right: 1px solid var(--borderColor-default, #d0d7de);
         }
 
-        #outline {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 40px 0;
+        #outline>ul {
+            padding-left: 20px;
+        }
+
+        #outline a {
+            color: var(--fgColor-accent, #0969da);
+            text-decoration: none;
+        }
+
+        #outline a.in-view {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        #expand-outline {
+            padding: 6px 10px;
+            background: var(--bgColor-muted, #f6f8fa);
+            border: 1px solid var(--borderColor-default, #d0d7de);
+            border-radius: 6px;
+            text-decoration: none;
         }
 
         .pie {
             display: inline-block;
-            width: 45%;
+            width: 30%;
         }
 
-        .bar {
+        .pie50 {
+            display: inline-block;
+            width: 48%;
+        }
+
+        .bar,
+        .pie100 {
             display: inline-block;
             width: 100%;
-        }
-
-        a.in-view {
-            background-color: var(--bgColor-default);
-            color: var(--fgColor-default);
-            font-weight: bold;
         }
 
         .tooltip {
@@ -250,16 +272,27 @@
         }
 
         .hljs-copy-button {
-            background-color: var(--bgColor-default);
-            border: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
             position: absolute;
             top: 8px;
             right: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
             opacity: 0.6;
+            background-color: var(--bgColor-default);
+            border: none;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 900px) {
+            .markdown-body {
+                margin: 0 auto !important;
+                padding: 24px 16px;
+            }
+
+            #outline {
+                display: none;
+            }
         }
     </style>
 </head>
