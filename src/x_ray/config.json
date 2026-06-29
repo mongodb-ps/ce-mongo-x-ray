@@ -161,5 +161,20 @@
             }
         },
         "template": "gmd/full.html"
+    },
+    "ftdc": {
+        "ftdcsets": {
+            "default": {
+                "items": [
+                    "OverviewItem"
+                ]
+            }
+        },
+        "item_config": {
+            "OverviewItem": {
+                "max_sample_gap_seconds": 5
+            }
+        },
+        "template": "ftdc/full.html"
     }
 }

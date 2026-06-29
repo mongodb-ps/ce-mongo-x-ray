@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FTDC Analysis Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
+        media="(prefers-color-scheme: light)">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+        media="(prefers-color-scheme: dark)">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 1200px;
+            margin: 0 auto 0 300px;
+            padding: 45px;
+        }
+
+        #outline {
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            padding: 40px 24px;
+            overflow-y: auto;
+            background: var(--bgColor-muted, #f6f8fa);
+            border-right: 1px solid var(--borderColor-default, #d0d7de);
+        }
+
+        #outline>ul {
+            padding-left: 20px;
+        }
+
+        #outline a {
+            color: var(--fgColor-accent, #0969da);
+            text-decoration: none;
+        }
+
+        #outline a.in-view {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        #expand-outline {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            padding: 6px 10px;
+            background: var(--bgColor-muted, #f6f8fa);
+            border: 1px solid var(--borderColor-default, #d0d7de);
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .pie {
+            display: inline-block;
+            width: 30%;
+        }
+
+        .pie50 {
+            display: inline-block;
+            width: 48%;
+        }
+
+        .bar,
+        .pie100 {
+            display: inline-block;
+            width: 100%;
+        }
+
+        .hljs-copy-wrapper {
+            position: relative;
+        }
+
+        .hljs-copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.6;
+            background-color: var(--bgColor-default);
+            border: none;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 900px) {
+            .markdown-body {
+                margin: 0 auto;
+                padding: 24px 16px;
+            }
+
+            #outline {
+                display: none;
+            }
+
+            #expand-outline {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="markdown-body">
+    <nav id="outline" aria-label="Report outline">
+        <a href="#" id="collapse-outline" aria-label="Collapse report outline">&#x25C0;</a>
+        <b>Report Outline</b>
+    </nav>
+    <a href="#" id="expand-outline" style="display: none" aria-label="Expand report outline">&#x25B6;</a>
+    {{ content }}
+    <script type="text/javascript">
+        const outline = document.getElementById("outline");
+        const collapse = document.getElementById("collapse-outline");
+        const expand = document.getElementById("expand-outline");
+        const headings = Array.from(document.querySelectorAll("h2, h3"));
+        const links = [];
+        const list = document.createElement("ul");
+
+        headings.forEach((heading) => {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = `#${heading.id}`;
+            link.textContent = heading.textContent;
+            item.appendChild(link);
+            list.appendChild(item);
+            links.push(link);
+        });
+        outline.appendChild(list);
+
+        function highlightOutline() {
+            let current = 0;
+            headings.forEach((heading, index) => {
+                if (heading.getBoundingClientRect().top <= 80) {
+                    current = index;
+                }
+            });
+            links.forEach((link, index) => link.classList.toggle("in-view", index === current));
+        }
+
+        collapse.addEventListener("click", (event) => {
+            event.preventDefault();
+            outline.style.display = "none";
+            document.body.style.margin = "0 auto";
+            expand.style.display = "inline";
+            window.dispatchEvent(new Event("resize"));
+        });
+
+        expand.addEventListener("click", (event) => {
+            event.preventDefault();
+            outline.style.display = "block";
+            document.body.style.margin = "0 auto 0 300px";
+            expand.style.display = "none";
+            window.dispatchEvent(new Event("resize"));
+        });
+
+        window.addEventListener("scroll", highlightOutline, { passive: true });
+        highlightOutline();
+
+        if (window.hljs) {
+            if (window.CopyButtonPlugin) {
+                hljs.addPlugin(new CopyButtonPlugin({ hook: (_, element) => element.textContent }));
+            }
+            hljs.highlightAll();
+        }
+    </script>
+</body>
+
+</html>

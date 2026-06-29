@@ -92,6 +92,30 @@
             }
         },
         {
+            "name": "App: X-Ray-FTDC",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "x_ray",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "${workspaceFolder}/src"
+                }
+            ],
+            "args": [
+                "-c",
+                "src/x_ray/config.json",
+                "ftdc",
+                "misc/ftdc"
+            ],
+            "env": {
+                "LOG_LEVEL": "INFO",
+                "ENV": "development"
+            }
+        },
+        {
             "name": "Unit Test",
             "type": "debugpy",
             "request": "launch",

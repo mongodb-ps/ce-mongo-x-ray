@@ -93,7 +93,7 @@ python3 -m pip install -e ".[dev]"
 
 ## 3 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log}
+x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 ```
 | Argument         | Description                                                                                                                        |           Default           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: |
@@ -177,3 +177,18 @@ x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 | `-s`, `--checkset` | Checkset to run.               | `default` |
 | `-o`, `--output`   | Output folder path.            | `output/` |
 | `-f`, `--format`   | Output format (markdown/html). |  `html`   |
+
+### 3.4 FTDC Analysis Component
+
+The FTDC overview reports peak and average CPU user, CPU system, and aggregate
+disk IOPS values. Start and end are inclusive UTC ISO-8601 timestamps. When
+omitted, the first and last data points in the archive are used.
+
+```bash
+x-ray ftdc /var/lib/mongo/diagnostic.data
+x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:00Z
+```
+
+```bash
+x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] ftdc_path [start_time] [end_time]
+```

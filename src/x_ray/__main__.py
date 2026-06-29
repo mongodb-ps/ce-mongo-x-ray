@@ -10,6 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 import argparse
 import logging
+from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
 from pathlib import Path
@@ -19,9 +20,20 @@ from x_ray.utils import load_config
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
 from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
-
+from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
 
 logger = logging.getLogger(__name__)
+
+
+def utc_iso_datetime(value: str) -> datetime:
+    """Parse an ISO-8601 timestamp and normalize it to UTC."""
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid ISO timestamp: {value}") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def setup_parser():
@@ -34,11 +46,13 @@ Examples:
   x-ray hc -s comprehensive -o /path/to/output/
   x-ray log /var/log/mongodb/mongod.log
   x-ray gmd /path/to/getMongoData_output.json
+  x-ray ftdc /path/to/diagnostic.data
 
 For more information on specific commands, use:
   x-ray healthcheck --help
   x-ray log --help
   x-ray gmd --help
+  x-ray ftdc --help
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -212,6 +226,52 @@ For more information on specific commands, use:
         choices=["markdown", "html"],
     )
 
+    # FTDC analysis module
+    ftdc_description = """
+    Analyze MongoDB Full Time Diagnostic Data Capture (FTDC) files.
+
+    The input is a directory containing FTDC files.
+    """
+    ftdc_epilog = """
+    Examples:
+      x-ray ftdc /var/lib/mongo/diagnostic.data
+      x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:00Z
+    """
+    ftdc_parser = subparsers.add_parser(
+        "ftdc",
+        help="Analyze MongoDB FTDC files",
+        description=ftdc_description,
+        epilog=ftdc_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ftdc_parser.add_argument("ftdc_path", help="Path to a directory containing FTDC files.")
+    ftdc_parser.add_argument(
+        "start_time",
+        nargs="?",
+        type=utc_iso_datetime,
+        help="Inclusive UTC start time in ISO-8601 format. Defaults to the first data point.",
+    )
+    ftdc_parser.add_argument(
+        "end_time",
+        nargs="?",
+        type=utc_iso_datetime,
+        help="Inclusive UTC end time in ISO-8601 format. Defaults to the last data point.",
+    )
+    ftdc_parser.add_argument(
+        "-s", "--checkset", help='Checkset to run. Defaults to "default".', type=str, default="default"
+    )
+    ftdc_parser.add_argument(
+        "-o", "--output", help='Output folder path. Defaults to "output/".', type=str, default="output/"
+    )
+    ftdc_parser.add_argument(
+        "-f",
+        "--format",
+        help='Output format (markdown/html). Defaults to "html".',
+        type=str,
+        default="html",
+        choices=["markdown", "html"],
+    )
+
     return parser
 
 
@@ -288,6 +348,37 @@ def gmd_alalysis_command(args):
     return 0
 
 
+def ftdc_analysis_command(args):
+    """FTDC analysis command."""
+    if not Path(args.ftdc_path).is_dir():
+        logger.error("FTDC folder not found: %s", args.ftdc_path)
+        return 1
+    if args.start_time and args.end_time and args.start_time > args.end_time:
+        logger.error("FTDC start time must be before or equal to end time.")
+        return 1
+    logger.info("Analyzing FTDC data: %s", args.ftdc_path)
+    try:
+        config = load_config(args.config)["ftdc"]
+    except FileNotFoundError:
+        logger.error("Config file not found: %s", args.config)
+        logger.info("Please provide a valid path to config.json.")
+        return 1
+    except KeyError:
+        logger.error("FTDC configuration is missing from the config file.")
+        return 1
+
+    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
+    framework = FTDCAnalysisFramework(
+        args.ftdc_path,
+        config,
+        start_time=args.start_time,
+        end_time=args.end_time,
+    )
+    framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
+    framework.output_results(output_folder=output_folder, fmt=args.format)
+    return 0
+
+
 def version_command(_args):
     """Print current package version"""
     try:
@@ -320,6 +411,8 @@ def main():
         return log_analysis_command(args)
     if args.command == "gmd":
         return gmd_alalysis_command(args)
+    if args.command == "ftdc":
+        return ftdc_analysis_command(args)
 
     logger.error("Unknown command: %s", args.command)
     return 1
