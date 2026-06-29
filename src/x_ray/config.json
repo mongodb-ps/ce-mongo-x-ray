@@ -172,8 +172,7 @@
         },
         "item_config": {
             "OverviewItem": {
-                "max_sample_gap_seconds": 15,
-                "sample_rate": 0.1
+                "max_sample_gap_seconds": 15
             }
         },
         "template": "ftdc/full.html"

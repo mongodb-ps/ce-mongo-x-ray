@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from io import StringIO
+from xml.etree import ElementTree
 
 import pytest
 from pyftdc import DataPoint
@@ -7,10 +8,22 @@ from pyftdc import DataPoint
 from x_ray.ftdc_analysis.ftdc_items.overview_item import OverviewItem
 
 
-def test_default_sample_rate_is_ten_percent(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+def test_default_sample_rate_uses_total_ingest_files(tmp_path):
+    item = OverviewItem(str(tmp_path), {}, total_ingest_files=4)
 
-    assert item._sample_rate == 0.1
+    assert item._sample_rate == 0.25
+
+
+def test_configured_sample_rate_overrides_ingest_file_default(tmp_path):
+    item = OverviewItem(str(tmp_path), {"sample_rate": 0.5}, total_ingest_files=4)
+
+    assert item._sample_rate == 0.5
+
+
+def test_default_sample_rate_handles_no_ingest_files(tmp_path):
+    item = OverviewItem(str(tmp_path), {}, total_ingest_files=0)
+
+    assert item._sample_rate == 1.0
 
 
 def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
@@ -81,6 +94,7 @@ def test_overview_calculates_cpu_and_iops(tmp_path):
         "peak": 20.0,
         "average": 15.0,
         "unit": "%",
+        "chart": "charts/ftdc-overview-cpu-user.svg",
     }
     assert item._results[1]["peak"] == pytest.approx(10.0)
     assert item._results[1]["average"] == pytest.approx(7.5)
@@ -89,7 +103,17 @@ def test_overview_calculates_cpu_and_iops(tmp_path):
         "peak": 30.0,
         "average": 22.5,
         "unit": "ops/s",
+        "chart": "charts/ftdc-overview-iops.svg",
     }
+    chart_paths = [tmp_path / result["chart"] for result in item._results]
+    assert all(chart.is_file() for chart in chart_paths)
+    for chart in chart_paths:
+        root = ElementTree.parse(chart).getroot()
+        assert root.tag == "{http://www.w3.org/2000/svg}svg"
+    cpu_chart = chart_paths[0].read_text(encoding="utf-8")
+    assert "<polyline" in cpu_chart
+    assert start.isoformat(timespec="seconds") not in cpu_chart
+    assert "CPU user (%)" not in cpu_chart
 
 
 def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
@@ -107,8 +131,8 @@ def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
     assert item._results[0]["average"] == 0
 
 
-def test_overview_displays_capture_timespan(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+def test_overview_displays_capture_timespan_and_sample_rate(tmp_path):
+    item = OverviewItem(str(tmp_path), {}, total_ingest_files=4)
     item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
     output = StringIO()
@@ -117,3 +141,4 @@ def test_overview_displays_capture_timespan(tmp_path):
 
     expected = "Capture timespan: `2026-01-01T00:00:00+00:00` " "to `2026-01-02T00:00:00+00:00`"
     assert expected in output.getvalue()
+    assert "Sample rate: `0.25`" in output.getvalue()

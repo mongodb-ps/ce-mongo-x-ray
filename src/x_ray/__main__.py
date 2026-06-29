@@ -285,9 +285,9 @@ For more information on specific commands, use:
     ftdc_parser.add_argument(
         "-r",
         "--rate",
-        help="FTDC sampling rate. Defaults to 0.1.",
+        help="FTDC sampling rate. Defaults to 1 divided by the number of ingested files.",
         type=sample_rate,
-        default=0.1,
+        default=None,
     )
 
     return parser
@@ -377,7 +377,8 @@ def ftdc_analysis_command(args):
     logger.info("Analyzing FTDC data: %s", args.ftdc_path)
     try:
         config = load_config(args.config)["ftdc"]
-        config.setdefault("item_config", {}).setdefault("OverviewItem", {})["sample_rate"] = args.rate
+        if args.rate is not None:
+            config.setdefault("item_config", {}).setdefault("OverviewItem", {})["sample_rate"] = args.rate
     except FileNotFoundError:
         logger.error("Config file not found: %s", args.config)
         logger.info("Please provide a valid path to config.json.")

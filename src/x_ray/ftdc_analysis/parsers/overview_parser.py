@@ -12,8 +12,9 @@ class OverviewParser(BaseParser):
         rows = [
             [
                 item["metric"],
-                f'{round(item["peak"], 2)} {item["unit"]}',
-                f'{round(item["average"], 2)} {item["unit"]}',
+                f'{round(item["peak"], 2)}{item["unit"]}',
+                f'{round(item["average"], 2)}{item["unit"]}',
+                f'![{item["metric"]} line chart]({item["chart"]})',
             ]
             for item in data
         ]
@@ -25,6 +26,7 @@ class OverviewParser(BaseParser):
                     {"text": "Metric", "align": "left"},
                     "Peak",
                     "Average",
+                    "Chart",
                 ],
                 "rows": rows,
             }

@@ -128,6 +128,9 @@ class Framework:
         batch_folder = self._get_output_folder(kwargs.get("output_folder", "output/"))
         self._logger.info("Running FTDC checkset: %s", bold(cyan(ftdcset_name)))
 
+        input_files = self._input_files()
+        self._logger.info("Ingesting %s FTDC file(s).", green(str(len(input_files))))
+
         self._items = []
         for item_name in ftdcsets[ftdcset_name].get("items", []):
             item_cls = FTDC_CLASSES.get(item_name)
@@ -141,12 +144,11 @@ class Framework:
                     item_config,
                     start_time=self._start_time,
                     end_time=self._end_time,
+                    total_ingest_files=len(input_files),
                 )
             )
             self._logger.info("FTDC analysis item loaded: %s", bold(cyan(item_name)))
 
-        input_files = self._input_files()
-        self._logger.info("Ingesting %s FTDC file(s).", green(str(len(input_files))))
         for file_path in input_files:
             for item in self._items:
                 try:

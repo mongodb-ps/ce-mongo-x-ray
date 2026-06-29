@@ -172,19 +172,21 @@ x-ray gmd misc/getMongoData-rs.json
 ```bash
 x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 ```
-| Argument           | Description                                                     |  Default  |
-| ------------------ | --------------------------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                                                | `default` |
-| `-o`, `--output`   | Output folder path.                                             | `output/` |
-| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. |   `0.1`   |
-| `-f`, `--format`   | Output format (markdown/html).                                  |  `html`   |
+| Argument           | Description                                                     |       Default        |
+| ------------------ | --------------------------------------------------------------- | :------------------: |
+| `-s`, `--checkset` | Checkset to run.                                                |      `default`       |
+| `-o`, `--output`   | Output folder path.                                             |      `output/`       |
+| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. | `1 / ingested files` |
+| `-f`, `--format`   | Output format (markdown/html).                                  |        `html`        |
 
 ### 3.4 FTDC Analysis Component
 
-The FTDC overview reports its capture timespan and the peak and average CPU
-user, CPU system, and aggregate disk IOPS values. Units are appended to each
-reported value. Start and end are inclusive UTC ISO-8601 timestamps. When
-omitted, the first and last data points in the archive are used.
+The FTDC overview reports its capture timespan, effective sample rate, and the
+peak and average CPU user, CPU system, and aggregate disk IOPS values. Units
+are appended to each reported value. Each metric includes a line-chart image
+saved under the report output's `charts` directory. Start and end are inclusive
+UTC ISO-8601 timestamps. When omitted, the first and last data points in the
+archive are used.
 
 ```bash
 x-ray ftdc /var/lib/mongo/diagnostic.data

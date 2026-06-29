@@ -10,12 +10,12 @@ def test_ftdc_accepts_optional_utc_range():
     assert args.end_time == datetime(2026, 6, 17, 11, tzinfo=timezone.utc)
 
 
-def test_ftdc_range_defaults_to_none():
+def test_ftdc_range_and_sample_rate_default_to_none():
     args = setup_parser().parse_args(["ftdc", "/diagnostic.data"])
 
     assert args.start_time is None
     assert args.end_time is None
-    assert args.rate == 0.1
+    assert args.rate is None
 
 
 def test_ftdc_accepts_sample_rate():
