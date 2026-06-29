@@ -43,6 +43,8 @@ def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
         "systemMetrics.disks.sda.reads",
     }
     assert calls[0][3] == 0.5
+    assert calls[0][1] is None
+    assert calls[0][2] is None
     assert "unrelated.metric" not in item._series
 
 

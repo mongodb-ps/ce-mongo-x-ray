@@ -1,6 +1,6 @@
 """Peak and average values for key FTDC host metrics."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from statistics import fmean
 
@@ -19,8 +19,8 @@ class OverviewItem(BaseItem):
 
     def __init__(self, output_folder: str, config: dict, **kwargs) -> None:
         super().__init__(output_folder, config, **kwargs)
-        self._start_time = kwargs.get("start_time") or datetime.min.replace(tzinfo=timezone.utc)
-        self._end_time = kwargs.get("end_time") or datetime.max.replace(tzinfo=timezone.utc)
+        self._start_time = kwargs.get("start_time")
+        self._end_time = kwargs.get("end_time")
         self._max_gap = float(config.get("max_sample_gap_seconds", 5))
         self._sample_rate = float(config.get("sample_rate", 1.0))
         self._series: dict[str, dict[datetime, float]] = {}
