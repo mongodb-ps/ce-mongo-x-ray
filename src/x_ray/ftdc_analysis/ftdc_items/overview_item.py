@@ -22,7 +22,7 @@ class OverviewItem(BaseItem):
         self._start_time = kwargs.get("start_time")
         self._end_time = kwargs.get("end_time")
         self._max_gap = float(config.get("max_sample_gap_seconds", 5))
-        self._sample_rate = float(config.get("sample_rate", 1.0))
+        self._sample_rate = float(config.get("sample_rate", 0.1))
         self._series: dict[str, dict[datetime, float]] = {}
         self._disk_metrics: set[str] = set()
         self._results: list[dict] = []

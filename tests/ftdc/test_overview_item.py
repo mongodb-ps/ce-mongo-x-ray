@@ -6,6 +6,12 @@ from pyftdc import DataPoint
 from x_ray.ftdc_analysis.ftdc_items.overview_item import OverviewItem
 
 
+def test_default_sample_rate_is_ten_percent(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+
+    assert item._sample_rate == 0.1
+
+
 def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
     calls = []
