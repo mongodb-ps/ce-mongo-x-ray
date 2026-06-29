@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from io import StringIO
 
 import pytest
 from pyftdc import DataPoint
@@ -52,6 +53,8 @@ def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
     assert calls[0][1] is None
     assert calls[0][2] is None
     assert "unrelated.metric" not in item._series
+    assert item._capture_start == timestamp
+    assert item._capture_end == timestamp
 
 
 def test_overview_calculates_cpu_and_iops(tmp_path):
@@ -102,3 +105,15 @@ def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
 
     assert item._results[0]["peak"] == 0
     assert item._results[0]["average"] == 0
+
+
+def test_overview_displays_capture_timespan(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+    output = StringIO()
+
+    item.review_results_markdown(output)
+
+    expected = "Capture timespan: `2026-01-01T00:00:00+00:00` " "to `2026-01-02T00:00:00+00:00`"
+    assert expected in output.getvalue()

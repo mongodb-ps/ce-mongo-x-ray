@@ -12,9 +12,8 @@ class OverviewParser(BaseParser):
         rows = [
             [
                 item["metric"],
-                round(item["peak"], 2),
-                round(item["average"], 2),
-                item["unit"],
+                f'{round(item["peak"], 2)} {item["unit"]}',
+                f'{round(item["average"], 2)} {item["unit"]}',
             ]
             for item in data
         ]
@@ -26,7 +25,6 @@ class OverviewParser(BaseParser):
                     {"text": "Metric", "align": "left"},
                     "Peak",
                     "Average",
-                    "Unit",
                 ],
                 "rows": rows,
             }

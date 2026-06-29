@@ -26,6 +26,8 @@ class OverviewItem(BaseItem):
         self._series: dict[str, dict[datetime, float]] = {}
         self._disk_metrics: set[str] = set()
         self._results: list[dict] = []
+        self._capture_start: datetime | None = None
+        self._capture_end: datetime | None = None
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
@@ -50,7 +52,12 @@ class OverviewItem(BaseItem):
             if metric.startswith("systemMetrics.disks."):
                 self._disk_metrics.add(metric)
             target = self._series.setdefault(metric, {})
-            target.update((point.timestamp, float(point.value)) for point in points)
+            for point in points:
+                target[point.timestamp] = float(point.value)
+                if self._capture_start is None or point.timestamp < self._capture_start:
+                    self._capture_start = point.timestamp
+                if self._capture_end is None or point.timestamp > self._capture_end:
+                    self._capture_end = point.timestamp
 
     def finalize_analysis(self) -> None:
         self._results = [
@@ -101,4 +108,10 @@ class OverviewItem(BaseItem):
 
     def review_results_markdown(self, output) -> None:
         output.write("## FTDC Overview\n\n")
+        if self._capture_start is not None and self._capture_end is not None:
+            start = self._capture_start.isoformat()
+            end = self._capture_end.isoformat()
+            output.write(f"Capture timespan: `{start}` to `{end}`\n\n")
+        else:
+            output.write("Capture timespan: _No data available._\n\n")
         output.write(OverviewParser().markdown(self._results))

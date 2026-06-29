@@ -181,8 +181,9 @@ x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 
 ### 3.4 FTDC Analysis Component
 
-The FTDC overview reports peak and average CPU user, CPU system, and aggregate
-disk IOPS values. Start and end are inclusive UTC ISO-8601 timestamps. When
+The FTDC overview reports its capture timespan and the peak and average CPU
+user, CPU system, and aggregate disk IOPS values. Units are appended to each
+reported value. Start and end are inclusive UTC ISO-8601 timestamps. When
 omitted, the first and last data points in the archive are used.
 
 ```bash

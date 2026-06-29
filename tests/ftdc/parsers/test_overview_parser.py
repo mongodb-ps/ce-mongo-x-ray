@@ -12,8 +12,7 @@ def test_parse_overview_table():
                 {"text": "Metric", "align": "left"},
                 "Peak",
                 "Average",
-                "Unit",
             ],
-            "rows": [["CPU user", 12.35, 4.57, "%"]],
+            "rows": [["CPU user", "12.35%", "4.57%"]],
         }
     ]
