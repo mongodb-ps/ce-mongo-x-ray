@@ -28,7 +28,7 @@ def test_analyze_uses_batched_pyftdc_api(tmp_path, monkeypatch):
             return {name: [DataPoint(timestamp=timestamp, value=10)] for name in names}
 
     monkeypatch.setattr(
-        "x_ray.ftdc_analysis.ftdc_items.overview_item.MongoFTDCReader",
+        "x_ray.ftdc_analysis.ftdc_items.overview_item.FTDCReader",
         Reader,
     )
     item = OverviewItem(str(tmp_path), {"sample_rate": 0.5})

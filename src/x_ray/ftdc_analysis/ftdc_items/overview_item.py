@@ -4,9 +4,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from statistics import fmean
 
+from pyftdc import FTDCReader
+
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.overview_parser import OverviewParser
-from x_ray.ftdc_analysis.reader import MongoFTDCReader
 
 
 class OverviewItem(BaseItem):
@@ -27,7 +28,7 @@ class OverviewItem(BaseItem):
         self._results: list[dict] = []
 
     def analyze(self, file_path: Path) -> None:
-        reader = MongoFTDCReader(file_path)
+        reader = FTDCReader(file_path)
         available = set(reader.list_metrics())
         wanted = {self._CPU_USER, self._CPU_SYSTEM, self._CPU_CORES}
         wanted.update(
