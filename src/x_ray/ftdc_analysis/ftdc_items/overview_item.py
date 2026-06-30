@@ -55,7 +55,7 @@ class OverviewItem(BaseItem):
         reader = FTDCReader(file_path)
         if self._mongodb_config is None:
             try:
-                self._mongodb_config = reader.get_config()
+                self._mongodb_config = reader.get_mongodb_config()
             except FTDCError:
                 self._logger.debug("MongoDB configuration not found in FTDC file: %s", file_path)
         available = set(reader.list_metrics())

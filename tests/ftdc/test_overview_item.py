@@ -57,7 +57,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
                 "unrelated.metric",
             ]
 
-        def get_config(self):
+        def get_mongodb_config(self):
             return {"net": {"port": 27017}}
 
         def get_metric(self, names, start, end, sample_rate=1.0):
