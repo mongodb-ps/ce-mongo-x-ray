@@ -148,7 +148,7 @@ class OverviewItem(BaseItem):
                 y = top + plot_height - (value / scale_max) * plot_height
                 coordinates.append(f"{x:.2f},{y:.2f}")
             polyline = (
-                '<polyline fill="none" stroke="#000000" stroke-width="1" '
+                '<polyline class="metric-line" fill="none" stroke-width="1" '
                 f'stroke-linejoin="round" points="{" ".join(coordinates)}"/>'
             )
         else:
@@ -161,7 +161,11 @@ class OverviewItem(BaseItem):
         svg = (
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
             f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(metric)} line chart">'
-            "<style>text{font:11px sans-serif;fill:#57606a}</style>"
+            "<style>"
+            "text{font:11px sans-serif;fill:#57606a}"
+            ".metric-line{stroke:#0969da}"
+            "@media (prefers-color-scheme:dark){.metric-line{stroke:#58a6ff}}"
+            "</style>"
             f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#8c959f"/>'
             f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
             f'y2="{top + plot_height}" stroke="#8c959f"/>'
