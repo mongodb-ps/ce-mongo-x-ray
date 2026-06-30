@@ -98,7 +98,8 @@ def test_overview_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypa
     assert chart_thresholds[CPU_METRICS["iowait"].name] == (10, 20)
     assert chart_thresholds[CPU_METRICS["system"].name] == (20, 30)
     assert chart_thresholds[DERIVED_METRIC_NAMES["cache_fill"]] == (80, 95)
-    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_dirty"]] == (15, 20)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_dirty"]] == (5, 20)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_update_ratio"]] == (10, 15)
     assert chart_thresholds[f'{DISK_METRICS["io_in_progress"].name} (sda)'] == (1, 2)
     assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
@@ -137,6 +138,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
                 CPU_METRICS["user"].key,
                 CPU_METRICS["system"].key,
                 CPU_METRICS["available_cores"].key,
+                WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
                 "systemMetrics.disks.sda.io_in_progress",
                 "systemMetrics.mounts./data/db.free",
                 "systemMetrics.mounts./data/db.capacity",
@@ -168,6 +170,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
         CPU_METRICS["user"].key,
         CPU_METRICS["system"].key,
         CPU_METRICS["available_cores"].key,
+        WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
         "systemMetrics.disks.sda.io_in_progress",
         "systemMetrics.mounts./data/db.free",
         "systemMetrics.mounts./data/db.capacity",
@@ -231,6 +234,7 @@ def test_overview_calculates_requested_sections(tmp_path):
         WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
         WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
         WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
+        WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key: {start: 5, middle: 10, end: 15},
         "systemMetrics.disks.sda.io_in_progress": {start: 2, middle: 3, end: 4},
         "systemMetrics.disks.sdb.io_in_progress": {start: 1, middle: 2, end: 3},
         "replSetGetStatus.members.0.state": {start: 1, middle: 1, end: 1},
@@ -282,7 +286,8 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert (writes["peak"], writes["average"]) == (10, 7.5)
     assert (write_latency["peak"], write_latency["average"]) == (3, 2.5)
 
-    performance = {result["metric"]: result for result in item._results["Performance"]}
+    performance_results = item._results["Performance"]
+    performance = {result["metric"]: result for result in performance_results}
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["peak"] == 70
     assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == 35
     assert performance[CPU_METRICS["user"].name]["peak"] == 20
@@ -290,6 +295,11 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert performance[CPU_METRICS["iowait"].name]["peak"] == 3
     assert performance[DERIVED_METRIC_NAMES["cache_fill"]]["average"] == 75
     assert performance[DERIVED_METRIC_NAMES["cache_dirty"]]["peak"] == 20
+    assert performance[DERIVED_METRIC_NAMES["cache_update_ratio"]]["average"] == 10
+    performance_metrics = [result["metric"] for result in performance_results]
+    assert performance_metrics.index(DERIVED_METRIC_NAMES["cache_update_ratio"]) == (
+        performance_metrics.index(DERIVED_METRIC_NAMES["cache_dirty"]) + 1
+    )
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sda)']["average"] == 3
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sdb)']["average"] == 2
     member_states = {result["metric"]: result for result in item._results["Member State"]}

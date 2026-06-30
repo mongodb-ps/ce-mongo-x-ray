@@ -264,7 +264,16 @@ class OverviewItem(BaseItem):
                     WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
                 ),
                 "%",
-                thresholds=(15, 20),
+                thresholds=(5, 20),
+            ),
+            self._summary(
+                DERIVED_METRIC_NAMES["cache_update_ratio"],
+                self._ratio(
+                    WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
+                    WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
+                ),
+                "%",
+                thresholds=(2.5, 10),
             ),
         ]
         for metric, block_device in sorted(self._disk_queue_metrics.items(), key=lambda item: item[1]):

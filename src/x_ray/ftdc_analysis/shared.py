@@ -181,6 +181,7 @@ DERIVED_METRIC_NAMES: Final = {
     "memory_fragmentation_ratio": "Memory fragmentation ratio",
     "cache_fill": "Cache fill",
     "cache_dirty": "Cache dirty",
+    "cache_update_ratio": "Cache update ratio",
     "disk_utilization": "Disk utilization",
 }
 
@@ -195,6 +196,7 @@ OVERVIEW_STATIC_METRICS: Final = {
     MEMORY_METRICS["available"].key,
     TCMALLOC_METRICS["heap_size"].key,
     TCMALLOC_METRICS["current_allocated_bytes"].key,
+    WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
     WIREDTIGER_CACHE_METRICS["bytes_current"].key,
     WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
     WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
