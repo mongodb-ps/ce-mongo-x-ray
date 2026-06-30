@@ -37,6 +37,91 @@ def test_default_sample_rate_handles_no_ingest_files(tmp_path):
     assert item._sample_rate == 1.0
 
 
+def test_bar_chart_uses_threshold_colors(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    points = [
+        (start, 9.0),
+        (start + timedelta(seconds=1), 10.0),
+        (start + timedelta(seconds=2), 15.0),
+        (start + timedelta(seconds=3), 20.0),
+        (start + timedelta(seconds=4), 21.0),
+    ]
+
+    chart = tmp_path / item._write_chart("Threshold test", points, thresholds=(10, 20))
+    bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
+
+    assert [bar.attrib["class"] for bar in bars] == [
+        "metric-bar metric-bar-green",
+        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-red",
+    ]
+
+
+def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+
+    chart = tmp_path / item._write_chart("Default color test", [(timestamp, 10.0)])
+    bar = ElementTree.parse(chart).getroot().find(".//{http://www.w3.org/2000/svg}rect")
+
+    assert bar is not None
+    assert bar.attrib["class"] == "metric-bar"
+
+
+def test_overview_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypatch):
+    item = OverviewItem(str(tmp_path), {})
+    item._disk_queue_metrics = {"disk.queue": "sda"}
+    item._mount_metrics = {
+        "/data": {
+            "free": "mount.free",
+            "capacity": "mount.capacity",
+        }
+    }
+    chart_thresholds = {}
+
+    def write_chart(metric, points, *, slug=None, thresholds=None):
+        chart_thresholds[metric] = thresholds
+        return f"charts/{slug or metric}.svg"
+
+    monkeypatch.setattr(item, "_write_chart", write_chart)
+
+    item.finalize_analysis()
+
+    assert chart_thresholds[DERIVED_METRIC_NAMES["system_memory_utilization"]] == (85, 95)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]] == (15, 25)
+    assert chart_thresholds[CPU_METRICS["user"].name] == (85, 95)
+    assert chart_thresholds[CPU_METRICS["iowait"].name] == (10, 20)
+    assert chart_thresholds[CPU_METRICS["system"].name] == (20, 30)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_fill"]] == (80, 95)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_dirty"]] == (15, 20)
+    assert chart_thresholds[f'{DISK_METRICS["io_in_progress"].name} (sda)'] == (1, 2)
+    assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
+    assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
+    assert chart_thresholds[OPCOUNTER_METRICS["query"].name] is None
+
+
+@pytest.mark.parametrize(
+    "thresholds",
+    [
+        [10],
+        [10, 20, 30],
+        [20, 10],
+        [10, 10],
+        [10, float("inf")],
+        ["low", "high"],
+        True,
+    ],
+)
+def test_bar_chart_rejects_invalid_thresholds(tmp_path, thresholds):
+    item = OverviewItem(str(tmp_path), {})
+
+    with pytest.raises(ValueError, match="chart thresholds"):
+        item._write_chart("Invalid thresholds", [], thresholds=thresholds)
+
+
 def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeypatch):
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
     calls = []

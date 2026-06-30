@@ -51,6 +51,35 @@ class OverviewItem(BaseItem):
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
 
+    @staticmethod
+    def _parse_bar_chart_thresholds(
+        thresholds: Optional[tuple[float, float]],
+    ) -> Optional[tuple[float, float]]:
+        if thresholds is None:
+            return None
+        if not isinstance(thresholds, (list, tuple)) or len(thresholds) != 2:
+            raise ValueError("chart thresholds must contain exactly two numbers")
+        if any(isinstance(threshold, bool) for threshold in thresholds):
+            raise ValueError("chart thresholds must contain exactly two numbers")
+        try:
+            lower, upper = (float(threshold) for threshold in thresholds)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("chart thresholds must contain exactly two numbers") from exc
+        if not isfinite(lower) or not isfinite(upper) or lower >= upper:
+            raise ValueError("chart thresholds must be finite and ordered from lowest to highest")
+        return lower, upper
+
+    @staticmethod
+    def _bar_class(value: float, thresholds: Optional[tuple[float, float]]) -> str:
+        if thresholds is None:
+            return "metric-bar"
+        lower, upper = thresholds
+        if value < lower:
+            return "metric-bar metric-bar-green"
+        if value > upper:
+            return "metric-bar metric-bar-red"
+        return "metric-bar metric-bar-yellow"
+
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
         if self._mongodb_config is None:
@@ -147,6 +176,7 @@ class OverviewItem(BaseItem):
                     subtract=True,
                 ),
                 "%",
+                thresholds=(85, 95),
             ),
             self._summary(
                 DERIVED_METRIC_NAMES["memory_fragmentation_ratio"],
@@ -156,10 +186,26 @@ class OverviewItem(BaseItem):
                     subtract=True,
                 ),
                 "%",
+                thresholds=(15, 25),
             ),
-            self._summary(CPU_METRICS["user"].name, self._cpu_rates(CPU_METRICS["user"].key), "%"),
-            self._summary(CPU_METRICS["system"].name, self._cpu_rates(CPU_METRICS["system"].key), "%"),
-            self._summary(CPU_METRICS["iowait"].name, self._cpu_rates(CPU_METRICS["iowait"].key), "%"),
+            self._summary(
+                CPU_METRICS["user"].name,
+                self._cpu_rates(CPU_METRICS["user"].key),
+                "%",
+                thresholds=(85, 95),
+            ),
+            self._summary(
+                CPU_METRICS["system"].name,
+                self._cpu_rates(CPU_METRICS["system"].key),
+                "%",
+                thresholds=(20, 30),
+            ),
+            self._summary(
+                CPU_METRICS["iowait"].name,
+                self._cpu_rates(CPU_METRICS["iowait"].key),
+                "%",
+                thresholds=(10, 20),
+            ),
             self._summary(
                 DERIVED_METRIC_NAMES["cache_fill"],
                 self._ratio(
@@ -167,6 +213,7 @@ class OverviewItem(BaseItem):
                     WIREDTIGER_CACHE_METRICS["bytes_current"].key,
                 ),
                 "%",
+                thresholds=(80, 95),
             ),
             self._summary(
                 DERIVED_METRIC_NAMES["cache_dirty"],
@@ -175,6 +222,7 @@ class OverviewItem(BaseItem):
                     WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
                 ),
                 "%",
+                thresholds=(15, 20),
             ),
         ]
         for metric, block_device in sorted(self._disk_queue_metrics.items(), key=lambda item: item[1]):
@@ -189,6 +237,7 @@ class OverviewItem(BaseItem):
                     points,
                     "requests",
                     slug=f"disk-queue-length-{self._mount_slug(block_device)}",
+                    thresholds=(1, 2),
                 )
             )
 
@@ -225,6 +274,7 @@ class OverviewItem(BaseItem):
                     ),
                     "%",
                     slug=f"disk-utilization-{slug}",
+                    thresholds=(80, 90),
                 )
             )
 
@@ -306,6 +356,7 @@ class OverviewItem(BaseItem):
         unit: str,
         *,
         slug: Optional[str] = None,
+        thresholds: Optional[tuple[float, float]] = None,
     ) -> dict:
         values = [value for _, value in points]
         return {
@@ -313,7 +364,7 @@ class OverviewItem(BaseItem):
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
             "unit": unit,
-            "chart": self._write_chart(metric, points, slug=slug),
+            "chart": self._write_chart(metric, points, slug=slug, thresholds=thresholds),
         }
 
     def _write_chart(
@@ -322,7 +373,9 @@ class OverviewItem(BaseItem):
         points: list[tuple[datetime, float]],
         *,
         slug: Optional[str] = None,
+        thresholds: Optional[tuple[float, float]] = None,
     ) -> str:
+        parsed_thresholds = self._parse_bar_chart_thresholds(thresholds)
         chart_folder = self.output_folder / "charts"
         chart_folder.mkdir(parents=True, exist_ok=True)
         slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
@@ -348,8 +401,9 @@ class OverviewItem(BaseItem):
                 x = left + x_ratio * plot_width - bar_width / 2
                 bar_h = (value / scale_max) * plot_height
                 y = top + plot_height - bar_h
+                bar_class = self._bar_class(value, parsed_thresholds)
                 bars += (
-                    f'<rect class="metric-bar" x="{x:.2f}" y="{y:.2f}" '
+                    f'<rect class="{bar_class}" x="{x:.2f}" y="{y:.2f}" '
                     f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
                 )
         else:
@@ -366,6 +420,9 @@ class OverviewItem(BaseItem):
             "text{font:9px sans-serif;fill:#57606a}"
             ".metric-bar{fill:#0969da}"
             "@media (prefers-color-scheme:dark){.metric-bar{fill:#58a6ff}}"
+            ".metric-bar-green{fill:green}"
+            ".metric-bar-yellow{fill:yellow}"
+            ".metric-bar-red{fill:red}"
             "</style>"
             f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#8c959f"/>'
             f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
