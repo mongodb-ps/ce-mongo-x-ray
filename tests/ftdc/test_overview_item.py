@@ -205,8 +205,12 @@ def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
     assert item._results["Performance"][2]["peak"] == 0
 
 
-def test_overview_displays_capture_metadata_and_sections(tmp_path):
-    item = OverviewItem(str(tmp_path), {}, total_ingest_files=4)
+def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
+    item = OverviewItem(
+        str(tmp_path),
+        {"max_sample_gap_seconds": 15, "sample_rate": 0.25},
+        total_ingest_files=4,
+    )
     item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
     item.finalize_analysis()
@@ -217,8 +221,11 @@ def test_overview_displays_capture_metadata_and_sections(tmp_path):
     report = output.getvalue()
     assert "Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "Sample rate: `0.25`" in report
-    assert "## 1. FTDC Overview" in report
-    assert "### 1.1. Workload" in report
-    assert "### 1.2. Read/Write Operations and Latencies" in report
-    assert "### 1.3. Performance" in report
+    assert (
+        'Parsed configuration:\n\n```json\n{\n  "max_sample_gap_seconds": 15,\n  "sample_rate": 0.25\n}\n```' in report
+    )
+    assert "## 1 FTDC Overview" in report
+    assert "### 1.1 Workload" in report
+    assert "### 1.2 Read/Write Operations and Latencies" in report
+    assert "### 1.3 Performance" in report
     assert "#### Overview" not in report

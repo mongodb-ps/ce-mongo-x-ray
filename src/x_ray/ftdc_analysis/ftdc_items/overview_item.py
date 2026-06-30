@@ -1,5 +1,6 @@
 """Workload, latency, and host performance summaries for FTDC captures."""
 
+import json
 import re
 from datetime import datetime
 from html import escape
@@ -223,7 +224,7 @@ class OverviewItem(BaseItem):
 
         self._results = {
             "Workload": workload,
-            "Read/Write Operations and Latencies": read_write,
+            "Ops and Latencies": read_write,
             "Performance": performance,
         }
 
@@ -371,7 +372,7 @@ class OverviewItem(BaseItem):
         return relative_path.as_posix()
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
-        output.write(f"## {section_number}. FTDC Overview\n\n")
+        output.write(f"## {section_number} FTDC Overview\n\n")
         if self._capture_start is not None and self._capture_end is not None:
             start = self._capture_start.isoformat()
             end = self._capture_end.isoformat()
@@ -379,7 +380,9 @@ class OverviewItem(BaseItem):
         else:
             output.write("Capture timespan: _No data available._\n\n")
         output.write(f"Sample rate: `{self._sample_rate:.6g}`\n\n")
+        output.write("Parsed configuration:\n\n")
+        output.write(f"```json\n{json.dumps(self.config, indent=2, sort_keys=True, default=str)}\n```\n\n")
         parser = OverviewParser()
         for subsection_number, (section, results) in enumerate(self._results.items(), start=1):
-            output.write(f"### {section_number}.{subsection_number}. {section}\n\n")
+            output.write(f"### {section_number}.{subsection_number} {section}\n\n")
             output.write(parser.markdown(results, caption=None))
