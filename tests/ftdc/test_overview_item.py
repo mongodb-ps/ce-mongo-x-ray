@@ -99,7 +99,7 @@ def test_overview_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypa
     assert chart_thresholds[CPU_METRICS["system"].name] == (20, 30)
     assert chart_thresholds[DERIVED_METRIC_NAMES["cache_fill"]] == (80, 95)
     assert chart_thresholds[DERIVED_METRIC_NAMES["cache_dirty"]] == (5, 20)
-    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_update_ratio"]] == (10, 15)
+    assert chart_thresholds[DERIVED_METRIC_NAMES["cache_update_ratio"]] == (2.5, 10)
     assert chart_thresholds[f'{DISK_METRICS["io_in_progress"].name} (sda)'] == (1, 2)
     assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None

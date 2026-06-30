@@ -87,30 +87,28 @@
             outline.appendChild(ul);
             var outlineWidth = outline.offsetWidth + 20;
             body.style.margin = '0 auto 0 ' + outlineWidth + 'px';
-            expand = document.getElementById('expand-outline');
-            collapse = document.getElementById('collapse-outline');
-            b = outline.getElementsByTagName('b')[0];
-            state = 1;
-            states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
+            var expand = document.getElementById('expand-outline');
+            var collapse = document.getElementById('collapse-outline');
+            var state = 1;
+            var margins = ["0 auto", '0 auto 0 ' + outlineWidth + 'px'];
             window.onresize = function () {
-                blank = (getWindowWidth() - VIEWPORT_WIDTH) / 2;
+                var blank = (getWindowWidth() - VIEWPORT_WIDTH) / 2;
                 if (blank > outlineWidth) {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 auto']];
+                    margins = ["0 auto", "0 auto"];
                 } else {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
+                    margins = ["0 auto", '0 auto 0 ' + outlineWidth + 'px'];
                 }
-                body.style.margin = states[4][state];
+                body.style.margin = margins[state];
                 for (var i = 0; i < charts.length; i++) {
                     charts[i].resize();
                 }
             };
-            click = function () {
+            var click = function () {
                 state = state == 0 ? 1 : 0;
-                ul.style.display = states[0][state];
-                b.style.display = states[1][state];
-                expand.style.display = states[2][state];
-                collapse.style.display = states[3][state];
-                body.style.margin = states[4][state];
+                outline.style.display = state ? "block" : "none";
+                expand.style.display = state ? "none" : "inline";
+                body.style.margin = margins[state];
+                window.dispatchEvent(new Event("resize"));
                 return false;
             };
             collapse.onclick = click;
@@ -194,6 +192,9 @@
         }
 
         #expand-outline {
+            position: fixed;
+            top: 16px;
+            left: 16px;
             padding: 6px 10px;
             background: var(--bgColor-muted, #f6f8fa);
             border: 1px solid var(--borderColor-default, #d0d7de);
@@ -243,16 +244,20 @@
             #outline {
                 display: none;
             }
+
+            #expand-outline {
+                display: none !important;
+            }
         }
     </style>
 </head>
 
 <body class="markdown-body">
-    <div id="outline">
-        <a href="#" id="collapse-outline">&#x25C0;</a>
+    <nav id="outline" aria-label="Report outline">
+        <a href="#" id="collapse-outline" aria-label="Collapse report outline">&#x25C0;</a>
         <b>Report Outline</b>
-        <a href="#" style="display: none;" id="expand-outline">&#x25B6;</a>
-    </div>
+    </nav>
+    <a href="#" style="display: none;" id="expand-outline" aria-label="Expand report outline">&#x25B6;</a>
     {{ content }}
 </body>
 
