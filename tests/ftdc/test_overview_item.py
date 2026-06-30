@@ -13,7 +13,9 @@ from x_ray.ftdc_analysis.shared import (
     MEMORY_METRICS,
     MOUNT_METRICS,
     OPCOUNTER_METRICS,
+    OPCOUNTER_REPL_METRICS,
     OP_LATENCY_METRICS,
+    REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
     WIREDTIGER_CACHE_METRICS,
 )
@@ -53,7 +55,7 @@ def test_bar_chart_uses_threshold_colors(tmp_path):
 
     assert [bar.attrib["class"] for bar in bars] == [
         "metric-bar metric-bar-green",
-        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-green",
         "metric-bar metric-bar-yellow",
         "metric-bar metric-bar-yellow",
         "metric-bar metric-bar-red",
@@ -139,6 +141,10 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
                 "systemMetrics.mounts./data/db.free",
                 "systemMetrics.mounts./data/db.capacity",
                 "systemMetrics.mounts./proc/acpi.free",
+                "replSetGetStatus.members.0.state",
+                "replSetGetStatus.members.0.self",
+                "replSetGetStatus.members.1.state",
+                "replSetGetStatus.members.1.health",
                 "unrelated.metric",
             ]
 
@@ -165,6 +171,9 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
         "systemMetrics.disks.sda.io_in_progress",
         "systemMetrics.mounts./data/db.free",
         "systemMetrics.mounts./data/db.capacity",
+        "replSetGetStatus.members.0.state",
+        "replSetGetStatus.members.0.self",
+        "replSetGetStatus.members.1.state",
     }
     assert calls[0][3] == 0.5
     assert calls[0][1] is None
@@ -176,6 +185,13 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
             "free": "systemMetrics.mounts./data/db.free",
             "capacity": "systemMetrics.mounts./data/db.capacity",
         }
+    }
+    assert item._rs_member_metrics == {
+        "0": {
+            "state": "replSetGetStatus.members.0.state",
+            "self": "replSetGetStatus.members.0.self",
+        },
+        "1": {"state": "replSetGetStatus.members.1.state"},
     }
     assert item._capture_start == timestamp
     assert item._capture_end == timestamp
@@ -217,6 +233,9 @@ def test_overview_calculates_requested_sections(tmp_path):
         WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
         "systemMetrics.disks.sda.io_in_progress": {start: 2, middle: 3, end: 4},
         "systemMetrics.disks.sdb.io_in_progress": {start: 1, middle: 2, end: 3},
+        "replSetGetStatus.members.0.state": {start: 1, middle: 1, end: 1},
+        "replSetGetStatus.members.0.self": {start: 1, middle: 1, end: 1},
+        "replSetGetStatus.members.1.state": {start: 2, middle: 2, end: 3},
         "systemMetrics.mounts./.free": {start: 2 * gib, middle: 1.5 * gib, end: gib},
         "systemMetrics.mounts./.capacity": {start: 4 * gib, middle: 4 * gib, end: 4 * gib},
         "systemMetrics.mounts./data/db.free": {start: 4 * gib, middle: 3 * gib, end: 2 * gib},
@@ -225,6 +244,13 @@ def test_overview_calculates_requested_sections(tmp_path):
     item._disk_queue_metrics = {
         "systemMetrics.disks.sda.io_in_progress": "sda",
         "systemMetrics.disks.sdb.io_in_progress": "sdb",
+    }
+    item._rs_member_metrics = {
+        "0": {
+            "state": "replSetGetStatus.members.0.state",
+            "self": "replSetGetStatus.members.0.self",
+        },
+        "1": {"state": "replSetGetStatus.members.1.state"},
     }
     item._mount_metrics = {
         "/": {
@@ -243,6 +269,7 @@ def test_overview_calculates_requested_sections(tmp_path):
         "Workload",
         "Ops and Latencies",
         "Performance",
+        "Member State",
     ]
     workload = item._results["Workload"]
     assert [result["metric"] for result in workload] == [metric.name for metric in OPCOUNTER_METRICS.values()]
@@ -265,6 +292,15 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert performance[DERIVED_METRIC_NAMES["cache_dirty"]]["peak"] == 20
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sda)']["average"] == 3
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sdb)']["average"] == 2
+    member_states = {result["metric"]: result for result in item._results["Member State"]}
+    local_state = member_states[f'{REPL_SET_MEMBER_METRICS["state"].name} (0)']
+    remote_state = member_states[f'{REPL_SET_MEMBER_METRICS["state"].name} (1)']
+    assert local_state["member"] == "0"
+    assert local_state["myself"] == "Yes"
+    assert remote_state["myself"] == "No"
+    assert "peak" not in local_state
+    assert "average" not in local_state
+    assert remote_state["chart"] == "charts/ftdc-overview-rs-member-state-1.svg"
     assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
@@ -276,6 +312,59 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert all(chart.is_file() for chart in chart_paths)
     for chart in chart_paths:
         assert ElementTree.parse(chart).getroot().tag == "{http://www.w3.org/2000/svg}svg"
+
+
+def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    end = start + timedelta(seconds=1)
+    item._series = {
+        OPCOUNTER_METRICS["query"].key: {start: 100, end: 200},
+        OPCOUNTER_REPL_METRICS["query"].key: {start: 100, end: 107},
+        "replSetGetStatus.members.1.state": {start: 1, end: 2},
+        "replSetGetStatus.members.1.self": {start: 1, end: 1},
+    }
+    item._rs_member_metrics = {
+        "1": {
+            "state": "replSetGetStatus.members.1.state",
+            "self": "replSetGetStatus.members.1.self",
+        }
+    }
+
+    item.finalize_analysis()
+    output = StringIO()
+    item.review_results_markdown(output)
+
+    workload = item._results["Workload"]
+    assert [result["metric"] for result in workload] == [metric.name for metric in OPCOUNTER_REPL_METRICS.values()]
+    assert workload[0]["peak"] == 7
+    assert "Local replica-set member role: `SECONDARY` (using `opcountersRepl`)." in output.getvalue()
+
+
+def test_non_primary_or_secondary_state_skips_standard_sections(tmp_path):
+    item = OverviewItem(str(tmp_path), {})
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._series = {
+        "replSetGetStatus.members.0.state": {timestamp: 3},
+        "replSetGetStatus.members.0.self": {timestamp: 1},
+    }
+    item._rs_member_metrics = {
+        "0": {
+            "state": "replSetGetStatus.members.0.state",
+            "self": "replSetGetStatus.members.0.self",
+        }
+    }
+
+    item.finalize_analysis()
+    output = StringIO()
+    item.review_results_markdown(output)
+    report = output.getvalue()
+
+    assert list(item._results) == ["Member State"]
+    assert "### 1.1 Workload" not in report
+    assert "### 1.2 Ops and Latencies" not in report
+    assert "### 1.3 Performance" not in report
+    assert "### 1.4 Member State" in report
 
 
 def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
@@ -320,4 +409,5 @@ def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
+    assert "### 1.4 Member State" in report
     assert "#### Overview" not in report

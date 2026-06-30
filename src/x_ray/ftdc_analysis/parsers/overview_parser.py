@@ -9,6 +9,27 @@ class OverviewParser(BaseParser):
     """Convert overview metric summaries to a report table."""
 
     def parse(self, data: Any, **kwargs) -> list:
+        if kwargs.get("member_state"):
+            return [
+                {
+                    "type": "table",
+                    "caption": kwargs.get("caption", "Member State"),
+                    "header": [
+                        {"text": "Member", "align": "left"},
+                        "Myself",
+                        "Chart",
+                    ],
+                    "rows": [
+                        [
+                            item["member"],
+                            item["myself"],
+                            f'![{item["metric"]} bar chart]({item["chart"]})',
+                        ]
+                        for item in data
+                    ],
+                }
+            ]
+
         rows = [
             [
                 f'{item["metric"]} ({item["unit"]})',

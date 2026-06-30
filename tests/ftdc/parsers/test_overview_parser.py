@@ -34,3 +34,36 @@ def test_parse_overview_table():
             ],
         }
     ]
+
+
+def test_parse_member_state_table_without_peak_and_average():
+    parsed = OverviewParser().parse(
+        [
+            {
+                "member": "0",
+                "metric": "Replica set member state (0)",
+                "myself": "Yes",
+                "chart": "charts/ftdc-overview-rs-member-state-0.svg",
+            }
+        ],
+        member_state=True,
+    )
+
+    assert parsed == [
+        {
+            "type": "table",
+            "caption": "Member State",
+            "header": [
+                {"text": "Member", "align": "left"},
+                "Myself",
+                "Chart",
+            ],
+            "rows": [
+                [
+                    "0",
+                    "Yes",
+                    "![Replica set member state (0) bar chart](charts/ftdc-overview-rs-member-state-0.svg)",
+                ]
+            ],
+        }
+    ]

@@ -170,6 +170,12 @@ MOUNT_METRICS: Final = {
     "free": Metric("Disk free", "free"),
 }
 
+REPL_SET_MEMBER_METRIC_PREFIX: Final = "replSetGetStatus.members."
+REPL_SET_MEMBER_METRICS: Final = {
+    "state": Metric("Replica set member state", "state"),
+    "self": Metric("Local replica set member", "self"),
+}
+
 DERIVED_METRIC_NAMES: Final = {
     "system_memory_utilization": "System memory utilization",
     "memory_fragmentation_ratio": "Memory fragmentation ratio",
@@ -193,6 +199,7 @@ OVERVIEW_STATIC_METRICS: Final = {
     WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
     WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
     *(metric.key for metric in OPCOUNTER_METRICS.values()),
+    *(metric.key for metric in OPCOUNTER_REPL_METRICS.values()),
     *(
         metric.key
         for operation in ("reads", "writes")

@@ -22,8 +22,11 @@ from x_ray.ftdc_analysis.shared import (
     MOUNT_METRIC_PREFIX,
     MOUNT_METRICS,
     OPCOUNTER_METRICS,
+    OPCOUNTER_REPL_METRICS,
     OP_LATENCY_METRICS,
     OVERVIEW_STATIC_METRICS,
+    REPL_SET_MEMBER_METRIC_PREFIX,
+    REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
     WIREDTIGER_CACHE_METRICS,
 )
@@ -46,10 +49,13 @@ class OverviewItem(BaseItem):
         self._series: dict[str, dict[datetime, float]] = {}
         self._disk_queue_metrics: dict[str, str] = {}
         self._mount_metrics: dict[str, dict[str, str]] = {}
+        self._rs_member_metrics: dict[str, dict[str, str]] = {}
         self._results: dict[str, list[dict]] = {}
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
+        self._workload_is_secondary = False
+        self._show_standard_sections = True
 
     @staticmethod
     def _parse_bar_chart_thresholds(
@@ -74,7 +80,7 @@ class OverviewItem(BaseItem):
         if thresholds is None:
             return "metric-bar"
         lower, upper = thresholds
-        if value < lower:
+        if value <= lower:
             return "metric-bar metric-bar-green"
         if value > upper:
             return "metric-bar metric-bar-red"
@@ -100,6 +106,11 @@ class OverviewItem(BaseItem):
                 mount_point, field = mount_metric
                 wanted.add(metric)
                 self._mount_metrics.setdefault(mount_point, {})[field] = metric
+            member_metric = self._rs_member_metric(metric)
+            if member_metric is not None:
+                member, field = member_metric
+                wanted.add(metric)
+                self._rs_member_metrics.setdefault(member, {})[field] = metric
 
         if not wanted:
             return
@@ -137,6 +148,17 @@ class OverviewItem(BaseItem):
         return None
 
     @staticmethod
+    def _rs_member_metric(metric: str) -> Optional[tuple[str, str]]:
+        if not metric.startswith(REPL_SET_MEMBER_METRIC_PREFIX):
+            return None
+        for field, definition in REPL_SET_MEMBER_METRICS.items():
+            suffix = f".{definition.key}"
+            if metric.endswith(suffix):
+                member = metric[len(REPL_SET_MEMBER_METRIC_PREFIX) : -len(suffix)]
+                return (member, field) if member else None
+        return None
+
+    @staticmethod
     def _is_data_volume_mount(mount_point: str) -> bool:
         """Exclude virtual filesystems and common container file bind mounts."""
         virtual_roots = ("/dev", "/proc", "/sys")
@@ -144,9 +166,29 @@ class OverviewItem(BaseItem):
             return False
         return mount_point not in {"/etc/hostname", "/etc/hosts", "/etc/resolv.conf"}
 
+    def _local_rs_members(self) -> set[str]:
+        return {
+            member
+            for member, metrics in self._rs_member_metrics.items()
+            if any(isfinite(value) and value != 0 for value in self._series.get(metrics.get("self", ""), {}).values())
+        }
+
+    def _latest_member_state(self, member: str) -> Optional[int]:
+        state_metric = self._rs_member_metrics.get(member, {}).get("state")
+        points = self._series.get(state_metric or "", {})
+        if not points:
+            return None
+        value = points[max(points)]
+        return int(value) if isfinite(value) else None
+
     def finalize_analysis(self) -> None:
+        local_members = self._local_rs_members()
+        local_states = {state for member in local_members if (state := self._latest_member_state(member)) is not None}
+        self._show_standard_sections = not local_states or local_states <= {1, 2}
+        self._workload_is_secondary = self._show_standard_sections and 2 in local_states
+        workload_metrics = OPCOUNTER_REPL_METRICS if self._workload_is_secondary else OPCOUNTER_METRICS
         workload = [
-            self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in OPCOUNTER_METRICS.values()
+            self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in workload_metrics.values()
         ]
 
         read_write = []
@@ -241,6 +283,32 @@ class OverviewItem(BaseItem):
                 )
             )
 
+        member_states = []
+        local_member_known = bool(local_members)
+        for member, metrics in sorted(self._rs_member_metrics.items()):
+            metric = metrics.get("state")
+            if metric is None:
+                continue
+            points = [
+                (timestamp, value)
+                for timestamp, value in sorted(self._series.get(metric, {}).items())
+                if isfinite(value)
+            ]
+            display_metric = f'{REPL_SET_MEMBER_METRICS["state"].name} ({member})'
+            member_states.append(
+                {
+                    "member": member,
+                    "metric": display_metric,
+                    "myself": "Yes" if member in local_members else "No" if local_member_known else "Unknown",
+                    "chart": self._write_chart(
+                        display_metric,
+                        points,
+                        slug=f"rs-member-state-{self._mount_slug(member)}",
+                        thresholds=(1, 2),
+                    ),
+                }
+            )
+
         used_mount_slugs: set[str] = set()
         for mount_point, metrics in sorted(self._mount_metrics.items()):
             free_points = [
@@ -278,11 +346,16 @@ class OverviewItem(BaseItem):
                 )
             )
 
-        self._results = {
-            "Workload": workload,
-            "Ops and Latencies": read_write,
-            "Performance": performance,
-        }
+        self._results = {}
+        if self._show_standard_sections:
+            self._results.update(
+                {
+                    "Workload": workload,
+                    "Ops and Latencies": read_write,
+                    "Performance": performance,
+                }
+            )
+        self._results["Member State"] = member_states
 
     @staticmethod
     def _mount_slug(mount_point: str) -> str:
@@ -447,6 +520,21 @@ class OverviewItem(BaseItem):
         mongodb_config = self._mongodb_config or {}
         output.write(f"```json\n{json.dumps(mongodb_config, indent=2, sort_keys=True, default=str)}\n```\n\n")
         parser = OverviewParser()
-        for subsection_number, (section, results) in enumerate(self._results.items(), start=1):
+        subsection_numbers = {
+            "Workload": 1,
+            "Ops and Latencies": 2,
+            "Performance": 3,
+            "Member State": 4,
+        }
+        for section, results in self._results.items():
+            subsection_number = subsection_numbers[section]
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
-            output.write(parser.markdown(results, caption=None))
+            if section == "Workload" and self._workload_is_secondary:
+                output.write("Local replica-set member role: `SECONDARY` (using `opcountersRepl`).\n\n")
+            output.write(
+                parser.markdown(
+                    results,
+                    caption=None,
+                    member_state=section == "Member State",
+                )
+            )
