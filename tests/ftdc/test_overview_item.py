@@ -57,6 +57,9 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
                 "unrelated.metric",
             ]
 
+        def get_config(self):
+            return {"net": {"port": 27017}}
+
         def get_metric(self, names, start, end, sample_rate=1.0):
             calls.append((names, start, end, sample_rate))
             return {name: [DataPoint(timestamp=timestamp, value=10)] for name in names}
@@ -91,6 +94,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
     }
     assert item._capture_start == timestamp
     assert item._capture_end == timestamp
+    assert item._mongodb_config == {"net": {"port": 27017}}
 
 
 def test_mount_detection_excludes_virtual_and_container_bind_mounts():
@@ -152,7 +156,7 @@ def test_overview_calculates_requested_sections(tmp_path):
 
     assert list(item._results) == [
         "Workload",
-        "Read/Write Operations and Latencies",
+        "Ops and Latencies",
         "Performance",
     ]
     workload = item._results["Workload"]
@@ -160,7 +164,7 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert workload[0]["peak"] == 20
     assert workload[0]["average"] == 15
 
-    reads, read_latency, writes, write_latency = item._results["Read/Write Operations and Latencies"]
+    reads, read_latency, writes, write_latency = item._results["Ops and Latencies"]
     assert (reads["peak"], reads["average"]) == (20, 15)
     assert (read_latency["peak"], read_latency["average"]) == (4, 3.5)
     assert (writes["peak"], writes["average"]) == (10, 7.5)
@@ -213,6 +217,10 @@ def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
     )
     item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+    item._mongodb_config = {
+        "net": {"bindIp": "*"},
+        "security": {"authorization": "enabled"},
+    }
     item.finalize_analysis()
     output = StringIO()
 
@@ -221,11 +229,10 @@ def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
     report = output.getvalue()
     assert "Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "Sample rate: `0.25`" in report
-    assert (
-        'Parsed configuration:\n\n```json\n{\n  "max_sample_gap_seconds": 15,\n  "sample_rate": 0.25\n}\n```' in report
-    )
+    assert 'MongoDB configuration:\n\n```json\n{\n  "net": {\n    "bindIp": "*"\n  },' in report
+    assert '"security": {\n    "authorization": "enabled"\n  }\n}\n```' in report
     assert "## 1 FTDC Overview" in report
     assert "### 1.1 Workload" in report
-    assert "### 1.2 Read/Write Operations and Latencies" in report
+    assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "#### Overview" not in report

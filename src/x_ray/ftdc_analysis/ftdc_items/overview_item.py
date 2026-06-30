@@ -9,7 +9,7 @@ from pathlib import Path
 from statistics import fmean
 from typing import Optional
 
-from pyftdc import FTDCReader
+from pyftdc import FTDCError, FTDCReader
 
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.overview_parser import OverviewParser
@@ -49,9 +49,15 @@ class OverviewItem(BaseItem):
         self._results: dict[str, list[dict]] = {}
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
+        self._mongodb_config: Optional[dict] = None
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
+        if self._mongodb_config is None:
+            try:
+                self._mongodb_config = reader.get_config()
+            except FTDCError:
+                self._logger.debug("MongoDB configuration not found in FTDC file: %s", file_path)
         available = set(reader.list_metrics())
         wanted = OVERVIEW_STATIC_METRICS & available
 
@@ -380,8 +386,9 @@ class OverviewItem(BaseItem):
         else:
             output.write("Capture timespan: _No data available._\n\n")
         output.write(f"Sample rate: `{self._sample_rate:.6g}`\n\n")
-        output.write("Parsed configuration:\n\n")
-        output.write(f"```json\n{json.dumps(self.config, indent=2, sort_keys=True, default=str)}\n```\n\n")
+        output.write("MongoDB configuration:\n\n")
+        mongodb_config = self._mongodb_config or {}
+        output.write(f"```json\n{json.dumps(mongodb_config, indent=2, sort_keys=True, default=str)}\n```\n\n")
         parser = OverviewParser()
         for subsection_number, (section, results) in enumerate(self._results.items(), start=1):
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
