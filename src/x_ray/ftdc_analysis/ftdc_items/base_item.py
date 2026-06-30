@@ -27,6 +27,6 @@ class BaseItem(ABC):
         """Finish analysis after all input files have been ingested."""
 
     @abstractmethod
-    def review_results_markdown(self, output) -> None:
+    def review_results_markdown(self, output, section_number: int = 1) -> None:
         """Write this item's report section as Markdown."""
         raise NotImplementedError

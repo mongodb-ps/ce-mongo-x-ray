@@ -174,9 +174,9 @@ class Framework:
             output.write(f"Input path: `{self._input_path}`\n\n")
             if not self._items:
                 output.write("_No FTDC analysis items are configured._\n")
-            for item in self._items:
+            for section_number, item in enumerate(self._items, start=1):
                 try:
-                    item.review_results_markdown(output)
+                    item.review_results_markdown(output, section_number)
                 except Exception as exc:  # pylint: disable=broad-exception-caught
                     self._logger.warning(yellow(f"Failed to render FTDC item '{item.name}': {exc}"))
 

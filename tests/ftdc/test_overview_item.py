@@ -8,7 +8,10 @@ from pyftdc import DataPoint
 from x_ray.ftdc_analysis.ftdc_items.overview_item import OverviewItem
 from x_ray.ftdc_analysis.shared import (
     CPU_METRICS,
+    DERIVED_METRIC_NAMES,
+    DISK_METRICS,
     MEMORY_METRICS,
+    MOUNT_METRICS,
     OPCOUNTER_METRICS,
     OP_LATENCY_METRICS,
     TCMALLOC_METRICS,
@@ -44,11 +47,12 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
 
         def list_metrics(self):
             return [
-                CPU_METRICS["user"],
-                CPU_METRICS["system"],
-                CPU_METRICS["available_cores"],
+                CPU_METRICS["user"].key,
+                CPU_METRICS["system"].key,
+                CPU_METRICS["available_cores"].key,
                 "systemMetrics.disks.sda.io_in_progress",
                 "systemMetrics.mounts./data/db.free",
+                "systemMetrics.mounts./data/db.capacity",
                 "systemMetrics.mounts./proc/acpi.free",
                 "unrelated.metric",
             ]
@@ -67,18 +71,24 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
 
     requested = calls[0][0]
     assert requested == {
-        CPU_METRICS["user"],
-        CPU_METRICS["system"],
-        CPU_METRICS["available_cores"],
+        CPU_METRICS["user"].key,
+        CPU_METRICS["system"].key,
+        CPU_METRICS["available_cores"].key,
         "systemMetrics.disks.sda.io_in_progress",
         "systemMetrics.mounts./data/db.free",
+        "systemMetrics.mounts./data/db.capacity",
     }
     assert calls[0][3] == 0.5
     assert calls[0][1] is None
     assert calls[0][2] is None
     assert "unrelated.metric" not in item._series
-    assert item._disk_queue_metrics == {"systemMetrics.disks.sda.io_in_progress"}
-    assert item._mount_free_metrics == {"systemMetrics.mounts./data/db.free": "/data/db"}
+    assert item._disk_queue_metrics == {"systemMetrics.disks.sda.io_in_progress": "sda"}
+    assert item._mount_metrics == {
+        "/data/db": {
+            "free": "systemMetrics.mounts./data/db.free",
+            "capacity": "systemMetrics.mounts./data/db.capacity",
+        }
+    }
     assert item._capture_start == timestamp
     assert item._capture_end == timestamp
 
@@ -100,34 +110,42 @@ def test_overview_calculates_requested_sections(tmp_path):
     end = middle + timedelta(seconds=1)
     gib = 1024**3
     item._series = {
-        OPCOUNTER_METRICS["query"]: {start: 100, middle: 110, end: 130},
-        OP_LATENCY_METRICS["reads"]["ops"]: {start: 100, middle: 110, end: 130},
-        OP_LATENCY_METRICS["reads"]["latency"]: {start: 100_000, middle: 130_000, end: 210_000},
-        OP_LATENCY_METRICS["writes"]["ops"]: {start: 50, middle: 55, end: 65},
-        OP_LATENCY_METRICS["writes"]["latency"]: {start: 40_000, middle: 50_000, end: 80_000},
-        CPU_METRICS["available_cores"]: {start: 2, middle: 2, end: 2},
-        CPU_METRICS["user"]: {start: 1000, middle: 1200, end: 1600},
-        CPU_METRICS["system"]: {start: 500, middle: 600, end: 800},
-        CPU_METRICS["iowait"]: {start: 100, middle: 140, end: 200},
-        MEMORY_METRICS["total"]: {start: 1000, middle: 1000, end: 1000},
-        MEMORY_METRICS["available"]: {start: 400, middle: 350, end: 300},
-        TCMALLOC_METRICS["heap_size"]: {start: 100, middle: 100, end: 100},
-        TCMALLOC_METRICS["current_allocated_bytes"]: {start: 70, middle: 65, end: 60},
-        WIREDTIGER_CACHE_METRICS["bytes_maximum"]: {start: 100, middle: 100, end: 100},
-        WIREDTIGER_CACHE_METRICS["bytes_current"]: {start: 70, middle: 75, end: 80},
-        WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"]: {start: 10, middle: 15, end: 20},
+        OPCOUNTER_METRICS["query"].key: {start: 100, middle: 110, end: 130},
+        OP_LATENCY_METRICS["reads"]["ops"].key: {start: 100, middle: 110, end: 130},
+        OP_LATENCY_METRICS["reads"]["latency"].key: {start: 100_000, middle: 130_000, end: 210_000},
+        OP_LATENCY_METRICS["writes"]["ops"].key: {start: 50, middle: 55, end: 65},
+        OP_LATENCY_METRICS["writes"]["latency"].key: {start: 40_000, middle: 50_000, end: 80_000},
+        CPU_METRICS["available_cores"].key: {start: 2, middle: 2, end: 2},
+        CPU_METRICS["user"].key: {start: 1000, middle: 1200, end: 1600},
+        CPU_METRICS["system"].key: {start: 500, middle: 600, end: 800},
+        CPU_METRICS["iowait"].key: {start: 100, middle: 140, end: 200},
+        MEMORY_METRICS["total"].key: {start: 1000, middle: 1000, end: 1000},
+        MEMORY_METRICS["available"].key: {start: 400, middle: 350, end: 300},
+        TCMALLOC_METRICS["heap_size"].key: {start: 100, middle: 100, end: 100},
+        TCMALLOC_METRICS["current_allocated_bytes"].key: {start: 70, middle: 65, end: 60},
+        WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
+        WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
+        WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
         "systemMetrics.disks.sda.io_in_progress": {start: 2, middle: 3, end: 4},
         "systemMetrics.disks.sdb.io_in_progress": {start: 1, middle: 2, end: 3},
         "systemMetrics.mounts./.free": {start: 2 * gib, middle: 1.5 * gib, end: gib},
+        "systemMetrics.mounts./.capacity": {start: 4 * gib, middle: 4 * gib, end: 4 * gib},
         "systemMetrics.mounts./data/db.free": {start: 4 * gib, middle: 3 * gib, end: 2 * gib},
+        "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
     }
     item._disk_queue_metrics = {
-        "systemMetrics.disks.sda.io_in_progress",
-        "systemMetrics.disks.sdb.io_in_progress",
+        "systemMetrics.disks.sda.io_in_progress": "sda",
+        "systemMetrics.disks.sdb.io_in_progress": "sdb",
     }
-    item._mount_free_metrics = {
-        "systemMetrics.mounts./.free": "/",
-        "systemMetrics.mounts./data/db.free": "/data/db",
+    item._mount_metrics = {
+        "/": {
+            "free": "systemMetrics.mounts./.free",
+            "capacity": "systemMetrics.mounts./.capacity",
+        },
+        "/data/db": {
+            "free": "systemMetrics.mounts./data/db.free",
+            "capacity": "systemMetrics.mounts./data/db.capacity",
+        },
     }
 
     item.finalize_analysis()
@@ -138,14 +156,7 @@ def test_overview_calculates_requested_sections(tmp_path):
         "Performance",
     ]
     workload = item._results["Workload"]
-    assert [result["metric"] for result in workload] == [
-        "Query",
-        "Insert",
-        "Update",
-        "Delete",
-        "Command",
-        "Getmore",
-    ]
+    assert [result["metric"] for result in workload] == [metric.name for metric in OPCOUNTER_METRICS.values()]
     assert workload[0]["peak"] == 20
     assert workload[0]["average"] == 15
 
@@ -156,16 +167,21 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert (write_latency["peak"], write_latency["average"]) == (3, 2.5)
 
     performance = {result["metric"]: result for result in item._results["Performance"]}
-    assert performance["System memory utilization"]["peak"] == 70
-    assert performance["Memory fragmentation ratio"]["average"] == 35
-    assert performance["CPU user"]["peak"] == 20
-    assert performance["CPU system"]["average"] == pytest.approx(7.5)
-    assert performance["I/O wait"]["peak"] == 3
-    assert performance["Cache fill"]["average"] == 75
-    assert performance["Cache dirty"]["peak"] == 20
-    assert performance["Disk queue length"]["average"] == 5
-    assert performance["Disk free (/)"]["average"] == 1.5
-    assert performance["Disk free (/data/db)"]["chart"] == "charts/ftdc-overview-disk-free-data-db.svg"
+    assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["peak"] == 70
+    assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == 35
+    assert performance[CPU_METRICS["user"].name]["peak"] == 20
+    assert performance[CPU_METRICS["system"].name]["average"] == pytest.approx(7.5)
+    assert performance[CPU_METRICS["iowait"].name]["peak"] == 3
+    assert performance[DERIVED_METRIC_NAMES["cache_fill"]]["average"] == 75
+    assert performance[DERIVED_METRIC_NAMES["cache_dirty"]]["peak"] == 20
+    assert performance[f'{DISK_METRICS["io_in_progress"].name} (sda)']["average"] == 3
+    assert performance[f'{DISK_METRICS["io_in_progress"].name} (sdb)']["average"] == 2
+    assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
+    assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
+    assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
+    assert (
+        performance[f'{MOUNT_METRICS["free"].name} (/data/db)']["chart"] == "charts/ftdc-overview-disk-free-data-db.svg"
+    )
 
     chart_paths = [tmp_path / result["chart"] for results in item._results.values() for result in results]
     assert all(chart.is_file() for chart in chart_paths)
@@ -178,9 +194,9 @@ def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     late = start + timedelta(seconds=10)
     item._series = {
-        CPU_METRICS["available_cores"]: {start: 2, late: 2},
-        CPU_METRICS["user"]: {start: 100, late: 50},
-        OPCOUNTER_METRICS["query"]: {start: 100, late: 50},
+        CPU_METRICS["available_cores"].key: {start: 2, late: 2},
+        CPU_METRICS["user"].key: {start: 100, late: 50},
+        OPCOUNTER_METRICS["query"].key: {start: 100, late: 50},
     }
 
     item.finalize_analysis()
@@ -196,12 +212,13 @@ def test_overview_displays_capture_metadata_and_sections(tmp_path):
     item.finalize_analysis()
     output = StringIO()
 
-    item.review_results_markdown(output)
+    item.review_results_markdown(output, section_number=1)
 
     report = output.getvalue()
     assert "Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "Sample rate: `0.25`" in report
-    assert "### Workload" in report
-    assert "### Read/Write Operations and Latencies" in report
-    assert "### Performance" in report
+    assert "## 1. FTDC Overview" in report
+    assert "### 1.1. Workload" in report
+    assert "### 1.2. Read/Write Operations and Latencies" in report
+    assert "### 1.3. Performance" in report
     assert "#### Overview" not in report

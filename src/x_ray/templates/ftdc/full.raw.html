@@ -50,6 +50,14 @@
             text-decoration: underline;
         }
 
+        #outline li.outline-h2 {
+            margin-left: 12px;
+        }
+
+        #outline li.outline-h3 {
+            margin-left: 32px;
+        }
+
         #expand-outline {
             position: fixed;
             top: 16px;
@@ -129,6 +137,7 @@
         headings.forEach((heading) => {
             const item = document.createElement("li");
             const link = document.createElement("a");
+            item.classList.add(`outline-${heading.tagName.toLowerCase()}`);
             link.href = `#${heading.id}`;
             link.textContent = heading.textContent;
             item.appendChild(link);

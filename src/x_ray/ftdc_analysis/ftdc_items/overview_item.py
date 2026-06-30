@@ -14,6 +14,7 @@ from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.overview_parser import OverviewParser
 from x_ray.ftdc_analysis.shared import (
     CPU_METRICS,
+    DERIVED_METRIC_NAMES,
     DISK_METRIC_PREFIX,
     DISK_METRICS,
     MEMORY_METRICS,
@@ -42,8 +43,8 @@ class OverviewItem(BaseItem):
         default_sample_rate = 1 / total_ingest_files if total_ingest_files > 0 else 1.0
         self._sample_rate = float(config.get("sample_rate", default_sample_rate))
         self._series: dict[str, dict[datetime, float]] = {}
-        self._disk_queue_metrics: set[str] = set()
-        self._mount_free_metrics: dict[str, str] = {}
+        self._disk_queue_metrics: dict[str, str] = {}
+        self._mount_metrics: dict[str, dict[str, str]] = {}
         self._results: dict[str, list[dict]] = {}
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
@@ -54,13 +55,15 @@ class OverviewItem(BaseItem):
         wanted = OVERVIEW_STATIC_METRICS & available
 
         for metric in available:
-            if metric.startswith(DISK_METRIC_PREFIX) and metric.endswith(f'.{DISK_METRICS["io_in_progress"]}'):
+            block_device = self._block_device(metric)
+            if block_device is not None:
                 wanted.add(metric)
-                self._disk_queue_metrics.add(metric)
-            mount_point = self._mount_point(metric)
-            if mount_point is not None and self._is_data_volume_mount(mount_point):
+                self._disk_queue_metrics[metric] = block_device
+            mount_metric = self._mount_metric(metric)
+            if mount_metric is not None and self._is_data_volume_mount(mount_metric[0]):
+                mount_point, field = mount_metric
                 wanted.add(metric)
-                self._mount_free_metrics[metric] = mount_point
+                self._mount_metrics.setdefault(mount_point, {})[field] = metric
 
         if not wanted:
             return
@@ -81,11 +84,20 @@ class OverviewItem(BaseItem):
                     self._capture_end = point.timestamp
 
     @staticmethod
-    def _mount_point(metric: str) -> Optional[str]:
-        prefix = MOUNT_METRIC_PREFIX
-        suffix = f'.{MOUNT_METRICS["free"]}'
-        if metric.startswith(prefix) and metric.endswith(suffix):
-            return metric[len(prefix) : -len(suffix)]
+    def _block_device(metric: str) -> Optional[str]:
+        suffix = f'.{DISK_METRICS["io_in_progress"].key}'
+        if metric.startswith(DISK_METRIC_PREFIX) and metric.endswith(suffix):
+            return metric[len(DISK_METRIC_PREFIX) : -len(suffix)]
+        return None
+
+    @staticmethod
+    def _mount_metric(metric: str) -> Optional[tuple[str, str]]:
+        if not metric.startswith(MOUNT_METRIC_PREFIX):
+            return None
+        for field in ("free", "capacity"):
+            suffix = f".{MOUNT_METRICS[field].key}"
+            if metric.endswith(suffix):
+                return metric[len(MOUNT_METRIC_PREFIX) : -len(suffix)], field
         return None
 
     @staticmethod
@@ -98,20 +110,22 @@ class OverviewItem(BaseItem):
 
     def finalize_analysis(self) -> None:
         workload = [
-            self._summary(name.capitalize(), self._counter_rate(metric), "ops/s")
-            for name, metric in OPCOUNTER_METRICS.items()
+            self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in OPCOUNTER_METRICS.values()
         ]
 
         read_write = []
         for operation in ("reads", "writes"):
             metrics = OP_LATENCY_METRICS[operation]
-            label = operation.capitalize()
             read_write.extend(
                 [
-                    self._summary(label, self._counter_rate(metrics["ops"]), "ops/s"),
                     self._summary(
-                        f"{label[:-1]} latency",
-                        self._average_latency(metrics["ops"], metrics["latency"]),
+                        metrics["ops"].name,
+                        self._counter_rate(metrics["ops"].key),
+                        "ops/s",
+                    ),
+                    self._summary(
+                        metrics["latency"].name,
+                        self._average_latency(metrics["ops"].key, metrics["latency"].key),
                         "ms/op",
                     ),
                 ]
@@ -119,45 +133,63 @@ class OverviewItem(BaseItem):
 
         performance = [
             self._summary(
-                "System memory utilization",
-                self._ratio(MEMORY_METRICS["total"], MEMORY_METRICS["available"], subtract=True),
-                "%",
-            ),
-            self._summary(
-                "Memory fragmentation ratio",
+                DERIVED_METRIC_NAMES["system_memory_utilization"],
                 self._ratio(
-                    TCMALLOC_METRICS["heap_size"],
-                    TCMALLOC_METRICS["current_allocated_bytes"],
+                    MEMORY_METRICS["total"].key,
+                    MEMORY_METRICS["available"].key,
                     subtract=True,
                 ),
                 "%",
             ),
-            self._summary("CPU user", self._cpu_rates(CPU_METRICS["user"]), "%"),
-            self._summary("CPU system", self._cpu_rates(CPU_METRICS["system"]), "%"),
-            self._summary("I/O wait", self._cpu_rates(CPU_METRICS["iowait"]), "%"),
             self._summary(
-                "Cache fill",
+                DERIVED_METRIC_NAMES["memory_fragmentation_ratio"],
                 self._ratio(
-                    WIREDTIGER_CACHE_METRICS["bytes_maximum"],
-                    WIREDTIGER_CACHE_METRICS["bytes_current"],
+                    TCMALLOC_METRICS["heap_size"].key,
+                    TCMALLOC_METRICS["current_allocated_bytes"].key,
+                    subtract=True,
+                ),
+                "%",
+            ),
+            self._summary(CPU_METRICS["user"].name, self._cpu_rates(CPU_METRICS["user"].key), "%"),
+            self._summary(CPU_METRICS["system"].name, self._cpu_rates(CPU_METRICS["system"].key), "%"),
+            self._summary(CPU_METRICS["iowait"].name, self._cpu_rates(CPU_METRICS["iowait"].key), "%"),
+            self._summary(
+                DERIVED_METRIC_NAMES["cache_fill"],
+                self._ratio(
+                    WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
+                    WIREDTIGER_CACHE_METRICS["bytes_current"].key,
                 ),
                 "%",
             ),
             self._summary(
-                "Cache dirty",
+                DERIVED_METRIC_NAMES["cache_dirty"],
                 self._ratio(
-                    WIREDTIGER_CACHE_METRICS["bytes_maximum"],
-                    WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"],
+                    WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
+                    WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
                 ),
                 "%",
             ),
-            self._summary("Disk queue length", self._aggregate_gauges(self._disk_queue_metrics), "requests"),
         ]
-        used_mount_slugs: set[str] = set()
-        for metric, mount_point in sorted(self._mount_free_metrics.items(), key=lambda item: item[1]):
+        for metric, block_device in sorted(self._disk_queue_metrics.items(), key=lambda item: item[1]):
             points = [
-                (timestamp, value / (1024**3))
+                (timestamp, value)
                 for timestamp, value in sorted(self._series.get(metric, {}).items())
+                if isfinite(value)
+            ]
+            performance.append(
+                self._summary(
+                    f'{DISK_METRICS["io_in_progress"].name} ({block_device})',
+                    points,
+                    "requests",
+                    slug=f"disk-queue-length-{self._mount_slug(block_device)}",
+                )
+            )
+
+        used_mount_slugs: set[str] = set()
+        for mount_point, metrics in sorted(self._mount_metrics.items()):
+            free_points = [
+                (timestamp, value / (1024**3))
+                for timestamp, value in sorted(self._series.get(metrics.get("free", ""), {}).items())
                 if isfinite(value)
             ]
             display_mount = mount_point or "/"
@@ -170,10 +202,22 @@ class OverviewItem(BaseItem):
             used_mount_slugs.add(slug)
             performance.append(
                 self._summary(
-                    f"Disk free ({display_mount})",
-                    points,
+                    f'{MOUNT_METRICS["free"].name} ({display_mount})',
+                    free_points,
                     "GiB",
                     slug=f"disk-free-{slug}",
+                )
+            )
+            performance.append(
+                self._summary(
+                    f'{DERIVED_METRIC_NAMES["disk_utilization"]} ({display_mount})',
+                    self._ratio(
+                        metrics.get("capacity", ""),
+                        metrics.get("free", ""),
+                        subtract=True,
+                    ),
+                    "%",
+                    slug=f"disk-utilization-{slug}",
                 )
             )
 
@@ -232,7 +276,7 @@ class OverviewItem(BaseItem):
 
     def _cpu_rates(self, metric: str) -> list[tuple[datetime, float]]:
         counters = self._series.get(metric, {})
-        cores = self._series.get(CPU_METRICS["available_cores"], {})
+        cores = self._series.get(CPU_METRICS["available_cores"].key, {})
         timestamps = sorted(set(counters) & set(cores))
         rates = []
         for previous, current in zip(timestamps, timestamps[1:]):
@@ -244,13 +288,6 @@ class OverviewItem(BaseItem):
                 if isfinite(value):
                     rates.append((current, value))
         return rates
-
-    def _aggregate_gauges(self, metrics: set[str]) -> list[tuple[datetime, float]]:
-        totals: dict[datetime, float] = {}
-        for metric in metrics:
-            for timestamp, value in self._series.get(metric, {}).items():
-                totals[timestamp] = totals.get(timestamp, 0) + value
-        return [(timestamp, value) for timestamp, value in sorted(totals.items()) if isfinite(value)]
 
     def _valid_interval(self, elapsed: float, delta: float) -> bool:
         return 0 < elapsed <= self._max_gap and delta >= 0
@@ -333,8 +370,8 @@ class OverviewItem(BaseItem):
         (self.output_folder / relative_path).write_text(svg, encoding="utf-8")
         return relative_path.as_posix()
 
-    def review_results_markdown(self, output) -> None:
-        output.write("## FTDC Overview\n\n")
+    def review_results_markdown(self, output, section_number: int = 1) -> None:
+        output.write(f"## {section_number}. FTDC Overview\n\n")
         if self._capture_start is not None and self._capture_end is not None:
             start = self._capture_start.isoformat()
             end = self._capture_end.isoformat()
@@ -343,6 +380,6 @@ class OverviewItem(BaseItem):
             output.write("Capture timespan: _No data available._\n\n")
         output.write(f"Sample rate: `{self._sample_rate:.6g}`\n\n")
         parser = OverviewParser()
-        for section, results in self._results.items():
-            output.write(f"### {section}\n\n")
+        for subsection_number, (section, results) in enumerate(self._results.items(), start=1):
+            output.write(f"### {section_number}.{subsection_number}. {section}\n\n")
             output.write(parser.markdown(results, caption=None))
