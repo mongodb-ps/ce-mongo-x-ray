@@ -181,12 +181,14 @@ x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 
 ### 3.4 FTDC Analysis Component
 
-The FTDC overview reports its capture timespan, effective sample rate, and the
-peak and average CPU user, CPU system, and aggregate disk IOPS values. Units
-are appended to each reported value. Each metric includes a line-chart image
-saved under the report output's `charts` directory. Start and end are inclusive
-UTC ISO-8601 timestamps. When omitted, the first and last data points in the
-archive are used.
+The FTDC overview reports its capture timespan and effective sample rate, then
+groups metrics into Workload, Read/Write Operations and Latencies, and
+Performance sections. It includes operation rates and latencies, host memory
+and CPU utilization, WiredTiger cache utilization, disk queue depth, and a
+free-space chart for every reported mount point. Each metric shows its peak,
+average, unit, and a chart saved under the report output's `charts` directory.
+Start and end are inclusive UTC ISO-8601 timestamps. When omitted, the first
+and last data points in the archive are used.
 
 ```bash
 x-ray ftdc /var/lib/mongo/diagnostic.data

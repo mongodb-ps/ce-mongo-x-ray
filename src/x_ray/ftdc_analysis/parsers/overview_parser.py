@@ -21,7 +21,7 @@ class OverviewParser(BaseParser):
         return [
             {
                 "type": "table",
-                "caption": "Overview",
+                "caption": kwargs.get("caption", "Overview"),
                 "header": [
                     {"text": "Metric", "align": "left"},
                     "Peak",
