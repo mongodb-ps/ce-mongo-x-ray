@@ -136,23 +136,24 @@ class OverviewItem(BaseItem):
         y_max = max(values, default=0.0)
         scale_max = y_max if y_max > 0 else 1.0
 
-        polyline = ""
+        bars = ""
         if points:
             start_time = points[0][0]
             end_time = points[-1][0]
             duration = (end_time - start_time).total_seconds()
-            coordinates = []
-            for timestamp, value in points:
+            count = len(points)
+            bar_width = max(1, plot_width / count - 1)
+            for i, (timestamp, value) in enumerate(points):
                 x_ratio = (timestamp - start_time).total_seconds() / duration if duration > 0 else 0.5
-                x = left + x_ratio * plot_width
-                y = top + plot_height - (value / scale_max) * plot_height
-                coordinates.append(f"{x:.2f},{y:.2f}")
-            polyline = (
-                '<polyline class="metric-line" fill="none" stroke-width="1" '
-                f'stroke-linejoin="round" points="{" ".join(coordinates)}"/>'
-            )
+                x = left + x_ratio * plot_width - bar_width / 2
+                bar_h = (value / scale_max) * plot_height
+                y = top + plot_height - bar_h
+                bars += (
+                    f'<rect class="metric-bar" x="{x:.2f}" y="{y:.2f}" '
+                    f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
+                )
         else:
-            polyline = (
+            bars = (
                 f'<text x="{left + plot_width / 2:.2f}" y="{top + plot_height / 2:.2f}" '
                 'text-anchor="middle">No data available</text>'
             )
@@ -160,18 +161,18 @@ class OverviewItem(BaseItem):
         peak_label = round(y_max, 2)
         svg = (
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-            f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(metric)} line chart">'
+            f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(metric)} bar chart">'
             "<style>"
-            "text{font:11px sans-serif;fill:#57606a}"
-            ".metric-line{stroke:#0969da}"
-            "@media (prefers-color-scheme:dark){.metric-line{stroke:#58a6ff}}"
+            "text{font:9px sans-serif;fill:#57606a}"
+            ".metric-bar{fill:#0969da}"
+            "@media (prefers-color-scheme:dark){.metric-bar{fill:#58a6ff}}"
             "</style>"
             f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#8c959f"/>'
             f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
             f'y2="{top + plot_height}" stroke="#8c959f"/>'
             f'<text x="{left - 6}" y="{top + 4}" text-anchor="end">{peak_label}</text>'
             f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0</text>'
-            f"{polyline}</svg>"
+            f"{bars}</svg>"
         )
         (self.output_folder / relative_path).write_text(svg, encoding="utf-8")
         return relative_path.as_posix()

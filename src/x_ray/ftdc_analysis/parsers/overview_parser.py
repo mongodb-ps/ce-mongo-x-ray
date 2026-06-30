@@ -14,7 +14,7 @@ class OverviewParser(BaseParser):
                 f'{item["metric"]} ({item["unit"]})',
                 round(item["peak"], 2),
                 round(item["average"], 2),
-                f'![{item["metric"]} line chart]({item["chart"]})',
+                f'![{item["metric"]} bar chart]({item["chart"]})',
             ]
             for item in data
         ]

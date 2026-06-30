@@ -29,7 +29,7 @@ def test_parse_overview_table():
                     "CPU user (%)",
                     12.35,
                     4.57,
-                    "![CPU user line chart](charts/ftdc-overview-cpu-user.svg)",
+                    "![CPU user bar chart](charts/ftdc-overview-cpu-user.svg)",
                 ]
             ],
         }

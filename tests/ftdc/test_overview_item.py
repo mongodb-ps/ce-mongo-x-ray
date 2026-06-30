@@ -111,9 +111,9 @@ def test_overview_calculates_cpu_and_iops(tmp_path):
         root = ElementTree.parse(chart).getroot()
         assert root.tag == "{http://www.w3.org/2000/svg}svg"
     cpu_chart = chart_paths[0].read_text(encoding="utf-8")
-    assert "<polyline" in cpu_chart
-    assert ".metric-line{stroke:#0969da}" in cpu_chart
-    assert "@media (prefers-color-scheme:dark){.metric-line{stroke:#58a6ff}}" in cpu_chart
+    assert "<rect" in cpu_chart
+    assert ".metric-bar{fill:#0969da}" in cpu_chart
+    assert "@media (prefers-color-scheme:dark){.metric-bar{fill:#58a6ff}}" in cpu_chart
     assert start.isoformat(timespec="seconds") not in cpu_chart
     assert "CPU user (%)" not in cpu_chart
     assert "%" not in cpu_chart
