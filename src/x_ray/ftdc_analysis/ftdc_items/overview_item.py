@@ -119,10 +119,10 @@ class OverviewItem(BaseItem):
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
             "unit": unit,
-            "chart": self._write_chart(metric, points, unit),
+            "chart": self._write_chart(metric, points),
         }
 
-    def _write_chart(self, metric: str, points: list[tuple[datetime, float]], unit: str) -> str:
+    def _write_chart(self, metric: str, points: list[tuple[datetime, float]]) -> str:
         chart_folder = self.output_folder / "charts"
         chart_folder.mkdir(parents=True, exist_ok=True)
         slug = re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
@@ -157,7 +157,7 @@ class OverviewItem(BaseItem):
                 'text-anchor="middle">No data available</text>'
             )
 
-        peak_label = escape(f"{round(y_max, 2)}{unit}")
+        peak_label = round(y_max, 2)
         svg = (
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
             f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(metric)} line chart">'
@@ -170,7 +170,7 @@ class OverviewItem(BaseItem):
             f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
             f'y2="{top + plot_height}" stroke="#8c959f"/>'
             f'<text x="{left - 6}" y="{top + 4}" text-anchor="end">{peak_label}</text>'
-            f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0{escape(unit)}</text>'
+            f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0</text>'
             f"{polyline}</svg>"
         )
         (self.output_folder / relative_path).write_text(svg, encoding="utf-8")

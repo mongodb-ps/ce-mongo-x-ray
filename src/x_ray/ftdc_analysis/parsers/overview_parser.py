@@ -11,9 +11,9 @@ class OverviewParser(BaseParser):
     def parse(self, data: Any, **kwargs) -> list:
         rows = [
             [
-                item["metric"],
-                f'{round(item["peak"], 2)}{item["unit"]}',
-                f'{round(item["average"], 2)}{item["unit"]}',
+                f'{item["metric"]} ({item["unit"]})',
+                round(item["peak"], 2),
+                round(item["average"], 2),
                 f'![{item["metric"]} line chart]({item["chart"]})',
             ]
             for item in data

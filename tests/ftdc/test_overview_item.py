@@ -116,6 +116,7 @@ def test_overview_calculates_cpu_and_iops(tmp_path):
     assert "@media (prefers-color-scheme:dark){.metric-line{stroke:#58a6ff}}" in cpu_chart
     assert start.isoformat(timespec="seconds") not in cpu_chart
     assert "CPU user (%)" not in cpu_chart
+    assert "%" not in cpu_chart
 
 
 def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
