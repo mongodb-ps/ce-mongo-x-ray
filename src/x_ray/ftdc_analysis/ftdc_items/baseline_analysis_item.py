@@ -65,8 +65,6 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
-        self._workload_is_secondary = False
-        self._show_standard_sections = True
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
@@ -155,23 +153,10 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             if any(isfinite(value) and value != 0 for value in self._series.get(metrics.get("self", ""), {}).values())
         }
 
-    def _latest_member_state(self, member: str) -> Optional[int]:
-        state_metric = self._rs_member_metrics.get(member, {}).get("state")
-        points = self._series.get(state_metric or "", {})
-        if not points:
-            return None
-        value = points[max(points)]
-        return int(value) if isfinite(value) else None
-
     def finalize_analysis(self) -> None:
         local_members = self._local_rs_members()
-        local_states = {state for member in local_members if (state := self._latest_member_state(member)) is not None}
-        self._show_standard_sections = not local_states or local_states <= {1, 2}
-        self._workload_is_secondary = self._show_standard_sections and 2 in local_states
-        workload_metrics = OPCOUNTER_REPL_METRICS if self._workload_is_secondary else OPCOUNTER_METRICS
-        workload = [
-            self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in workload_metrics.values()
-        ]
+        workload_metrics = (*OPCOUNTER_METRICS.values(), *OPCOUNTER_REPL_METRICS.values())
+        workload = [self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in workload_metrics]
 
         read_write = []
         for operation in ("reads", "writes"):
@@ -338,16 +323,12 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
 
-        self._results = {}
-        if self._show_standard_sections:
-            self._results.update(
-                {
-                    "Workload": workload,
-                    "Ops and Latencies": read_write,
-                    "Performance": performance,
-                }
-            )
-        self._results["Member State"] = member_states
+        self._results = {
+            "Workload": workload,
+            "Ops and Latencies": read_write,
+            "Performance": performance,
+            "Member State": member_states,
+        }
 
     @staticmethod
     def _mount_slug(mount_point: str) -> str:
@@ -460,8 +441,6 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         for section, results in self._results.items():
             subsection_number = subsection_numbers[section]
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
-            if section == "Workload" and self._workload_is_secondary:
-                output.write("Local replica-set member role: `SECONDARY` (using `opcountersRepl`).\n\n")
             output.write(
                 parser.markdown(
                     results,

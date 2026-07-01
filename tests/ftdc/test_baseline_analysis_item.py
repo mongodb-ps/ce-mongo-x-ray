@@ -238,9 +238,13 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
         "Member State",
     ]
     workload = item._results["Workload"]
-    assert [result["metric"] for result in workload] == [metric.name for metric in OPCOUNTER_METRICS.values()]
+    assert [result["metric"] for result in workload] == [
+        *(metric.name for metric in OPCOUNTER_METRICS.values()),
+        *(metric.name for metric in OPCOUNTER_REPL_METRICS.values()),
+    ]
     assert workload[0]["peak"] == 20
     assert workload[0]["average"] == 15
+    assert workload[len(OPCOUNTER_METRICS)]["peak"] == 0
 
     reads, read_latency, writes, write_latency = item._results["Ops and Latencies"]
     assert (reads["peak"], reads["average"]) == (20, 15)
@@ -295,7 +299,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     ]
 
 
-def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path):
+def test_secondary_workload_includes_regular_and_replication_opcounters(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     end = start + timedelta(seconds=1)
@@ -313,16 +317,17 @@ def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path
     }
 
     item.finalize_analysis()
-    output = StringIO()
-    item.review_results_markdown(output)
 
     workload = item._results["Workload"]
-    assert [result["metric"] for result in workload] == [metric.name for metric in OPCOUNTER_REPL_METRICS.values()]
-    assert workload[0]["peak"] == 7
-    assert "Local replica-set member role: `SECONDARY` (using `opcountersRepl`)." in output.getvalue()
+    assert [result["metric"] for result in workload] == [
+        *(metric.name for metric in OPCOUNTER_METRICS.values()),
+        *(metric.name for metric in OPCOUNTER_REPL_METRICS.values()),
+    ]
+    assert workload[0]["peak"] == 100
+    assert workload[len(OPCOUNTER_METRICS)]["peak"] == 7
 
 
-def test_non_primary_or_secondary_state_skips_standard_sections(tmp_path):
+def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._series = {
@@ -341,10 +346,15 @@ def test_non_primary_or_secondary_state_skips_standard_sections(tmp_path):
     item.review_results_markdown(output)
     report = output.getvalue()
 
-    assert list(item._results) == ["Member State"]
-    assert "### 1.1 Workload" not in report
-    assert "### 1.2 Ops and Latencies" not in report
-    assert "### 1.3 Performance" not in report
+    assert list(item._results) == [
+        "Workload",
+        "Ops and Latencies",
+        "Performance",
+        "Member State",
+    ]
+    assert "### 1.1 Workload" in report
+    assert "### 1.2 Ops and Latencies" in report
+    assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" in report
 
 

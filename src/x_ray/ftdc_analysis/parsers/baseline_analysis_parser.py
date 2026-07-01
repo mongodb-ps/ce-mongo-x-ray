@@ -17,7 +17,7 @@ class BaselineAnalysisParser(BaseParser):
                     "header": [
                         {"text": "Member", "align": "left"},
                         "Myself",
-                        "State",
+                        "Chart",
                     ],
                     "rows": [
                         [
