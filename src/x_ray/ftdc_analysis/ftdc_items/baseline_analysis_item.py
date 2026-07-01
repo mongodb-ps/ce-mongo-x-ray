@@ -32,7 +32,7 @@ from x_ray.ftdc_analysis.shared import (
 )
 
 
-class BaselineAnalysisItem(BaseItem):
+class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
     """Summarize the workload and performance represented by an FTDC capture."""
 
     def __init__(self, output_folder: str, config: dict, **kwargs) -> None:

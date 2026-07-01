@@ -5,7 +5,7 @@ from datetime import datetime
 from html import escape
 from math import isfinite
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union
 
 
 def _parse_thresholds(
@@ -38,7 +38,7 @@ def _bar_class(value: float, thresholds: Optional[tuple[float, float]]) -> str:
 
 
 def write_bar_chart(
-    output_folder: Path | str,
+    output_folder: Union[Path, str],
     metric: str,
     points: Sequence[tuple[datetime, float]],
     *,
