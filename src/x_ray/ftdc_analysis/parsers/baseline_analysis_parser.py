@@ -1,12 +1,12 @@
-"""Parser for FTDC overview results."""
+"""Parser for FTDC baseline analysis results."""
 
 from typing import Any
 
 from x_ray.ftdc_analysis.parsers.base_parser import BaseParser
 
 
-class OverviewParser(BaseParser):
-    """Convert overview metric summaries to a report table."""
+class BaselineAnalysisParser(BaseParser):
+    """Convert baseline analysis metric summaries to a report table."""
 
     def parse(self, data: Any, **kwargs) -> list:
         if kwargs.get("member_state"):
@@ -42,7 +42,7 @@ class OverviewParser(BaseParser):
         return [
             {
                 "type": "table",
-                "caption": kwargs.get("caption", "Overview"),
+                "caption": kwargs.get("caption", "Baseline Analysis"),
                 "header": [
                     {"text": "Metric", "align": "left"},
                     "Peak",

@@ -12,7 +12,7 @@ from typing import Optional
 from pyftdc import FTDCError, FTDCReader
 
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
-from x_ray.ftdc_analysis.parsers.overview_parser import OverviewParser
+from x_ray.ftdc_analysis.parsers.baseline_analysis_parser import BaselineAnalysisParser
 from x_ray.ftdc_analysis.shared import (
     CPU_METRICS,
     DERIVED_METRIC_NAMES,
@@ -24,7 +24,7 @@ from x_ray.ftdc_analysis.shared import (
     OPCOUNTER_METRICS,
     OPCOUNTER_REPL_METRICS,
     OP_LATENCY_METRICS,
-    OVERVIEW_STATIC_METRICS,
+    BASELINE_ANALYSIS_STATIC_METRICS,
     REPL_SET_MEMBER_METRIC_PREFIX,
     REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
@@ -32,7 +32,7 @@ from x_ray.ftdc_analysis.shared import (
 )
 
 
-class OverviewItem(BaseItem):
+class BaselineAnalysisItem(BaseItem):
     """Summarize the workload and performance represented by an FTDC capture."""
 
     _WIDTH = 480
@@ -94,7 +94,7 @@ class OverviewItem(BaseItem):
             except FTDCError:
                 self._logger.debug("MongoDB configuration not found in FTDC file: %s", file_path)
         available = set(reader.list_metrics())
-        wanted = OVERVIEW_STATIC_METRICS & available
+        wanted = BASELINE_ANALYSIS_STATIC_METRICS & available
 
         for metric in available:
             block_device = self._block_device(metric)
@@ -461,7 +461,7 @@ class OverviewItem(BaseItem):
         chart_folder = self.output_folder / "charts"
         chart_folder.mkdir(parents=True, exist_ok=True)
         slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
-        relative_path = Path("charts") / f"ftdc-overview-{slug}.svg"
+        relative_path = Path("charts") / f"ftdc-baseline-analysis-{slug}.svg"
 
         width, height = self._WIDTH, self._HEIGHT
         left, right, top, bottom = 52, 12, 8, 12
@@ -517,7 +517,7 @@ class OverviewItem(BaseItem):
         return relative_path.as_posix()
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
-        output.write(f"## {section_number} FTDC Overview\n\n")
+        output.write(f"## {section_number} Baseline Analysis\n\n")
         if self._capture_start is not None and self._capture_end is not None:
             start = self._capture_start.isoformat()
             end = self._capture_end.isoformat()
@@ -528,7 +528,7 @@ class OverviewItem(BaseItem):
         output.write("MongoDB configuration:\n\n")
         mongodb_config = self._mongodb_config or {}
         output.write(f"```json\n{json.dumps(mongodb_config, indent=2, sort_keys=True, default=str)}\n```\n\n")
-        parser = OverviewParser()
+        parser = BaselineAnalysisParser()
         subsection_numbers = {
             "Workload": 1,
             "Ops and Latencies": 2,

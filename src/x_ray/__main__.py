@@ -378,7 +378,7 @@ def ftdc_analysis_command(args):
     try:
         config = load_config(args.config)["ftdc"]
         if args.rate is not None:
-            config.setdefault("item_config", {}).setdefault("OverviewItem", {})["sample_rate"] = args.rate
+            config.setdefault("item_config", {}).setdefault("BaselineAnalysisItem", {})["sample_rate"] = args.rate
     except FileNotFoundError:
         logger.error("Config file not found: %s", args.config)
         logger.info("Please provide a valid path to config.json.")

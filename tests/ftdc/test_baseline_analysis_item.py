@@ -5,7 +5,7 @@ from xml.etree import ElementTree
 import pytest
 from pyftdc import DataPoint
 
-from x_ray.ftdc_analysis.ftdc_items.overview_item import OverviewItem
+from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import BaselineAnalysisItem
 from x_ray.ftdc_analysis.shared import (
     CPU_METRICS,
     DERIVED_METRIC_NAMES,
@@ -22,25 +22,25 @@ from x_ray.ftdc_analysis.shared import (
 
 
 def test_default_sample_rate_uses_total_ingest_files(tmp_path):
-    item = OverviewItem(str(tmp_path), {}, total_ingest_files=4)
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=4)
 
     assert item._sample_rate == 0.25
 
 
 def test_configured_sample_rate_overrides_ingest_file_default(tmp_path):
-    item = OverviewItem(str(tmp_path), {"sample_rate": 0.5}, total_ingest_files=4)
+    item = BaselineAnalysisItem(str(tmp_path), {"sample_rate": 0.5}, total_ingest_files=4)
 
     assert item._sample_rate == 0.5
 
 
 def test_default_sample_rate_handles_no_ingest_files(tmp_path):
-    item = OverviewItem(str(tmp_path), {}, total_ingest_files=0)
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=0)
 
     assert item._sample_rate == 1.0
 
 
 def test_bar_chart_uses_threshold_colors(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(str(tmp_path), {})
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     points = [
         (start, 9.0),
@@ -63,7 +63,7 @@ def test_bar_chart_uses_threshold_colors(tmp_path):
 
 
 def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(str(tmp_path), {})
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
     chart = tmp_path / item._write_chart("Default color test", [(timestamp, 10.0)])
@@ -73,8 +73,8 @@ def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
     assert bar.attrib["class"] == "metric-bar"
 
 
-def test_overview_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypatch):
-    item = OverviewItem(str(tmp_path), {})
+def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypatch):
+    item = BaselineAnalysisItem(str(tmp_path), {})
     item._disk_queue_metrics = {"disk.queue": "sda"}
     item._mount_metrics = {
         "/data": {
@@ -119,7 +119,7 @@ def test_overview_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypa
     ],
 )
 def test_bar_chart_rejects_invalid_thresholds(tmp_path, thresholds):
-    item = OverviewItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(str(tmp_path), {})
 
     with pytest.raises(ValueError, match="chart thresholds"):
         item._write_chart("Invalid thresholds", [], thresholds=thresholds)
@@ -158,10 +158,10 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
             return {name: [DataPoint(timestamp=timestamp, value=10)] for name in names}
 
     monkeypatch.setattr(
-        "x_ray.ftdc_analysis.ftdc_items.overview_item.FTDCReader",
+        "x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item.FTDCReader",
         Reader,
     )
-    item = OverviewItem(str(tmp_path), {"sample_rate": 0.5})
+    item = BaselineAnalysisItem(str(tmp_path), {"sample_rate": 0.5})
 
     item.analyze(tmp_path / "metrics.test")
 
@@ -202,17 +202,17 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
 
 
 def test_mount_detection_excludes_virtual_and_container_bind_mounts():
-    assert OverviewItem._is_data_volume_mount("/")
-    assert OverviewItem._is_data_volume_mount("/data/db")
-    assert OverviewItem._is_data_volume_mount("/var/lib/mongodb")
-    assert not OverviewItem._is_data_volume_mount("/dev/shm")
-    assert not OverviewItem._is_data_volume_mount("/proc/acpi")
-    assert not OverviewItem._is_data_volume_mount("/sys/firmware")
-    assert not OverviewItem._is_data_volume_mount("/etc/hosts")
+    assert BaselineAnalysisItem._is_data_volume_mount("/")
+    assert BaselineAnalysisItem._is_data_volume_mount("/data/db")
+    assert BaselineAnalysisItem._is_data_volume_mount("/var/lib/mongodb")
+    assert not BaselineAnalysisItem._is_data_volume_mount("/dev/shm")
+    assert not BaselineAnalysisItem._is_data_volume_mount("/proc/acpi")
+    assert not BaselineAnalysisItem._is_data_volume_mount("/sys/firmware")
+    assert not BaselineAnalysisItem._is_data_volume_mount("/etc/hosts")
 
 
-def test_overview_calculates_requested_sections(tmp_path):
-    item = OverviewItem(str(tmp_path), {"max_sample_gap_seconds": 5})
+def test_baseline_analysis_calculates_requested_sections(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {"max_sample_gap_seconds": 5})
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     middle = start + timedelta(seconds=1)
     end = middle + timedelta(seconds=1)
@@ -310,12 +310,13 @@ def test_overview_calculates_requested_sections(tmp_path):
     assert remote_state["myself"] == "No"
     assert "peak" not in local_state
     assert "average" not in local_state
-    assert remote_state["chart"] == "charts/ftdc-overview-rs-member-state-1.svg"
+    assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
     assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
     assert (
-        performance[f'{MOUNT_METRICS["free"].name} (/data/db)']["chart"] == "charts/ftdc-overview-disk-free-data-db.svg"
+        performance[f'{MOUNT_METRICS["free"].name} (/data/db)']["chart"]
+        == "charts/ftdc-baseline-analysis-disk-free-data-db.svg"
     )
 
     chart_paths = [tmp_path / result["chart"] for results in item._results.values() for result in results]
@@ -325,7 +326,7 @@ def test_overview_calculates_requested_sections(tmp_path):
 
 
 def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(str(tmp_path), {})
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     end = start + timedelta(seconds=1)
     item._series = {
@@ -352,7 +353,7 @@ def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path
 
 
 def test_non_primary_or_secondary_state_skips_standard_sections(tmp_path):
-    item = OverviewItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(str(tmp_path), {})
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._series = {
         "replSetGetStatus.members.0.state": {timestamp: 3},
@@ -377,8 +378,8 @@ def test_non_primary_or_secondary_state_skips_standard_sections(tmp_path):
     assert "### 1.4 Member State" in report
 
 
-def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
-    item = OverviewItem(str(tmp_path), {"max_sample_gap_seconds": 2})
+def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {"max_sample_gap_seconds": 2})
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     late = start + timedelta(seconds=10)
     item._series = {
@@ -393,8 +394,8 @@ def test_overview_ignores_counter_resets_and_large_gaps(tmp_path):
     assert item._results["Performance"][2]["peak"] == 0
 
 
-def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
-    item = OverviewItem(
+def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_path):
+    item = BaselineAnalysisItem(
         str(tmp_path),
         {"max_sample_gap_seconds": 15, "sample_rate": 0.25},
         total_ingest_files=4,
@@ -415,9 +416,9 @@ def test_overview_displays_capture_metadata_config_and_sections(tmp_path):
     assert "Sample rate: `0.25`" in report
     assert 'MongoDB configuration:\n\n```json\n{\n  "net": {\n    "bindIp": "*"\n  },' in report
     assert '"security": {\n    "authorization": "enabled"\n  }\n}\n```' in report
-    assert "## 1 FTDC Overview" in report
+    assert "## 1 FTDC Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" in report
-    assert "#### Overview" not in report
+    assert "#### Baseline Analysis" not in report

@@ -185,9 +185,9 @@ DERIVED_METRIC_NAMES: Final = {
     "disk_utilization": "Disk utilization",
 }
 
-# The static subset currently required by OverviewItem. Dynamic disk and mount
+# The static subset currently required by BaselineAnalysisItem. Dynamic disk and mount
 # names are selected using the prefixes and suffix mappings above.
-OVERVIEW_STATIC_METRICS: Final = {
+BASELINE_ANALYSIS_STATIC_METRICS: Final = {
     CPU_METRICS["available_cores"].key,
     CPU_METRICS["user"].key,
     CPU_METRICS["system"].key,

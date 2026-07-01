@@ -181,7 +181,7 @@ x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 
 ### 3.4 FTDC Analysis Component
 
-The FTDC overview reports its capture timespan and effective sample rate, then
+The FTDC baseline analysis reports its capture timespan and effective sample rate, then
 groups metrics into Workload, Read/Write Operations and Latencies, and
 Performance sections. It includes operation rates and latencies, host memory
 and CPU utilization, WiredTiger cache utilization, queue depth for each block

@@ -166,12 +166,12 @@
         "ftdcsets": {
             "default": {
                 "items": [
-                    "OverviewItem"
+                    "BaselineAnalysisItem"
                 ]
             }
         },
         "item_config": {
-            "OverviewItem": {
+            "BaselineAnalysisItem": {
                 "max_sample_gap_seconds": 15
             }
         },
