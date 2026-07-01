@@ -60,6 +60,7 @@ CPU_METRICS: Final = {
         "systemMetrics.cpu.num_cores_available_to_process",
     ),
     "logical_cores": Metric("Logical CPU cores", "systemMetrics.cpu.num_logical_cores"),
+    "host_cores": Metric("Host CPU cores", "systemMetrics.cpu.num_cpus"),
     "processes": Metric("Processes created", "systemMetrics.cpu.processes"),
     "blocked_processes": Metric("Blocked processes", "systemMetrics.cpu.procs_blocked"),
     "running_processes": Metric("Running processes", "systemMetrics.cpu.procs_running"),
@@ -189,6 +190,8 @@ DERIVED_METRIC_NAMES: Final = {
 # names are selected using the prefixes and suffix mappings above.
 BASELINE_ANALYSIS_STATIC_METRICS: Final = {
     CPU_METRICS["available_cores"].key,
+    CPU_METRICS["logical_cores"].key,
+    CPU_METRICS["host_cores"].key,
     CPU_METRICS["user"].key,
     CPU_METRICS["system"].key,
     CPU_METRICS["iowait"].key,

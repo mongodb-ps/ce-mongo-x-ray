@@ -176,6 +176,7 @@ def test_mount_detection_excludes_virtual_and_container_bind_mounts():
     assert BaselineAnalysisItem._is_data_volume_mount("/var/lib/mongodb")
     assert not BaselineAnalysisItem._is_data_volume_mount("/dev/shm")
     assert not BaselineAnalysisItem._is_data_volume_mount("/proc/acpi")
+    assert not BaselineAnalysisItem._is_data_volume_mount("/run/user/200057129")
     assert not BaselineAnalysisItem._is_data_volume_mount("/sys/firmware")
     assert not BaselineAnalysisItem._is_data_volume_mount("/etc/hosts")
 
@@ -386,6 +387,18 @@ def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):
 
     assert item._results["Workload"][0]["peak"] == 0
     assert item._results["Performance"][2]["peak"] == 0
+
+
+def test_cpu_rates_fall_back_to_legacy_host_core_count(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    end = start + timedelta(seconds=1)
+    item._series = {
+        CPU_METRICS["user"].key: {start: 1000, end: 2000},
+        CPU_METRICS["host_cores"].key: {start: 4, end: 4},
+    }
+
+    assert item._cpu_rates(CPU_METRICS["user"].key) == [(end, 25)]
 
 
 def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_path):

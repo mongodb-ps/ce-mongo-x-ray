@@ -141,7 +141,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
     @staticmethod
     def _is_data_volume_mount(mount_point: str) -> bool:
         """Exclude virtual filesystems and common container file bind mounts."""
-        virtual_roots = ("/dev", "/proc", "/sys")
+        virtual_roots = ("/dev", "/proc", "/run", "/sys")
         if any(mount_point == root or mount_point.startswith(f"{root}/") for root in virtual_roots):
             return False
         return mount_point not in {"/etc/hostname", "/etc/hosts", "/etc/resolv.conf"}
@@ -392,7 +392,9 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     def _cpu_rates(self, metric: str) -> list[tuple[datetime, float]]:
         counters = self._series.get(metric, {})
-        cores = self._series.get(CPU_METRICS["available_cores"].key, {})
+        cores = {}
+        for core_metric in ("host_cores", "logical_cores", "available_cores"):
+            cores.update(self._series.get(CPU_METRICS[core_metric].key, {}))
         timestamps = sorted(set(counters) & set(cores))
         rates = []
         for previous, current in zip(timestamps, timestamps[1:]):

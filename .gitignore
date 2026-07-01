@@ -211,5 +211,5 @@ output/
 .DS_Store
 export_secret.sh
 
-misc/ftdc
+misc/ftdc*
 .qwen
