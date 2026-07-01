@@ -509,6 +509,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 self._results["Member State"],
                 caption=None,
                 member_state=True,
+                output_folder=str(self.output_folder),
             )
         )
         subsection_numbers = {
@@ -524,5 +525,6 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 parser.markdown(
                     results,
                     caption=None,
+                    output_folder=str(self.output_folder),
                 )
             )
