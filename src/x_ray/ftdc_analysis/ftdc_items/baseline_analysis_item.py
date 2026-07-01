@@ -3,7 +3,6 @@
 import json
 import re
 from datetime import datetime
-from html import escape
 from math import isfinite
 from pathlib import Path
 from statistics import fmean
@@ -11,6 +10,7 @@ from typing import Optional
 
 from pyftdc import FTDCError, FTDCReader
 
+from x_ray.ftdc_analysis.charts import write_bar_chart
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.baseline_analysis_parser import BaselineAnalysisParser
 from x_ray.ftdc_analysis.shared import (
@@ -35,9 +35,6 @@ from x_ray.ftdc_analysis.shared import (
 class BaselineAnalysisItem(BaseItem):
     """Summarize the workload and performance represented by an FTDC capture."""
 
-    _WIDTH = 480
-    _HEIGHT = 50
-
     def __init__(self, output_folder: str, config: dict, **kwargs) -> None:
         super().__init__(output_folder, config, **kwargs)
         self._start_time = kwargs.get("start_time")
@@ -56,35 +53,6 @@ class BaselineAnalysisItem(BaseItem):
         self._mongodb_config: Optional[dict] = None
         self._workload_is_secondary = False
         self._show_standard_sections = True
-
-    @staticmethod
-    def _parse_bar_chart_thresholds(
-        thresholds: Optional[tuple[float, float]],
-    ) -> Optional[tuple[float, float]]:
-        if thresholds is None:
-            return None
-        if not isinstance(thresholds, (list, tuple)) or len(thresholds) != 2:
-            raise ValueError("chart thresholds must contain exactly two numbers")
-        if any(isinstance(threshold, bool) for threshold in thresholds):
-            raise ValueError("chart thresholds must contain exactly two numbers")
-        try:
-            lower, upper = (float(threshold) for threshold in thresholds)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("chart thresholds must contain exactly two numbers") from exc
-        if not isfinite(lower) or not isfinite(upper) or lower >= upper:
-            raise ValueError("chart thresholds must be finite and ordered from lowest to highest")
-        return lower, upper
-
-    @staticmethod
-    def _bar_class(value: float, thresholds: Optional[tuple[float, float]]) -> str:
-        if thresholds is None:
-            return "metric-bar"
-        lower, upper = thresholds
-        if value <= lower:
-            return "metric-bar metric-bar-green"
-        if value > upper:
-            return "metric-bar metric-bar-red"
-        return "metric-bar metric-bar-yellow"
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
@@ -309,7 +277,8 @@ class BaselineAnalysisItem(BaseItem):
                     "member": member,
                     "metric": display_metric,
                     "myself": "Yes" if member in local_members else "No" if local_member_known else "Unknown",
-                    "chart": self._write_chart(
+                    "chart": write_bar_chart(
+                        self.output_folder,
                         display_metric,
                         points,
                         slug=f"rs-member-state-{self._mount_slug(member)}",
@@ -446,75 +415,14 @@ class BaselineAnalysisItem(BaseItem):
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
             "unit": unit,
-            "chart": self._write_chart(metric, points, slug=slug, thresholds=thresholds),
+            "chart": write_bar_chart(
+                self.output_folder,
+                metric,
+                points,
+                slug=slug,
+                thresholds=thresholds,
+            ),
         }
-
-    def _write_chart(
-        self,
-        metric: str,
-        points: list[tuple[datetime, float]],
-        *,
-        slug: Optional[str] = None,
-        thresholds: Optional[tuple[float, float]] = None,
-    ) -> str:
-        parsed_thresholds = self._parse_bar_chart_thresholds(thresholds)
-        chart_folder = self.output_folder / "charts"
-        chart_folder.mkdir(parents=True, exist_ok=True)
-        slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
-        relative_path = Path("charts") / f"ftdc-baseline-analysis-{slug}.svg"
-
-        width, height = self._WIDTH, self._HEIGHT
-        left, right, top, bottom = 52, 12, 8, 12
-        plot_width = width - left - right
-        plot_height = height - top - bottom
-        values = [value for _, value in points]
-        y_max = max(values, default=0.0)
-        scale_max = y_max if y_max > 0 else 1.0
-
-        bars = ""
-        if points:
-            start_time = points[0][0]
-            end_time = points[-1][0]
-            duration = (end_time - start_time).total_seconds()
-            count = len(points)
-            bar_width = max(1, plot_width / count - 1)
-            for timestamp, value in points:
-                x_ratio = (timestamp - start_time).total_seconds() / duration if duration > 0 else 0.5
-                x = left + x_ratio * plot_width - bar_width / 2
-                bar_h = (value / scale_max) * plot_height
-                y = top + plot_height - bar_h
-                bar_class = self._bar_class(value, parsed_thresholds)
-                bars += (
-                    f'<rect class="{bar_class}" x="{x:.2f}" y="{y:.2f}" '
-                    f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
-                )
-        else:
-            bars = (
-                f'<text x="{left + plot_width / 2:.2f}" y="{top + plot_height / 2:.2f}" '
-                'text-anchor="middle">No data available</text>'
-            )
-
-        peak_label = round(y_max, 2)
-        svg = (
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-            f'viewBox="0 0 {width} {height}" role="img" aria-label="{escape(metric)} bar chart">'
-            "<style>"
-            "text{font:9px sans-serif;fill:#57606a}"
-            ".metric-bar{fill:#0969da}"
-            "@media (prefers-color-scheme:dark){.metric-bar{fill:#58a6ff}}"
-            ".metric-bar-green{fill:green}"
-            ".metric-bar-yellow{fill:yellow}"
-            ".metric-bar-red{fill:red}"
-            "</style>"
-            f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#8c959f"/>'
-            f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '
-            f'y2="{top + plot_height}" stroke="#8c959f"/>'
-            f'<text x="{left - 6}" y="{top + 4}" text-anchor="end">{peak_label}</text>'
-            f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0</text>'
-            f"{bars}</svg>"
-        )
-        (self.output_folder / relative_path).write_text(svg, encoding="utf-8")
-        return relative_path.as_posix()
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
         output.write(f"## {section_number} Baseline Analysis\n\n")

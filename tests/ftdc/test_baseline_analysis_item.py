@@ -39,40 +39,6 @@ def test_default_sample_rate_handles_no_ingest_files(tmp_path):
     assert item._sample_rate == 1.0
 
 
-def test_bar_chart_uses_threshold_colors(tmp_path):
-    item = BaselineAnalysisItem(str(tmp_path), {})
-    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    points = [
-        (start, 9.0),
-        (start + timedelta(seconds=1), 10.0),
-        (start + timedelta(seconds=2), 15.0),
-        (start + timedelta(seconds=3), 20.0),
-        (start + timedelta(seconds=4), 21.0),
-    ]
-
-    chart = tmp_path / item._write_chart("Threshold test", points, thresholds=(10, 20))
-    bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
-
-    assert [bar.attrib["class"] for bar in bars] == [
-        "metric-bar metric-bar-green",
-        "metric-bar metric-bar-green",
-        "metric-bar metric-bar-yellow",
-        "metric-bar metric-bar-yellow",
-        "metric-bar metric-bar-red",
-    ]
-
-
-def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
-    item = BaselineAnalysisItem(str(tmp_path), {})
-    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
-
-    chart = tmp_path / item._write_chart("Default color test", [(timestamp, 10.0)])
-    bar = ElementTree.parse(chart).getroot().find(".//{http://www.w3.org/2000/svg}rect")
-
-    assert bar is not None
-    assert bar.attrib["class"] == "metric-bar"
-
-
 def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypatch):
     item = BaselineAnalysisItem(str(tmp_path), {})
     item._disk_queue_metrics = {"disk.queue": "sda"}
@@ -84,11 +50,15 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     }
     chart_thresholds = {}
 
-    def write_chart(metric, points, *, slug=None, thresholds=None):
+    def write_chart(output_folder, metric, points, *, slug=None, thresholds=None):
+        assert output_folder == tmp_path
         chart_thresholds[metric] = thresholds
         return f"charts/{slug or metric}.svg"
 
-    monkeypatch.setattr(item, "_write_chart", write_chart)
+    monkeypatch.setattr(
+        "x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item.write_bar_chart",
+        write_chart,
+    )
 
     item.finalize_analysis()
 
@@ -104,25 +74,6 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
     assert chart_thresholds[OPCOUNTER_METRICS["query"].name] is None
-
-
-@pytest.mark.parametrize(
-    "thresholds",
-    [
-        [10],
-        [10, 20, 30],
-        [20, 10],
-        [10, 10],
-        [10, float("inf")],
-        ["low", "high"],
-        True,
-    ],
-)
-def test_bar_chart_rejects_invalid_thresholds(tmp_path, thresholds):
-    item = BaselineAnalysisItem(str(tmp_path), {})
-
-    with pytest.raises(ValueError, match="chart thresholds"):
-        item._write_chart("Invalid thresholds", [], thresholds=thresholds)
 
 
 def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeypatch):
@@ -416,7 +367,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "Sample rate: `0.25`" in report
     assert 'MongoDB configuration:\n\n```json\n{\n  "net": {\n    "bindIp": "*"\n  },' in report
     assert '"security": {\n    "authorization": "enabled"\n  }\n}\n```' in report
-    assert "## 1 FTDC Baseline Analysis" in report
+    assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
