@@ -419,8 +419,8 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     item.review_results_markdown(output, section_number=1)
 
     report = output.getvalue()
-    assert "| Capture timespan | `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00` |" in report
-    assert "| Sample rate | `0.25` |" in report
+    assert "- Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
+    assert "- Sample rate: `0.25`" in report
     assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
@@ -428,7 +428,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "### 1.4 Member State" not in report
     assert "MongoDB configuration" not in report
     assert (
-        report.index("| Sample rate")
+        report.index("- Sample rate:")
         < report.index("Member State:\n\n")
         < report.index("_No data available._")
         < report.index("### 1.1 Workload")

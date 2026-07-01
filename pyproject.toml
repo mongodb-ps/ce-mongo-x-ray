@@ -47,7 +47,7 @@ dependencies = [
   "python-dateutil==2.9.0.post0",
   "types-python-dateutil==2.9.0.20260518",
   "pymongoftdc>=0.1.1",
-  "cairosvg>=2.7.0",
+  "Pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

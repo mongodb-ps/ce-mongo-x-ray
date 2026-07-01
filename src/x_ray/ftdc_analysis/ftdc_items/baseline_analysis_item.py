@@ -438,15 +438,13 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
         output.write(f"## {section_number} Baseline Analysis\n\n")
-        output.write("| | |\n")
-        output.write("|---|---|\n")
         if self._capture_start is not None and self._capture_end is not None:
             start = self._capture_start.isoformat()
             end = self._capture_end.isoformat()
-            output.write(f"| Capture timespan | `{start}` to `{end}` |\n")
+            output.write(f"- Capture timespan: `{start}` to `{end}`\n")
         else:
-            output.write("| Capture timespan | _No data available._ |\n")
-        output.write(f"| Sample rate | `{self._sample_rate:.6g}` |\n")
+            output.write("- Capture timespan: _No data available._\n")
+        output.write(f"- Sample rate: `{self._sample_rate:.6g}`\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
         output.write("Member State:\n\n")

@@ -31,6 +31,11 @@ def test_resolve_path_handles_empty_dict():
     assert _resolve_path({}, "a") is None
 
 
+def test_resolve_path_with_empty_dotted_returns_full_dict():
+    doc = {"a": 1}
+    assert _resolve_path(doc, "") == doc
+
+
 def test_item_skips_analyze_after_first_successful_read(tmp_path, monkeypatch):
     item = MetadataReviewItem(str(tmp_path), {})
     first_meta = {"buildInfo": {"version": "8.0.0"}}
@@ -117,7 +122,7 @@ def test_review_results_shows_not_available_for_missing_metadata_keys(tmp_path):
     item.review_results_markdown(output, section_number=1)
     report = output.getvalue()
 
-    assert report.count("_Not available._") == len(_METADATA_TABS)
+    assert report.count("Not available.") == len(_METADATA_TABS) - 1  # raw metadata tab always has the dict
 
 
 def test_review_results_handles_no_raw_metadata(tmp_path):

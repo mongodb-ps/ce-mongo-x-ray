@@ -15,6 +15,7 @@ _METADATA_TABS: list[tuple[str, str, str]] = [
     ("host-info", "Host Information", "hostInfo"),
     ("ulimits", "Process Resource Limits", "ulimits"),
     ("sys-open-files", "System Max Open Files", "sysMaxOpenFiles"),
+    ("raw", "Raw Metadata", ""),
 ]
 
 _STYLE = """<style>
@@ -34,6 +35,8 @@ _SCRIPT = """<script>
 
 
 def _resolve_path(metadata: dict[str, Any], dotted: str) -> Any:
+    if not dotted:
+        return metadata
     for key in dotted.split("."):
         if not isinstance(metadata, dict) or key not in metadata:
             return None
@@ -82,7 +85,7 @@ class MetadataReviewItem(BaseItem):
             active_class = " active" if idx == 0 else ""
             value = _resolve_path(self._raw_metadata, dotted_path)
             if value is None:
-                content = "_Not available._"
+                content = "Not available."
             else:
                 escaped = json.dumps(value, indent=2, sort_keys=True, default=str)
                 content = f"<pre><code class=\"language-json\">{escaped}</code></pre>"

@@ -9,6 +9,20 @@ from typing import Literal, Mapping, Optional, Sequence, Union
 
 BAR_COLORS = frozenset({"blue", "gray", "green", "red", "yellow"})
 
+_BAR_COLOR_HEX: dict[Optional[str], str] = {
+    None: "#0969da",
+    "green": "#1a7f37",
+    "yellow": "#bf8700",
+    "red": "#cf222e",
+    "blue": "#0969da",
+    "gray": "#656d76",
+}
+
+_TEXT_COLOR = "#57606a"
+_AXIS_COLOR = "#8c959f"
+
+_LEFT, _RIGHT, _TOP, _BOTTOM = 52, 12, 8, 12
+
 
 def _parse_thresholds(
     thresholds: Optional[tuple[float, float]],
@@ -68,6 +82,111 @@ def _bar_class(
     return "metric-bar metric-bar-yellow"
 
 
+def _bar_color_name(
+    value: float,
+    thresholds: Optional[tuple[float, float]],
+    value_colors: Optional[Mapping[float, str]],
+) -> Optional[str]:
+    if value_colors is not None:
+        return value_colors.get(value)
+    if thresholds is None:
+        return None
+    lower, upper = thresholds
+    if value <= lower:
+        return "green"
+    if value > upper:
+        return "red"
+    return "yellow"
+
+
+def _draw_png(
+    output_path: Path,
+    points: Sequence[tuple[datetime, float]],
+    width: int,
+    height: int,
+    thresholds: Optional[tuple[float, float]],
+    value_colors: Optional[Mapping[float, str]],
+    scale: int = 2,
+) -> None:
+    from PIL import Image, ImageDraw, ImageFont  # pylint: disable=import-outside-toplevel
+
+    left = _LEFT * scale
+    right = _RIGHT * scale
+    top = _TOP * scale
+    bottom = _BOTTOM * scale
+    render_width = width * scale
+    render_height = height * scale
+    plot_width = render_width - left - right
+    plot_height = render_height - top - bottom
+    values = [value for _, value in points]
+    y_max = max(values, default=0.0)
+    scale_max = y_max if y_max > 0 else 1.0
+
+    img = Image.new("RGBA", (render_width, render_height), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(img)
+
+    draw.line(
+        [(left, top), (left, top + plot_height)],
+        fill=_AXIS_COLOR,
+    )
+    draw.line(
+        [(left, top + plot_height), (render_width - right, top + plot_height)],
+        fill=_AXIS_COLOR,
+    )
+
+    try:
+        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 9 * scale)
+    except OSError:
+        font = ImageFont.load_default()
+
+    peak_label = str(round(y_max, 2))
+    draw.text(
+        (left - 6 * scale, top),
+        peak_label,
+        fill=_TEXT_COLOR,
+        font=font,
+        anchor="ra",
+    )
+    draw.text(
+        (left - 6 * scale, top + plot_height),
+        "0",
+        fill=_TEXT_COLOR,
+        font=font,
+        anchor="ra",
+    )
+
+    if not points:
+        draw.text(
+            (left + plot_width / 2, top + plot_height / 2),
+            "No data available",
+            fill=_TEXT_COLOR,
+            font=font,
+            anchor="mm",
+        )
+        img.save(output_path, "PNG")
+        return
+
+    start_time = points[0][0]
+    end_time = points[-1][0]
+    duration = (end_time - start_time).total_seconds()
+    count = len(points)
+    bar_width = max(1, plot_width / count - 1)
+
+    for timestamp, value in points:
+        x_ratio = (timestamp - start_time).total_seconds() / duration if duration > 0 else 0.5
+        x = left + x_ratio * plot_width - bar_width / 2
+        bar_h = (value / scale_max) * plot_height
+        y = top + plot_height - bar_h
+        color_name = _bar_color_name(value, thresholds, value_colors)
+        hex_color = _BAR_COLOR_HEX[color_name]
+        draw.rectangle(
+            [x, y, x + bar_width, y + bar_h],
+            fill=hex_color,
+        )
+
+    img.save(output_path, "PNG")
+
+
 def write_bar_chart(
     output_folder: Union[Path, str],
     metric: str,
@@ -96,10 +215,14 @@ def write_bar_chart(
     chart_folder = output_folder / "charts"
     chart_folder.mkdir(parents=True, exist_ok=True)
     slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
-    extension = image_format
-    relative_path = Path("charts") / f"{filename_prefix}-{slug}.{extension}"
+    relative_path = Path("charts") / f"{filename_prefix}-{slug}.{image_format}"
+    output_path = output_folder / relative_path
 
-    left, right, top, bottom = 52, 12, 8, 12
+    if image_format == "png":
+        _draw_png(output_path, points, width, height, parsed_thresholds, parsed_value_colors)
+        return relative_path.as_posix()
+
+    left, right, top, bottom = _LEFT, _RIGHT, _TOP, _BOTTOM
     plot_width = width - left - right
     plot_height = height - top - bottom
     values = [value for _, value in points]
@@ -120,7 +243,8 @@ def write_bar_chart(
             y = top + plot_height - bar_h
             bar_class = _bar_class(value, parsed_thresholds, parsed_value_colors)
             bars += (
-                f'<rect class="{bar_class}" x="{x:.2f}" y="{y:.2f}" ' f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
+                f'<rect class="{bar_class}" x="{x:.2f}" y="{y:.2f}" '
+                f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
             )
     else:
         bars = (
@@ -149,12 +273,5 @@ def write_bar_chart(
         f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0</text>'
         f"{bars}</svg>"
     )
-    output_path = output_folder / relative_path
-    if image_format == "png":
-        import cairosvg
-
-        svg_bytes = svg.encode("utf-8")
-        cairosvg.svg2png(bytestring=svg_bytes, write_to=str(output_path))
-    else:
-        output_path.write_text(svg, encoding="utf-8")
+    output_path.write_text(svg, encoding="utf-8")
     return relative_path.as_posix()
