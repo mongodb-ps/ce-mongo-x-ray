@@ -104,6 +104,11 @@ extend-exclude = '''
 )/
 '''
 
+[tool.pyright]
+pythonVersion = "3.10"
+venvPath = "."
+venv = ".venv"
+
 [tool.isort]
 profile = "black"
 line_length = 120

@@ -46,7 +46,7 @@ def write_bar_chart(
     thresholds: Optional[tuple[float, float]] = None,
     filename_prefix: str = "ftdc-baseline-analysis",
     width: int = 480,
-    height: int = 100,
+    height: int = 50,
 ) -> str:
     """Render a time-series bar chart as SVG and return its relative path."""
     output_folder = Path(output_folder)

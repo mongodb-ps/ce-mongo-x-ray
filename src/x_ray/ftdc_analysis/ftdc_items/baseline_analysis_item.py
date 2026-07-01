@@ -31,6 +31,39 @@ from x_ray.ftdc_analysis.shared import (
     WIREDTIGER_CACHE_METRICS,
 )
 
+MEMBER_STATE_COLORS = {
+    0: "gray",  # STARTUP
+    1: "green",  # PRIMARY
+    2: "yellow",  # SECONDARY
+    3: "gray",  # RECOVERING
+    4: "gray",  # FATAL
+    5: "gray",  # STARTUP2
+    6: "gray",  # UNKNOWN
+    7: "blue",  # ARBITER
+    8: "gray",  # DOWN
+    9: "gray",  # ROLLBACK
+    10: "gray",  # REMOVED
+}
+MEMBER_STATE_NAMES = {
+    0: "STARTUP",
+    1: "PRIMARY",
+    2: "SECONDARY",
+    3: "RECOVERING",
+    4: "FATAL",
+    5: "STARTUP2",
+    6: "UNKNOWN",
+    7: "ARBITER",
+    8: "DOWN",
+    9: "ROLLBACK",
+    10: "REMOVED",
+}
+MEMBER_STATE_TEXT_COLORS = {
+    "blue": "white",
+    "gray": "black",
+    "green": "white",
+    "yellow": "black",
+}
+
 
 class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
     """Summarize the workload and performance represented by an FTDC capture."""
@@ -271,19 +304,21 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 for timestamp, value in sorted(self._series.get(metric, {}).items())
                 if isfinite(value)
             ]
-            display_metric = f'{REPL_SET_MEMBER_METRICS["state"].name} ({member})'
+            latest_state = points[-1][1] if points else None
+            state_code = int(latest_state) if latest_state is not None and float(latest_state).is_integer() else None
+            if state_code is None:
+                state = "UNKNOWN"
+                state_color = "gray"
+            else:
+                state = MEMBER_STATE_NAMES.get(state_code, "UNKNOWN")
+                state_color = MEMBER_STATE_COLORS.get(state_code, "gray")
             member_states.append(
                 {
                     "member": member,
-                    "metric": display_metric,
                     "myself": "Yes" if member in local_members else "No" if local_member_known else "Unknown",
-                    "chart": write_bar_chart(
-                        self.output_folder,
-                        display_metric,
-                        points,
-                        slug=f"rs-member-state-{self._mount_slug(member)}",
-                        thresholds=(1, 2),
-                    ),
+                    "state": state,
+                    "color": state_color,
+                    "text_color": MEMBER_STATE_TEXT_COLORS[state_color],
                 }
             )
 

@@ -17,13 +17,17 @@ class BaselineAnalysisParser(BaseParser):
                     "header": [
                         {"text": "Member", "align": "left"},
                         "Myself",
-                        "Chart",
+                        "State",
                     ],
                     "rows": [
                         [
                             item["member"],
                             item["myself"],
-                            f'![{item["metric"]} bar chart]({item["chart"]})',
+                            (
+                                f'<span style="background-color: {item["color"]}; '
+                                f'color: {item["text_color"]}; padding: 0.15em 0.45em; '
+                                f'border-radius: 0.25em; font-weight: 600;">{item["state"]}</span>'
+                            ),
                         ]
                         for item in data
                     ],

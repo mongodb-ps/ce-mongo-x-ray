@@ -41,9 +41,10 @@ def test_parse_member_state_table_without_peak_and_average():
         [
             {
                 "member": "0",
-                "metric": "Replica set member state (0)",
                 "myself": "Yes",
-                "chart": "charts/ftdc-baseline-analysis-rs-member-state-0.svg",
+                "state": "PRIMARY",
+                "color": "green",
+                "text_color": "white",
             }
         ],
         member_state=True,
@@ -56,13 +57,17 @@ def test_parse_member_state_table_without_peak_and_average():
             "header": [
                 {"text": "Member", "align": "left"},
                 "Myself",
-                "Chart",
+                "State",
             ],
             "rows": [
                 [
                     "0",
                     "Yes",
-                    "![Replica set member state (0) bar chart](charts/ftdc-baseline-analysis-rs-member-state-0.svg)",
+                    (
+                        '<span style="background-color: green; color: white; '
+                        "padding: 0.15em 0.45em; border-radius: 0.25em; "
+                        'font-weight: 600;">PRIMARY</span>'
+                    ),
                 ]
             ],
         }
