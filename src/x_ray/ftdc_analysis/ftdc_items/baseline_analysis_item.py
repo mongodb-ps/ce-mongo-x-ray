@@ -239,11 +239,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             ),
             self._summary(
                 DERIVED_METRIC_NAMES["memory_fragmentation_ratio"],
-                self._ratio(
-                    TCMALLOC_METRICS["heap_size"].key,
-                    TCMALLOC_METRICS["current_allocated_bytes"].key,
-                    subtract=True,
-                ),
+                self._pageheap_fragmentation(),
                 "%",
                 thresholds=(15, 25),
             ),
@@ -443,6 +439,17 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     points.append((timestamp, value))
         return points
 
+    def _pageheap_fragmentation(self) -> list[tuple[datetime, float]]:
+        pageheap = self._series.get(TCMALLOC_METRICS["pageheap_free_bytes"].key, {})
+        mem_total = self._series.get(MEMORY_METRICS["total"].key, {})
+        points = []
+        for timestamp in sorted(set(pageheap) & set(mem_total)):
+            if mem_total[timestamp] > 0:
+                value = pageheap[timestamp] / mem_total[timestamp] / 10.24
+                if isfinite(value):
+                    points.append((timestamp, value))
+        return points
+
     def _cpu_rates(self, metric: str) -> list[tuple[datetime, float]]:
         counters = self._series.get(metric, {})
         cores = {}
@@ -477,6 +484,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "metric": metric,
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
+            "warning_threshold": thresholds[1] if thresholds else None,
             "unit": unit,
             "chart": write_bar_chart(
                 self.output_folder,

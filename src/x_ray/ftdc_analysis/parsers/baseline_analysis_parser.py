@@ -58,6 +58,7 @@ class BaselineAnalysisParser(BaseParser):
                 f'{item["metric"]} ({item["unit"]})',
                 round(item["peak"], 2),
                 round(item["average"], 2),
+                round(item["warning_threshold"], 2) if item.get("warning_threshold") is not None else "\u2014",
                 _chart_img(item["chart"], f'{item["metric"]} bar chart', output_folder),
             ]
             for item in data
@@ -70,6 +71,7 @@ class BaselineAnalysisParser(BaseParser):
                     {"text": "Metric", "align": "left"},
                     "Peak",
                     "Average",
+                    "Warning Threshold",
                     "Chart",
                 ],
                 "rows": rows,

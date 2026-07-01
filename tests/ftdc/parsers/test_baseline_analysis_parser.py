@@ -25,6 +25,7 @@ def test_parse_baseline_analysis_table():
                 {"text": "Metric", "align": "left"},
                 "Peak",
                 "Average",
+                "Warning Threshold",
                 "Chart",
             ],
             "rows": [
@@ -32,6 +33,7 @@ def test_parse_baseline_analysis_table():
                     "CPU user (%)",
                     12.35,
                     4.57,
+                    "\u2014",
                     "![CPU user bar chart](charts/ftdc-baseline-analysis-cpu-user.svg)",
                 ]
             ],
@@ -132,4 +134,4 @@ def test_parse_embeds_png_with_output_folder(tmp_path):
         f'<img src="data:image/png;base64,{expected_data}"'
         ' width="480" height="50" alt="CPU user bar chart">'
     )
-    assert parsed[0]["rows"][0][3] == expected_img
+    assert parsed[0]["rows"][0][4] == expected_img

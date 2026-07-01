@@ -110,11 +110,15 @@ TCMALLOC_METRICS: Final = {
     ),
     "total_free_bytes": Metric(
         "TCMalloc total free bytes",
-        "serverStatus.tcmalloc.tcmalloc_derived.total_free_bytes",
+        "serverStatus.tcmalloc.tcmalloc.total_free_bytes",
     ),
     "unmapped_bytes": Metric(
         "TCMalloc unmapped bytes",
-        "serverStatus.tcmalloc.tcmalloc_derived.unmapped_bytes",
+        "serverStatus.tcmalloc.tcmalloc.unmapped_bytes",
+    ),
+    "pageheap_free_bytes": Metric(
+        "TCMalloc pageheap free bytes",
+        "serverStatus.tcmalloc.tcmalloc.pageheap_free_bytes",
     ),
 }
 
@@ -197,8 +201,7 @@ BASELINE_ANALYSIS_STATIC_METRICS: Final = {
     CPU_METRICS["iowait"].key,
     MEMORY_METRICS["total"].key,
     MEMORY_METRICS["available"].key,
-    TCMALLOC_METRICS["heap_size"].key,
-    TCMALLOC_METRICS["current_allocated_bytes"].key,
+    TCMALLOC_METRICS["pageheap_free_bytes"].key,
     WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
     WIREDTIGER_CACHE_METRICS["bytes_current"].key,
     WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key,
