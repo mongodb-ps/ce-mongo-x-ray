@@ -445,19 +445,26 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         mongodb_config = self._mongodb_config or {}
         output.write(f"```json\n{json.dumps(mongodb_config, indent=2, sort_keys=True, default=str)}\n```\n\n")
         parser = BaselineAnalysisParser()
+        output.write("Member State:\n\n")
+        output.write(
+            parser.markdown(
+                self._results["Member State"],
+                caption=None,
+                member_state=True,
+            )
+        )
         subsection_numbers = {
             "Workload": 1,
             "Ops and Latencies": 2,
             "Performance": 3,
-            "Member State": 4,
         }
-        for section, results in self._results.items():
+        for section in ("Workload", "Ops and Latencies", "Performance"):
+            results = self._results[section]
             subsection_number = subsection_numbers[section]
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
             output.write(
                 parser.markdown(
                     results,
                     caption=None,
-                    member_state=section == "Member State",
                 )
             )

@@ -368,7 +368,8 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
-    assert "### 1.4 Member State" in report
+    assert "### 1.4 Member State" not in report
+    assert report.index("Member State:\n\n") < report.index("|Member|Me|State|") < report.index("### 1.1 Workload")
 
 
 def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):
@@ -413,5 +414,12 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
-    assert "### 1.4 Member State" in report
+    assert "### 1.4 Member State" not in report
+    config_end = report.index("\n```\n", report.index("MongoDB configuration:"))
+    assert (
+        config_end
+        < report.index("Member State:\n\n")
+        < report.index("_No data available._")
+        < report.index("### 1.1 Workload")
+    )
     assert "#### Baseline Analysis" not in report

@@ -16,8 +16,8 @@ class BaselineAnalysisParser(BaseParser):
                     "caption": kwargs.get("caption", "Member State"),
                     "header": [
                         {"text": "Member", "align": "left"},
-                        "Myself",
-                        "Chart",
+                        "Me",
+                        "State",
                     ],
                     "rows": [
                         [

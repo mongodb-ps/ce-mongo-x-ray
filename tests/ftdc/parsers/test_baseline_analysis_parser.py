@@ -55,8 +55,8 @@ def test_parse_member_state_table_without_peak_and_average():
             "caption": "Member State",
             "header": [
                 {"text": "Member", "align": "left"},
-                "Myself",
-                "Chart",
+                "Me",
+                "State",
             ],
             "rows": [
                 [

@@ -11,6 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -37,6 +38,7 @@
                 // "mongodb+srv://cluster0.wy1z6.mongodb.net/?appName=Cluster0"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -63,6 +65,7 @@
                 "misc/example.log"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -87,6 +90,7 @@
                 "misc/getMongoData-rs.json"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -113,6 +117,7 @@
                 "2026-06-18T00:00:00+00:00"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -125,7 +130,7 @@
             "console": "integratedTerminal",
             "args": [],
             "env": {
-                "PYTHONPATH": "."
+                "PYTHONPATH": "${workspaceFolder}/src"
             }
         }
     ]
