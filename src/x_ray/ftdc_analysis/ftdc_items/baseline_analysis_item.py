@@ -493,7 +493,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "metric": metric,
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
-            "warning_threshold": thresholds[1] if thresholds else None,
+            "warning_threshold": thresholds[0] if thresholds else None,
             "unit": unit,
             "chart": write_bar_chart(
                 self.output_folder,

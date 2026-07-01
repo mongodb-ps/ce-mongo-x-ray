@@ -293,8 +293,8 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     performance = {result["metric"]: result for result in performance_results}
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["peak"] == 70
     assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == pytest.approx(0.146484375)
-    assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["warning_threshold"] == 25
-    assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["warning_threshold"] == 95
+    assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["warning_threshold"] == 15
+    assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["warning_threshold"] == 85
     assert performance[CPU_METRICS["user"].name]["peak"] == 20
     assert performance[CPU_METRICS["system"].name]["average"] == pytest.approx(7.5)
     assert performance[CPU_METRICS["iowait"].name]["peak"] == 3
