@@ -85,32 +85,30 @@
                 li.appendChild(createList(children));
             }
             outline.appendChild(ul);
-            var outlineWidth = outline.offsetWidth;
+            var outlineWidth = outline.offsetWidth + 20;
             body.style.margin = '0 auto 0 ' + outlineWidth + 'px';
-            expand = document.getElementById('expand-outline');
-            collapse = document.getElementById('collapse-outline');
-            b = outline.getElementsByTagName('b')[0];
-            state = 1;
-            states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
+            var expand = document.getElementById('expand-outline');
+            var collapse = document.getElementById('collapse-outline');
+            var state = 1;
+            var margins = ["0 auto", '0 auto 0 ' + outlineWidth + 'px'];
             window.onresize = function () {
-                blank = (getWindowWidth() - VIEWPORT_WIDTH) / 2;
+                var blank = (getWindowWidth() - VIEWPORT_WIDTH) / 2;
                 if (blank > outlineWidth) {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 auto']];
+                    margins = ["0 auto", "0 auto"];
                 } else {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
+                    margins = ["0 auto", '0 auto 0 ' + outlineWidth + 'px'];
                 }
-                body.style.margin = states[4][state];
+                body.style.margin = margins[state];
                 for (var i = 0; i < charts.length; i++) {
                     charts[i].resize();
                 }
             };
-            click = function () {
+            var click = function () {
                 state = state == 0 ? 1 : 0;
-                ul.style.display = states[0][state];
-                b.style.display = states[1][state];
-                expand.style.display = states[2][state];
-                collapse.style.display = states[3][state];
-                body.style.margin = states[4][state];
+                outline.style.display = state ? "block" : "none";
+                expand.style.display = state ? "none" : "inline";
+                body.style.margin = margins[state];
+                window.dispatchEvent(new Event("resize"));
                 return false;
             };
             collapse.onclick = click;
@@ -118,6 +116,29 @@
             highLightOutline();
             window.onscroll = highLightOutline;
             hljs.highlightAll();
+            if (!navigator.clipboard) {
+                document.querySelectorAll(".hljs-copy-button").forEach(function (btn) {
+                    btn.onclick = function () {
+                        var code = this.closest(".hljs-copy-wrapper").querySelector("code");
+                        if (!code) return;
+                        var text = code.textContent || "";
+                        var ta = document.createElement("textarea");
+                        ta.value = text;
+                        ta.style.position = "fixed";
+                        ta.style.opacity = "0";
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try {
+                            document.execCommand("copy");
+                            this.innerHTML = "Copied!";
+                            this.dataset.copied = "true";
+                            var self = this;
+                            setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
+                        } catch (e) { /* ignore */ }
+                        document.body.removeChild(ta);
+                    };
+                });
+            }
         };
         function formatSize(sizeBytes, decimal = 2) {
             const units = ["B", "KB", "MB", "GB", "TB"];
@@ -135,21 +156,50 @@
             box-sizing: border-box;
             min-width: 200px;
             max-width: 1200px;
-            margin: 0 auto 0 350px;
+            margin: 0 auto 0 300px;
             padding: 45px;
         }
 
-        @media(max-width:90%) {
-            .markdown-body {
-                padding: 15px;
-            }
+        #outline {
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            padding: 40px 24px;
+            overflow-y: auto;
+            background: var(--bgColor-muted, #f6f8fa);
+            border-right: 1px solid var(--borderColor-default, #d0d7de);
         }
 
-        #outline {
+        #outline>ul {
+            padding-left: 20px;
+        }
+
+        #outline li {
+            list-style: none;
+        }
+
+        #outline a {
+            color: var(--fgColor-accent, #0969da);
+            text-decoration: none;
+        }
+
+        #outline a.in-view {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        #expand-outline {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 40px 0;
+            top: 16px;
+            left: 16px;
+            padding: 6px 10px;
+            background: var(--bgColor-muted, #f6f8fa);
+            border: 1px solid var(--borderColor-default, #d0d7de);
+            border-radius: 6px;
+            text-decoration: none;
         }
 
         .pie {
@@ -162,14 +212,10 @@
             width: 48%;
         }
 
-        .bar .pie100 {
+        .bar,
+        .pie100 {
             display: inline-block;
             width: 100%;
-        }
-
-        a.in-view {
-            background-color: #eee;
-            font-weight: bold;
         }
 
         .hljs-copy-wrapper {
@@ -177,26 +223,41 @@
         }
 
         .hljs-copy-button {
-            background-color: var(--bgColor-default);
-            border: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
             position: absolute;
             top: 8px;
             right: 8px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
             opacity: 0.6;
+            background-color: var(--bgColor-default);
+            border: none;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 900px) {
+            .markdown-body {
+                margin: 0 auto !important;
+                padding: 24px 16px;
+            }
+
+            #outline {
+                display: none;
+            }
+
+            #expand-outline {
+                display: none !important;
+            }
         }
     </style>
 </head>
 
 <body class="markdown-body">
-    <div id="outline">
-        <a href="#" id="collapse-outline">&#x25C0;</a>
+    <nav id="outline" aria-label="Report outline">
+        <a href="#" id="collapse-outline" aria-label="Collapse report outline">&#x25C0;</a>
         <b>Report Outline</b>
-        <a href="#" style="display: none;" id="expand-outline">&#x25B6;</a>
-    </div>
+    </nav>
+    <a href="#" style="display: none;" id="expand-outline" aria-label="Expand report outline">&#x25B6;</a>
     {{ content }}
 </body>
 

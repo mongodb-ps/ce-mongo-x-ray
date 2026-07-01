@@ -93,7 +93,7 @@ python3 -m pip install -e ".[dev]"
 
 ## 3 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log}
+x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 ```
 | Argument         | Description                                                                                                                        |           Default           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: |
@@ -172,8 +172,30 @@ x-ray gmd misc/getMongoData-rs.json
 ```bash
 x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 ```
-| Argument           | Description                    |  Default  |
-| ------------------ | ------------------------------ | :-------: |
-| `-s`, `--checkset` | Checkset to run.               | `default` |
-| `-o`, `--output`   | Output folder path.            | `output/` |
-| `-f`, `--format`   | Output format (markdown/html). |  `html`   |
+| Argument           | Description                                                     |       Default        |
+| ------------------ | --------------------------------------------------------------- | :------------------: |
+| `-s`, `--checkset` | Checkset to run.                                                |      `default`       |
+| `-o`, `--output`   | Output folder path.                                             |      `output/`       |
+| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. | `1 / ingested files` |
+| `-f`, `--format`   | Output format (markdown/html).                                  |        `html`        |
+
+### 3.4 FTDC Analysis Component
+
+The FTDC baseline analysis reports its capture timespan and effective sample rate, then
+groups metrics into Workload, Read/Write Operations and Latencies, and
+Performance sections. It includes operation rates and latencies, host memory
+and CPU utilization, WiredTiger cache utilization, queue depth for each block
+device, and free-space and utilization charts for every reported mount point.
+Each metric shows its peak, average, unit, and a chart saved under the report
+output's `charts` directory.
+Start and end are inclusive UTC ISO-8601 timestamps. When omitted, the first
+and last data points in the archive are used.
+
+```bash
+x-ray ftdc /var/lib/mongo/diagnostic.data
+x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:00Z
+```
+
+```bash
+x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] [-r RATE] ftdc_path [start_time] [end_time]
+```

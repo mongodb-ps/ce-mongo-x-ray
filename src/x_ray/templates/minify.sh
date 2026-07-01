@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Process all .raw.html files in all subdirectories recursively
-find . -name "*.raw.html" -type f | while read -r file; do
+roots=("$@")
+if [ ${#roots[@]} -eq 0 ]; then
+  roots=(".")
+fi
+
+# Process all .raw.html files in the requested directories recursively
+find "${roots[@]}" -name "*.raw.html" -type f | while read -r file; do
   # Extract the directory and base name
   dir=$(dirname "$file")
   basename=$(basename "$file" .raw.html)
@@ -9,7 +14,7 @@ find . -name "*.raw.html" -type f | while read -r file; do
   # Create output filename by removing .raw
   output="$dir/${basename}.html"
   
-  if git diff --quiet "$file" && git diff --quiet "$output"; then
+  if [ -f "$output" ] && git diff --quiet "$file" && git diff --quiet "$output"; then
     echo "No changes in $file, skipping minification."
     continue
   fi
@@ -18,8 +23,8 @@ find . -name "*.raw.html" -type f | while read -r file; do
     --collapse-whitespace --remove-comments --minify-js true --minify-css true
 done
 
-# Process all .raw.js files in all subdirectories recursively
-find . -name "*.raw.js" -type f | while read -r file; do
+# Process all .raw.js files in the requested directories recursively
+find "${roots[@]}" -name "*.raw.js" -type f | while read -r file; do
   # Extract the directory and base name
   dir=$(dirname "$file")
   basename=$(basename "$file" .raw.js)
@@ -27,7 +32,7 @@ find . -name "*.raw.js" -type f | while read -r file; do
   # Create output filename by removing .raw
   output="$dir/${basename}.js"
   
-  if git diff --quiet "$file" && git diff --quiet "$output"; then
+  if [ -f "$output" ] && git diff --quiet "$file" && git diff --quiet "$output"; then
     echo "No changes in $file, skipping minification."
     continue
   fi

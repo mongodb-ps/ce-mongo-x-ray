@@ -11,6 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -37,6 +38,7 @@
                 // "mongodb+srv://cluster0.wy1z6.mongodb.net/?appName=Cluster0"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -63,6 +65,7 @@
                 "misc/example.log"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -87,6 +90,35 @@
                 "misc/getMongoData-rs.json"
             ],
             "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
+                "LOG_LEVEL": "INFO",
+                "ENV": "development"
+            }
+        },
+        {
+            "name": "App: X-Ray-FTDC",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "x_ray",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "${workspaceFolder}/src"
+                }
+            ],
+            "args": [
+                "-c",
+                "src/x_ray/config.json",
+                "ftdc",
+                // "--svg",
+                "misc/ftdc",
+                "2026-05-19T00:00:00",
+                "2026-05-20T00:00:00"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
             }
@@ -99,7 +131,7 @@
             "console": "integratedTerminal",
             "args": [],
             "env": {
-                "PYTHONPATH": "."
+                "PYTHONPATH": "${workspaceFolder}/src"
             }
         }
     ]

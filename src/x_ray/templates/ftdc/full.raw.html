@@ -3,11 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Healthcheck Report</title>
+    <title>FTDC Analysis Report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/github-markdown.min.css">
-    </link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
         media="(prefers-color-scheme: light)">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
@@ -125,31 +124,13 @@
 </head>
 
 <body class="markdown-body">
-    <div id="outline">
-        <a href="#" id="collapse-outline">&#x25C0;</a>
+    <nav id="outline" aria-label="Report outline">
+        <a href="#" id="collapse-outline" aria-label="Collapse report outline">&#x25C0;</a>
         <b>Report Outline</b>
-    </div>
-    <a href="#" id="expand-outline" style="display: none">&#x25B6;</a>
+    </nav>
+    <a href="#" id="expand-outline" style="display: none" aria-label="Expand report outline">&#x25B6;</a>
     {{ content }}
     <script type="text/javascript">
-        VIEWPORT_WIDTH = 1200;
-        charts = [];
-
-        hljs.addPlugin(new CopyButtonPlugin({
-            hook: (_, el) => el.textContent
-        }));
-
-        function formatSize(sizeBytes, decimal = 2) {
-            const units = ["B", "KB", "MB", "GB", "TB"];
-            for (let unit of units) {
-                if (sizeBytes < 1024) {
-                    return sizeBytes.toFixed(decimal) + " " + unit;
-                }
-                sizeBytes /= 1024;
-            }
-            return sizeBytes.toFixed(decimal) + " PB";
-        }
-
         const outline = document.getElementById("outline");
         const collapse = document.getElementById("collapse-outline");
         const expand = document.getElementById("expand-outline");
@@ -198,29 +179,34 @@
         window.addEventListener("scroll", highlightOutline, { passive: true });
         highlightOutline();
 
-        hljs.highlightAll();
-        if (!navigator.clipboard) {
-            document.querySelectorAll(".hljs-copy-button").forEach(function (btn) {
-                btn.onclick = function () {
-                    var code = this.closest(".hljs-copy-wrapper").querySelector("code");
-                    if (!code) return;
-                    var text = code.textContent || "";
-                    var ta = document.createElement("textarea");
-                    ta.value = text;
-                    ta.style.position = "fixed";
-                    ta.style.opacity = "0";
-                    document.body.appendChild(ta);
-                    ta.select();
-                    try {
-                        document.execCommand("copy");
-                        this.innerHTML = "Copied!";
-                        this.dataset.copied = "true";
-                        var self = this;
-                        setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
-                    } catch (e) { /* ignore */ }
-                    document.body.removeChild(ta);
-                };
-            });
+        if (window.hljs) {
+            if (window.CopyButtonPlugin) {
+                hljs.addPlugin(new CopyButtonPlugin({ hook: (_, element) => element.textContent }));
+            }
+            hljs.highlightAll();
+            if (!navigator.clipboard) {
+                document.querySelectorAll(".hljs-copy-button").forEach(function (btn) {
+                    btn.onclick = function () {
+                        var code = this.closest(".hljs-copy-wrapper").querySelector("code");
+                        if (!code) return;
+                        var text = code.textContent || "";
+                        var ta = document.createElement("textarea");
+                        ta.value = text;
+                        ta.style.position = "fixed";
+                        ta.style.opacity = "0";
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try {
+                            document.execCommand("copy");
+                            this.innerHTML = "Copied!";
+                            this.dataset.copied = "true";
+                            var self = this;
+                            setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
+                        } catch (e) { /* ignore */ }
+                        document.body.removeChild(ta);
+                    };
+                });
+            }
         }
     </script>
 </body>
