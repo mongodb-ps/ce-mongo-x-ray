@@ -12,7 +12,7 @@ BAR_COLORS = frozenset({"blue", "gray", "green", "red", "yellow"})
 _BAR_COLOR_HEX: dict[Optional[str], str] = {
     None: "#0969da",
     "green": "#1a7f37",
-    "yellow": "#bf8700",
+    "yellow": "#9a6700",
     "red": "#cf222e",
     "blue": "#0969da",
     "gray": "#656d76",
@@ -260,11 +260,11 @@ def write_bar_chart(
         "text{font:9px sans-serif;fill:#57606a}"
         ".metric-bar{fill:#0969da}"
         "@media (prefers-color-scheme:dark){.metric-bar{fill:#58a6ff}}"
-        ".metric-bar-green{fill:green}"
-        ".metric-bar-yellow{fill:yellow}"
-        ".metric-bar-red{fill:red}"
-        ".metric-bar-blue{fill:blue}"
-        ".metric-bar-gray{fill:gray}"
+        ".metric-bar-green{fill:#1a7f37}"
+        ".metric-bar-yellow{fill:#9a6700}"
+        ".metric-bar-red{fill:#cf222e}"
+        ".metric-bar-blue{fill:#0969da}"
+        ".metric-bar-gray{fill:#656d76}"
         "</style>"
         f'<line x1="{left}" y1="{top}" x2="{left}" y2="{top + plot_height}" stroke="#8c959f"/>'
         f'<line x1="{left}" y1="{top + plot_height}" x2="{width - right}" '

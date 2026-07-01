@@ -1,8 +1,10 @@
 """Workload, latency, and host performance summaries for FTDC captures."""
 
 import re
+from collections.abc import Iterable
 from datetime import datetime
 from math import isfinite
+from posixpath import normpath
 from pathlib import Path
 from statistics import fmean
 from typing import Optional
@@ -44,6 +46,8 @@ MEMBER_STATE_COLORS: dict[float, str] = {
     10: "gray",  # REMOVED
 }
 
+DEFAULT_DB_PATH = "/data/db"
+
 
 class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
     """Summarize the workload and performance represented by an FTDC capture."""
@@ -64,6 +68,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
+        self._hostname: Optional[str] = None
         self._image_format = kwargs.get("image_format", "png")
 
     def analyze(self, file_path: Path) -> None:
@@ -73,8 +78,19 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 self._mongodb_config = reader.get_mongodb_config()
             except FTDCError:
                 self._logger.debug("MongoDB configuration not found in FTDC file: %s", file_path)
+        if self._hostname is None:
+            try:
+                metadata = reader.get_metadata()
+                host_info = metadata.get("hostInfo", {}) if isinstance(metadata, dict) else {}
+                system = host_info.get("system", {}) if isinstance(host_info, dict) else {}
+                hostname = system.get("hostname") if isinstance(system, dict) else None
+                if isinstance(hostname, str) and hostname.strip():
+                    self._hostname = hostname.strip()
+            except FTDCError:
+                self._logger.debug("Host information not found in FTDC file: %s", file_path)
         available = set(reader.list_metrics())
         wanted = BASELINE_ANALYSIS_STATIC_METRICS & available
+        mount_candidates: dict[str, dict[str, str]] = {}
 
         for metric in available:
             block_device = self._block_device(metric)
@@ -84,13 +100,20 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             mount_metric = self._mount_metric(metric)
             if mount_metric is not None and self._is_data_volume_mount(mount_metric[0]):
                 mount_point, field = mount_metric
-                wanted.add(metric)
-                self._mount_metrics.setdefault(mount_point, {})[field] = metric
+                mount_candidates.setdefault(mount_point, {})[field] = metric
             member_metric = self._rs_member_metric(metric)
             if member_metric is not None:
                 member, field = member_metric
                 wanted.add(metric)
                 self._rs_member_metrics.setdefault(member, {})[field] = metric
+
+        selected_mounts = (
+            set(mount_candidates) if self._mongodb_config is None else self._mongodb_mount_points(mount_candidates)
+        )
+        for mount_point in selected_mounts:
+            for field, metric in mount_candidates[mount_point].items():
+                wanted.add(metric)
+                self._mount_metrics.setdefault(mount_point, {})[field] = metric
 
         if not wanted:
             return
@@ -112,7 +135,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     @staticmethod
     def _block_device(metric: str) -> Optional[str]:
-        suffix = f'.{DISK_METRICS["io_in_progress"].key}'
+        suffix = f'.{DISK_METRICS["io_queued_ms"].key}'
         if metric.startswith(DISK_METRIC_PREFIX) and metric.endswith(suffix):
             return metric[len(DISK_METRIC_PREFIX) : -len(suffix)]
         return None
@@ -145,6 +168,33 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         if any(mount_point == root or mount_point.startswith(f"{root}/") for root in virtual_roots):
             return False
         return mount_point not in {"/etc/hostname", "/etc/hosts", "/etc/resolv.conf"}
+
+    def _configured_storage_paths(self) -> set[str]:
+        config = self._mongodb_config if isinstance(self._mongodb_config, dict) else {}
+        storage = config.get("storage", {})
+        system_log = config.get("systemLog", {})
+        audit_log = config.get("auditLog", {})
+
+        db_path = storage.get("dbPath") if isinstance(storage, dict) else None
+        paths = [db_path.strip() if isinstance(db_path, str) and db_path.strip() else DEFAULT_DB_PATH]
+        for section in (system_log, audit_log):
+            path = section.get("path") if isinstance(section, dict) else None
+            if isinstance(path, str) and path.strip():
+                paths.append(path.strip())
+        return {normpath(path) for path in paths}
+
+    def _mongodb_mount_points(self, mount_points: Iterable[str]) -> set[str]:
+        normalized_mounts = {normpath(mount_point or "/"): mount_point for mount_point in mount_points}
+        selected = set()
+        for path in self._configured_storage_paths():
+            matching = [
+                mount
+                for mount in normalized_mounts
+                if mount == "/" or path == mount or path.startswith(f"{mount.rstrip('/')}/")
+            ]
+            if matching:
+                selected.add(normalized_mounts[max(matching, key=len)])
+        return selected
 
     def _local_rs_members(self) -> set[str]:
         return {
@@ -244,11 +294,10 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             ),
         ]
         for metric, block_device in sorted(self._disk_queue_metrics.items(), key=lambda item: item[1]):
-            points = [
-                (timestamp, value)
-                for timestamp, value in sorted(self._series.get(metric, {}).items())
-                if isfinite(value)
-            ]
+            # io_queued_ms is the cumulative weighted time spent doing I/O.
+            # Its millisecond delta divided by elapsed milliseconds is the
+            # average queue depth over the interval.
+            points = [(timestamp, value / 1000) for timestamp, value in self._counter_rate(metric)]
             performance.append(
                 self._summary(
                     f'{DISK_METRICS["io_in_progress"].name} ({block_device})',
@@ -288,7 +337,10 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             )
 
         used_mount_slugs: set[str] = set()
+        mongodb_mounts = self._mongodb_mount_points(self._mount_metrics)
         for mount_point, metrics in sorted(self._mount_metrics.items()):
+            if mount_point not in mongodb_mounts:
+                continue
             free_points = [
                 (timestamp, value / (1024**3))
                 for timestamp, value in sorted(self._series.get(metrics.get("free", ""), {}).items())
@@ -445,6 +497,10 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         else:
             output.write("- Capture timespan: _No data available._\n")
         output.write(f"- Sample rate: `{self._sample_rate:.6g}`\n")
+        if self._hostname is not None:
+            output.write(f"- Hostname: `{self._hostname}`\n")
+        else:
+            output.write("- Hostname: _No data available._\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
         output.write("Member State:\n\n")

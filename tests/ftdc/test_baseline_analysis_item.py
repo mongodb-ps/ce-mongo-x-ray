@@ -109,8 +109,11 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
                 CPU_METRICS["available_cores"].key,
                 WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
                 "systemMetrics.disks.sda.io_in_progress",
+                "systemMetrics.disks.sda.io_queued_ms",
                 "systemMetrics.mounts./data/db.free",
                 "systemMetrics.mounts./data/db.capacity",
+                "systemMetrics.mounts./unused.free",
+                "systemMetrics.mounts./unused.capacity",
                 "systemMetrics.mounts./proc/acpi.free",
                 "replSetGetStatus.members.0.state",
                 "replSetGetStatus.members.0.self",
@@ -121,6 +124,9 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
 
         def get_mongodb_config(self):
             return {"net": {"port": 27017}}
+
+        def get_metadata(self):
+            return {"hostInfo": {"system": {"hostname": "mongo.example.test:27017"}}}
 
         def get_metric(self, names, start, end, sample_rate=1.0):
             calls.append((names, start, end, sample_rate))
@@ -140,7 +146,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
         CPU_METRICS["system"].key,
         CPU_METRICS["available_cores"].key,
         WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key,
-        "systemMetrics.disks.sda.io_in_progress",
+        "systemMetrics.disks.sda.io_queued_ms",
         "systemMetrics.mounts./data/db.free",
         "systemMetrics.mounts./data/db.capacity",
         "replSetGetStatus.members.0.state",
@@ -151,7 +157,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
     assert calls[0][1] is None
     assert calls[0][2] is None
     assert "unrelated.metric" not in item._series
-    assert item._disk_queue_metrics == {"systemMetrics.disks.sda.io_in_progress": "sda"}
+    assert item._disk_queue_metrics == {"systemMetrics.disks.sda.io_queued_ms": "sda"}
     assert item._mount_metrics == {
         "/data/db": {
             "free": "systemMetrics.mounts./data/db.free",
@@ -168,6 +174,7 @@ def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeyp
     assert item._capture_start == timestamp
     assert item._capture_end == timestamp
     assert item._mongodb_config == {"net": {"port": 27017}}
+    assert item._hostname == "mongo.example.test:27017"
 
 
 def test_mount_detection_excludes_virtual_and_container_bind_mounts():
@@ -179,6 +186,27 @@ def test_mount_detection_excludes_virtual_and_container_bind_mounts():
     assert not BaselineAnalysisItem._is_data_volume_mount("/run/user/200057129")
     assert not BaselineAnalysisItem._is_data_volume_mount("/sys/firmware")
     assert not BaselineAnalysisItem._is_data_volume_mount("/etc/hosts")
+
+
+def test_mongodb_mount_points_use_configured_paths_and_default_db_path(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    mounts = {"/", "/data", "/data/db", "/logs", "/audit", "/unused"}
+    item._mongodb_config = {
+        "storage": {"dbPath": "/data/db/instance"},
+        "systemLog": {"path": "/logs/mongod.log"},
+        "auditLog": {"path": "/audit/audit.json"},
+    }
+
+    assert item._mongodb_mount_points(mounts) == {"/data/db", "/logs", "/audit"}
+
+    item._mongodb_config = {
+        "storage": {"dbPath": ""},
+        "systemLog": {"path": ""},
+        "auditLog": {"path": None},
+    }
+
+    assert item._configured_storage_paths() == {"/data/db"}
+    assert item._mongodb_mount_points(mounts) == {"/data/db"}
 
 
 def test_baseline_analysis_calculates_requested_sections(tmp_path):
@@ -205,8 +233,8 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
         WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
         WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
         WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key: {start: 5, middle: 10, end: 15},
-        "systemMetrics.disks.sda.io_in_progress": {start: 2, middle: 3, end: 4},
-        "systemMetrics.disks.sdb.io_in_progress": {start: 1, middle: 2, end: 3},
+        "systemMetrics.disks.sda.io_queued_ms": {start: 1000, middle: 3000, end: 7000},
+        "systemMetrics.disks.sdb.io_queued_ms": {start: 1000, middle: 2000, end: 5000},
         "replSetGetStatus.members.0.state": {start: 1, middle: 1, end: 1},
         "replSetGetStatus.members.0.self": {start: 1, middle: 1, end: 1},
         "replSetGetStatus.members.1.state": {start: 2, middle: 2, end: 3},
@@ -216,8 +244,8 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
         "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
     }
     item._disk_queue_metrics = {
-        "systemMetrics.disks.sda.io_in_progress": "sda",
-        "systemMetrics.disks.sdb.io_in_progress": "sdb",
+        "systemMetrics.disks.sda.io_queued_ms": "sda",
+        "systemMetrics.disks.sdb.io_queued_ms": "sdb",
     }
     item._rs_member_metrics = {
         "0": {
@@ -285,10 +313,10 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert "peak" not in local_state
     assert "average" not in local_state
     assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
-    assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
-    assert performance[f'{MOUNT_METRICS["capacity"].name} (/)']["average"] == 4
+    assert f'{MOUNT_METRICS["free"].name} (/)' not in performance
+    assert f'{MOUNT_METRICS["capacity"].name} (/)' not in performance
     assert performance[f'{MOUNT_METRICS["capacity"].name} (/data/db)']["peak"] == 8
-    assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
+    assert f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)' not in performance
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
     assert (
         performance[f'{MOUNT_METRICS["free"].name} (/data/db)']["chart"]
@@ -413,6 +441,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
         "net": {"bindIp": "*"},
         "security": {"authorization": "enabled"},
     }
+    item._hostname = "mongo.example.test:27017"
     item.finalize_analysis()
     output = StringIO()
 
@@ -421,6 +450,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     report = output.getvalue()
     assert "- Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "- Sample rate: `0.25`" in report
+    assert "- Hostname: `mongo.example.test:27017`" in report
     assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
@@ -429,6 +459,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "MongoDB configuration" not in report
     assert (
         report.index("- Sample rate:")
+        < report.index("- Hostname:")
         < report.index("Member State:\n\n")
         < report.index("_No data available._")
         < report.index("### 1.1 Workload")
