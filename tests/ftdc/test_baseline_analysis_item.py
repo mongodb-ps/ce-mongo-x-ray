@@ -226,7 +226,9 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
         CPU_METRICS["system"].key: {start: 500, middle: 600, end: 800},
         CPU_METRICS["iowait"].key: {start: 100, middle: 140, end: 200},
         MEMORY_METRICS["total"].key: {start: 1000, middle: 1000, end: 1000},
-        MEMORY_METRICS["available"].key: {start: 400, middle: 350, end: 300},
+        MEMORY_METRICS["free"].key: {start: 300, middle: 250, end: 200},
+        MEMORY_METRICS["buffers"].key: {start: 50, middle: 50, end: 50},
+        MEMORY_METRICS["cached"].key: {start: 50, middle: 50, end: 50},
         TCMALLOC_METRICS["pageheap_free_bytes"].key: {start: 1000, middle: 1500, end: 2000},
         WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
         WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
@@ -290,7 +292,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     performance_results = item._results["Performance"]
     performance = {result["metric"]: result for result in performance_results}
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["peak"] == 70
-    assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == 15.36
+    assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == pytest.approx(0.146484375)
     assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["warning_threshold"] == 25
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["warning_threshold"] == 95
     assert performance[CPU_METRICS["user"].name]["peak"] == 20

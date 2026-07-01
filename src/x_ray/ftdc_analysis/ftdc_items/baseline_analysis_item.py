@@ -229,11 +229,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         performance = [
             self._summary(
                 DERIVED_METRIC_NAMES["system_memory_utilization"],
-                self._ratio(
-                    MEMORY_METRICS["total"].key,
-                    MEMORY_METRICS["available"].key,
-                    subtract=True,
-                ),
+                self._system_memory_utilization(),
                 "%",
                 thresholds=(85, 95),
             ),
@@ -435,6 +431,19 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             used = total - numerator[timestamp] if subtract else numerator[timestamp]
             if total > 0:
                 value = 100 * used / total
+                if isfinite(value):
+                    points.append((timestamp, value))
+        return points
+
+    def _system_memory_utilization(self) -> list[tuple[datetime, float]]:
+        total = self._series.get(MEMORY_METRICS["total"].key, {})
+        free = self._series.get(MEMORY_METRICS["free"].key, {})
+        buffers = self._series.get(MEMORY_METRICS["buffers"].key, {})
+        cached = self._series.get(MEMORY_METRICS["cached"].key, {})
+        points = []
+        for timestamp in sorted(set(total) & set(free) & set(buffers) & set(cached)):
+            if total[timestamp] > 0:
+                value = 100 * (total[timestamp] - free[timestamp] - buffers[timestamp] - cached[timestamp]) / total[timestamp]
                 if isfinite(value):
                     points.append((timestamp, value))
         return points
