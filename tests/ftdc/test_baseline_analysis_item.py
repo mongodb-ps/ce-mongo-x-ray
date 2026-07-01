@@ -67,7 +67,7 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     }
     chart_thresholds = {}
 
-    def write_chart(output_folder, metric, points, *, slug=None, thresholds=None):
+    def write_chart(output_folder, metric, points, *, slug=None, thresholds=None, image_format=None):
         assert output_folder == tmp_path
         chart_thresholds[metric] = thresholds
         return f"charts/{slug or metric}.svg"
@@ -182,7 +182,7 @@ def test_mount_detection_excludes_virtual_and_container_bind_mounts():
 
 
 def test_baseline_analysis_calculates_requested_sections(tmp_path):
-    item = BaselineAnalysisItem(str(tmp_path), {"max_sample_gap_seconds": 5})
+    item = BaselineAnalysisItem(str(tmp_path), {"max_sample_gap_seconds": 5}, image_format="svg")
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     middle = start + timedelta(seconds=1)
     end = middle + timedelta(seconds=1)

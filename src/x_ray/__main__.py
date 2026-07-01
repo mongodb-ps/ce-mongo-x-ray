@@ -283,6 +283,12 @@ For more information on specific commands, use:
         choices=["markdown", "html"],
     )
     ftdc_parser.add_argument(
+        "--svg",
+        help="Reference SVG charts in the report instead of converting them to PNG.",
+        action="store_true",
+        default=False,
+    )
+    ftdc_parser.add_argument(
         "-r",
         "--rate",
         help="FTDC sampling rate. Defaults to 1 divided by the number of ingested files.",
@@ -393,6 +399,7 @@ def ftdc_analysis_command(args):
         config,
         start_time=args.start_time,
         end_time=args.end_time,
+        image_format="svg" if args.svg else "png",
     )
     framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
     framework.output_results(output_folder=output_folder, fmt=args.format)

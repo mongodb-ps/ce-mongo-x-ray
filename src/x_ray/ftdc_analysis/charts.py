@@ -5,7 +5,9 @@ from datetime import datetime
 from html import escape
 from math import isfinite
 from pathlib import Path
-from typing import Mapping, Optional, Sequence, Union
+from typing import Literal, Mapping, Optional, Sequence, Union
+
+import cairosvg
 
 BAR_COLORS = frozenset({"blue", "gray", "green", "red", "yellow"})
 
@@ -79,8 +81,15 @@ def write_bar_chart(
     filename_prefix: str = "ftdc-baseline-analysis",
     width: int = 480,
     height: int = 50,
+    image_format: Literal["png", "svg"] = "png",
 ) -> str:
-    """Render a time-series bar chart as SVG and return its relative path."""
+    """Render a time-series bar chart and return its relative path.
+
+    By default the chart is saved as a PNG image. Pass ``image_format="svg"``
+    to keep the SVG source file instead.
+    """
+    if image_format not in ("png", "svg"):
+        raise ValueError(f"unsupported image format: {image_format!r}")
     output_folder = Path(output_folder)
     if thresholds is not None and value_colors is not None:
         raise ValueError("chart thresholds and value colors cannot be combined")
@@ -89,7 +98,8 @@ def write_bar_chart(
     chart_folder = output_folder / "charts"
     chart_folder.mkdir(parents=True, exist_ok=True)
     slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
-    relative_path = Path("charts") / f"{filename_prefix}-{slug}.svg"
+    extension = image_format
+    relative_path = Path("charts") / f"{filename_prefix}-{slug}.{extension}"
 
     left, right, top, bottom = 52, 12, 8, 12
     plot_width = width - left - right
@@ -141,5 +151,10 @@ def write_bar_chart(
         f'<text x="{left - 6}" y="{top + plot_height + 4}" text-anchor="end">0</text>'
         f"{bars}</svg>"
     )
-    (output_folder / relative_path).write_text(svg, encoding="utf-8")
+    output_path = output_folder / relative_path
+    if image_format == "png":
+        svg_bytes = svg.encode("utf-8")
+        cairosvg.svg2png(bytestring=svg_bytes, write_to=str(output_path))
+    else:
+        output_path.write_text(svg, encoding="utf-8")
     return relative_path.as_posix()

@@ -29,11 +29,13 @@ class Framework:
         config: dict,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
+        image_format: str = "png",
     ):
         self._input_path = Path(input_path)
         self._config = config
         self._start_time = start_time
         self._end_time = end_time
+        self._image_format = image_format
         self._logger = logging.getLogger(__name__)
         self._items: list[BaseItem] = []
         now = str(datetime.now(tz=timezone.utc))
@@ -145,6 +147,7 @@ class Framework:
                     start_time=self._start_time,
                     end_time=self._end_time,
                     total_ingest_files=len(input_files),
+                    image_format=self._image_format,
                 )
             )
             self._logger.info("FTDC analysis item loaded: %s", bold(cyan(item_name)))

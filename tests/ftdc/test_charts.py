@@ -6,6 +6,15 @@ import pytest
 from x_ray.ftdc_analysis.charts import write_bar_chart
 
 
+def test_bar_chart_defaults_to_png(tmp_path):
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    chart = tmp_path / write_bar_chart(tmp_path, "PNG default test", [(timestamp, 10.0)])
+    assert chart.suffix == ".png"
+    assert chart.exists()
+    header = chart.read_bytes()[:8]
+    assert header == b"\x89PNG\r\n\x1a\n"
+
+
 def test_bar_chart_uses_threshold_colors(tmp_path):
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     points = [
@@ -16,7 +25,9 @@ def test_bar_chart_uses_threshold_colors(tmp_path):
         (start + timedelta(seconds=4), 21.0),
     ]
 
-    chart = tmp_path / write_bar_chart(tmp_path, "Threshold test", points, thresholds=(10, 20))
+    chart = tmp_path / write_bar_chart(
+        tmp_path, "Threshold test", points, thresholds=(10, 20), image_format="svg"
+    )
     bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
 
     assert [bar.attrib["class"] for bar in bars] == [
@@ -31,7 +42,9 @@ def test_bar_chart_uses_threshold_colors(tmp_path):
 def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
-    chart = tmp_path / write_bar_chart(tmp_path, "Default color test", [(timestamp, 10.0)])
+    chart = tmp_path / write_bar_chart(
+        tmp_path, "Default color test", [(timestamp, 10.0)], image_format="svg"
+    )
     bar = ElementTree.parse(chart).getroot().find(".//{http://www.w3.org/2000/svg}rect")
 
     assert bar is not None
@@ -53,6 +66,7 @@ def test_bar_chart_uses_value_colors(tmp_path):
         "Categorical test",
         points,
         value_colors={1: "green", 2: "yellow", 7: "blue", 3: "gray"},
+        image_format="svg",
     )
     bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
 
@@ -62,6 +76,11 @@ def test_bar_chart_uses_value_colors(tmp_path):
         "metric-bar metric-bar-blue",
         "metric-bar metric-bar-gray",
     ]
+
+
+def test_bar_chart_rejects_invalid_image_format(tmp_path):
+    with pytest.raises(ValueError, match="unsupported image format"):
+        write_bar_chart(tmp_path, "Bad format", [], image_format="jpg")
 
 
 @pytest.mark.parametrize(

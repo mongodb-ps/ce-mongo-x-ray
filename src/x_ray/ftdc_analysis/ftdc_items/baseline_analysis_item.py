@@ -65,6 +65,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
+        self._image_format = kwargs.get("image_format", "png")
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
@@ -282,6 +283,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                         points,
                         slug=f"rs-member-state-{self._mount_slug(member)}",
                         value_colors=MEMBER_STATE_COLORS,
+                        image_format=self._image_format,
                     ),
                 }
             )
@@ -431,6 +433,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 points,
                 slug=slug,
                 thresholds=thresholds,
+                image_format=self._image_format,
             ),
         }
 
