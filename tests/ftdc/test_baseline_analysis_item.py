@@ -7,8 +7,6 @@ from pyftdc import DataPoint
 
 from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import (
     MEMBER_STATE_COLORS,
-    MEMBER_STATE_NAMES,
-    MEMBER_STATE_TEXT_COLORS,
     BaselineAnalysisItem,
 )
 from x_ray.ftdc_analysis.shared import (
@@ -32,15 +30,6 @@ def test_member_state_colors_match_replica_set_roles():
     assert MEMBER_STATE_COLORS[7] == "blue"
     assert set(MEMBER_STATE_COLORS.values()) == {"green", "yellow", "blue", "gray"}
     assert all(color == "gray" for state, color in MEMBER_STATE_COLORS.items() if state not in {1, 2, 7})
-    assert MEMBER_STATE_NAMES[1] == "PRIMARY"
-    assert MEMBER_STATE_NAMES[2] == "SECONDARY"
-    assert MEMBER_STATE_NAMES[7] == "ARBITER"
-    assert MEMBER_STATE_TEXT_COLORS == {
-        "blue": "white",
-        "gray": "black",
-        "green": "white",
-        "yellow": "black",
-    }
 
 
 def test_default_sample_rate_uses_total_ingest_files(tmp_path):
@@ -275,21 +264,15 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     )
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sda)']["average"] == 3
     assert performance[f'{DISK_METRICS["io_in_progress"].name} (sdb)']["average"] == 2
-    member_states = {result["member"]: result for result in item._results["Member State"]}
-    local_state = member_states["0"]
-    remote_state = member_states["1"]
+    member_states = {result["metric"]: result for result in item._results["Member State"]}
+    local_state = member_states[f'{REPL_SET_MEMBER_METRICS["state"].name} (0)']
+    remote_state = member_states[f'{REPL_SET_MEMBER_METRICS["state"].name} (1)']
     assert local_state["member"] == "0"
     assert local_state["myself"] == "Yes"
-    assert local_state["state"] == "PRIMARY"
-    assert local_state["color"] == "green"
-    assert local_state["text_color"] == "white"
     assert remote_state["myself"] == "No"
-    assert remote_state["state"] == "RECOVERING"
-    assert remote_state["color"] == "gray"
-    assert remote_state["text_color"] == "black"
     assert "peak" not in local_state
     assert "average" not in local_state
-    assert "chart" not in remote_state
+    assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
     assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
@@ -298,12 +281,18 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
         == "charts/ftdc-baseline-analysis-disk-free-data-db.svg"
     )
 
-    chart_paths = [
-        tmp_path / result["chart"] for results in item._results.values() for result in results if "chart" in result
-    ]
+    chart_paths = [tmp_path / result["chart"] for results in item._results.values() for result in results]
     assert all(chart.is_file() for chart in chart_paths)
     for chart in chart_paths:
         assert ElementTree.parse(chart).getroot().tag == "{http://www.w3.org/2000/svg}svg"
+    remote_bars = (
+        ElementTree.parse(tmp_path / remote_state["chart"]).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
+    )
+    assert [bar.attrib["class"] for bar in remote_bars] == [
+        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-yellow",
+        "metric-bar metric-bar-gray",
+    ]
 
 
 def test_secondary_workload_uses_replication_opcounters_and_labels_role(tmp_path):

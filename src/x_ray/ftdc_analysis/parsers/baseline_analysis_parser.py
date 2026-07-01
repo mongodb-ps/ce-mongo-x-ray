@@ -23,11 +23,7 @@ class BaselineAnalysisParser(BaseParser):
                         [
                             item["member"],
                             item["myself"],
-                            (
-                                f'<span style="background-color: {item["color"]}; '
-                                f'color: {item["text_color"]}; padding: 0.15em 0.45em; '
-                                f'border-radius: 0.25em; font-weight: 600;">{item["state"]}</span>'
-                            ),
+                            f'![{item["metric"]} bar chart]({item["chart"]})',
                         ]
                         for item in data
                     ],
