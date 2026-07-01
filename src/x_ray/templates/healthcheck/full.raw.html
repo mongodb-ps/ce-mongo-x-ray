@@ -15,144 +15,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
-    <script type="text/javascript">
-        VIEWPORT_WIDTH = 1200;
-        linkElms = [];
-        titleElms = [];
-        charts = [];
-        hljs.addPlugin(new CopyButtonPlugin({
-            hook: (_, el) => el.textContent
-        }));
-
-        function getWindowHeight() {
-            return window.innerHeight ||
-                document.documentElement.clientHeight ||
-                document.body.clientHeight;
-        }
-
-        function getWindowWidth() {
-            return window.innerWidth ||
-                document.documentElement.clientWidth ||
-                document.body.clientWidth;
-        }
-
-        function highLightOutline() {
-            for (var i = 0; i < titleElms.length; i++) {
-                var rect = titleElms[i].getBoundingClientRect();
-                var top = i == 0 ? 0 : rect.top;
-                var bottom = i == titleElms.length - 1 ? document.body.scrollHeight : titleElms[i + 1].getBoundingClientRect().top;
-                if (top < 1 && bottom > 1) {
-                    linkElms[i].classList.add('in-view');
-                } else {
-                    linkElms[i].classList.remove('in-view');
-                }
-            }
-        };
-        function createList(li_elms) {
-            var ul = document.createElement('ul');
-            for (var i = 0; i < li_elms.length; i++) {
-                var li = document.createElement('li');
-                var link = document.createElement('a');
-                linkElms.push(link);
-                link.href = '#' + li_elms[i].id;
-                link.textContent = li_elms[i].textContent;
-                li.appendChild(link);
-                ul.appendChild(li);
-            }
-            return ul;
-        }
-        window.onload = function () {
-            var outline = document.getElementById('outline');
-            var h2 = document.getElementsByTagName('h2');
-            var ul = document.createElement('ul');
-            var body = document.getElementsByClassName('markdown-body')[0];
-            for (var i = 0; i < h2.length; i++) {
-                titleElms.push(h2[i]);
-                var li = document.createElement('li');
-                var link = document.createElement('a');
-                linkElms.push(link);
-                link.href = '#' + h2[i].id;
-                link.textContent = h2[i].textContent;
-                var children = [];
-                for (var next = h2[i].nextElementSibling; next && next.tagName !== 'H2'; next = next.nextElementSibling) {
-                    if (next.tagName === 'H3') {
-                        children.push(next);
-                        titleElms.push(next);
-                    }
-                }
-                ul.appendChild(li);
-                li.appendChild(link);
-                li.appendChild(createList(children));
-            }
-            outline.appendChild(ul);
-            var outlineWidth = outline.offsetWidth + 20;
-            body.style.margin = '0 auto 0 ' + outlineWidth + 'px';
-            expand = document.getElementById('expand-outline');
-            collapse = document.getElementById('collapse-outline');
-            b = outline.getElementsByTagName('b')[0];
-            state = 1;
-            states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
-            window.onresize = function () {
-                blank = (getWindowWidth() - VIEWPORT_WIDTH) / 2;
-                if (blank > outlineWidth) {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 auto']];
-                } else {
-                    states = [["none", "block"], ["none", "inline"], ["inline", "none"], ["none", "inline"], ["0 auto", '0 auto 0 ' + outlineWidth + 'px']];
-                }
-                body.style.margin = states[4][state];
-                for (var i = 0; i < charts.length; i++) {
-                    charts[i].resize();
-                }
-            };
-            click = function () {
-                state = state == 0 ? 1 : 0;
-                ul.style.display = states[0][state];
-                b.style.display = states[1][state];
-                expand.style.display = states[2][state];
-                collapse.style.display = states[3][state];
-                body.style.margin = states[4][state];
-                return false;
-            };
-            collapse.onclick = click;
-            expand.onclick = click;
-            highLightOutline();
-            window.onscroll = highLightOutline;
-            hljs.highlightAll();
-            if (!navigator.clipboard) {
-                document.querySelectorAll(".hljs-copy-button").forEach(function (btn) {
-                    btn.onclick = function () {
-                        var code = this.closest(".hljs-copy-wrapper").querySelector("code");
-                        if (!code) return;
-                        var text = code.textContent || "";
-                        var ta = document.createElement("textarea");
-                        ta.value = text;
-                        ta.style.position = "fixed";
-                        ta.style.opacity = "0";
-                        document.body.appendChild(ta);
-                        ta.select();
-                        try {
-                            document.execCommand("copy");
-                            this.innerHTML = "Copied!";
-                            this.dataset.copied = "true";
-                            var self = this;
-                            setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
-                        } catch (e) { /* ignore */ }
-                        document.body.removeChild(ta);
-                    };
-                });
-            }
-        };
-        function formatSize(sizeBytes, decimal = 2) {
-            const units = ["B", "KB", "MB", "GB", "TB"];
-            for (let unit of units) {
-                if (sizeBytes < 1024) {
-                    return sizeBytes.toFixed(decimal) + " " + unit;
-                }
-                sizeBytes /= 1024;
-            }
-            return sizeBytes.toFixed(decimal) + " PB";
-        }
-    </script>
     <style>
         .markdown-body {
             box-sizing: border-box;
@@ -193,7 +55,18 @@
             text-decoration: underline;
         }
 
+        #outline li.outline-h2 {
+            margin-left: 12px;
+        }
+
+        #outline li.outline-h3 {
+            margin-left: 32px;
+        }
+
         #expand-outline {
+            position: fixed;
+            top: 16px;
+            left: 16px;
             padding: 6px 10px;
             background: var(--bgColor-muted, #f6f8fa);
             border: 1px solid var(--borderColor-default, #d0d7de);
@@ -236,12 +109,16 @@
 
         @media (max-width: 900px) {
             .markdown-body {
-                margin: 0 auto !important;
+                margin: 0 auto;
                 padding: 24px 16px;
             }
 
             #outline {
                 display: none;
+            }
+
+            #expand-outline {
+                display: none !important;
             }
         }
     </style>
@@ -251,9 +128,101 @@
     <div id="outline">
         <a href="#" id="collapse-outline">&#x25C0;</a>
         <b>Report Outline</b>
-        <a href="#" style="display: none;" id="expand-outline">&#x25B6;</a>
     </div>
+    <a href="#" id="expand-outline" style="display: none">&#x25B6;</a>
     {{ content }}
+    <script type="text/javascript">
+        VIEWPORT_WIDTH = 1200;
+        charts = [];
+
+        hljs.addPlugin(new CopyButtonPlugin({
+            hook: (_, el) => el.textContent
+        }));
+
+        function formatSize(sizeBytes, decimal = 2) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            for (let unit of units) {
+                if (sizeBytes < 1024) {
+                    return sizeBytes.toFixed(decimal) + " " + unit;
+                }
+                sizeBytes /= 1024;
+            }
+            return sizeBytes.toFixed(decimal) + " PB";
+        }
+
+        const outline = document.getElementById("outline");
+        const collapse = document.getElementById("collapse-outline");
+        const expand = document.getElementById("expand-outline");
+        const headings = Array.from(document.querySelectorAll("h2, h3"));
+        const links = [];
+        const list = document.createElement("ul");
+
+        headings.forEach((heading) => {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            item.classList.add(`outline-${heading.tagName.toLowerCase()}`);
+            link.href = `#${heading.id}`;
+            link.textContent = heading.textContent;
+            item.appendChild(link);
+            list.appendChild(item);
+            links.push(link);
+        });
+        outline.appendChild(list);
+
+        function highlightOutline() {
+            let current = 0;
+            headings.forEach((heading, index) => {
+                if (heading.getBoundingClientRect().top <= 80) {
+                    current = index;
+                }
+            });
+            links.forEach((link, index) => link.classList.toggle("in-view", index === current));
+        }
+
+        collapse.addEventListener("click", (event) => {
+            event.preventDefault();
+            outline.style.display = "none";
+            document.body.style.margin = "0 auto";
+            expand.style.display = "inline";
+            window.dispatchEvent(new Event("resize"));
+        });
+
+        expand.addEventListener("click", (event) => {
+            event.preventDefault();
+            outline.style.display = "block";
+            document.body.style.margin = "0 auto 0 300px";
+            expand.style.display = "none";
+            window.dispatchEvent(new Event("resize"));
+        });
+
+        window.addEventListener("scroll", highlightOutline, { passive: true });
+        highlightOutline();
+
+        hljs.highlightAll();
+        if (!navigator.clipboard) {
+            document.querySelectorAll(".hljs-copy-button").forEach(function (btn) {
+                btn.onclick = function () {
+                    var code = this.closest(".hljs-copy-wrapper").querySelector("code");
+                    if (!code) return;
+                    var text = code.textContent || "";
+                    var ta = document.createElement("textarea");
+                    ta.value = text;
+                    ta.style.position = "fixed";
+                    ta.style.opacity = "0";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand("copy");
+                        this.innerHTML = "Copied!";
+                        this.dataset.copied = "true";
+                        var self = this;
+                        setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
+                    } catch (e) { /* ignore */ }
+                    document.body.removeChild(ta);
+                };
+            });
+        }
+    </script>
 </body>
 
 </html>
