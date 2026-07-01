@@ -84,6 +84,7 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     assert chart_thresholds[f'{DISK_METRICS["io_in_progress"].name} (sda)'] == (1, 2)
     assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
+    assert chart_thresholds[f'{MOUNT_METRICS["capacity"].name} (/data)'] is None
     assert chart_thresholds[OPCOUNTER_METRICS["query"].name] is None
 
 
@@ -278,11 +279,17 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert "average" not in local_state
     assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
     assert performance[f'{MOUNT_METRICS["free"].name} (/)']["average"] == 1.5
+    assert performance[f'{MOUNT_METRICS["capacity"].name} (/)']["average"] == 4
+    assert performance[f'{MOUNT_METRICS["capacity"].name} (/data/db)']["peak"] == 8
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/)']["average"] == 62.5
     assert performance[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data/db)']["peak"] == 75
     assert (
         performance[f'{MOUNT_METRICS["free"].name} (/data/db)']["chart"]
         == "charts/ftdc-baseline-analysis-disk-free-data-db.svg"
+    )
+    assert (
+        performance[f'{MOUNT_METRICS["capacity"].name} (/data/db)']["chart"]
+        == "charts/ftdc-baseline-analysis-disk-capacity-data-db.svg"
     )
 
     chart_paths = [tmp_path / result["chart"] for results in item._results.values() for result in results]

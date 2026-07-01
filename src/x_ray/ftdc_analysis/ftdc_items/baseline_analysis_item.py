@@ -293,6 +293,11 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 for timestamp, value in sorted(self._series.get(metrics.get("free", ""), {}).items())
                 if isfinite(value)
             ]
+            capacity_points = [
+                (timestamp, value / (1024**3))
+                for timestamp, value in sorted(self._series.get(metrics.get("capacity", ""), {}).items())
+                if isfinite(value)
+            ]
             display_mount = mount_point or "/"
             slug = self._mount_slug(display_mount)
             base_slug = slug
@@ -307,6 +312,14 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     free_points,
                     "GiB",
                     slug=f"disk-free-{slug}",
+                )
+            )
+            performance.append(
+                self._summary(
+                    f'{MOUNT_METRICS["capacity"].name} ({display_mount})',
+                    capacity_points,
+                    "GiB",
+                    slug=f"disk-capacity-{slug}",
                 )
             )
             performance.append(
