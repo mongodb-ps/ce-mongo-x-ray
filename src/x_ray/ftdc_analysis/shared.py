@@ -211,3 +211,7 @@ BASELINE_ANALYSIS_STATIC_METRICS: Final = {
         )
     ),
 }
+
+# Compatibility for installations that still contain the pre-rename OverviewItem
+# module. The dynamic class loader imports every discovered item module.
+OVERVIEW_STATIC_METRICS: Final = BASELINE_ANALYSIS_STATIC_METRICS

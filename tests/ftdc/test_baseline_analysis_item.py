@@ -10,6 +10,7 @@ from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import (
     BaselineAnalysisItem,
 )
 from x_ray.ftdc_analysis.shared import (
+    BASELINE_ANALYSIS_STATIC_METRICS,
     CPU_METRICS,
     DERIVED_METRIC_NAMES,
     DISK_METRICS,
@@ -18,10 +19,15 @@ from x_ray.ftdc_analysis.shared import (
     OPCOUNTER_METRICS,
     OPCOUNTER_REPL_METRICS,
     OP_LATENCY_METRICS,
+    OVERVIEW_STATIC_METRICS,
     REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
     WIREDTIGER_CACHE_METRICS,
 )
+
+
+def test_legacy_overview_static_metrics_alias():
+    assert OVERVIEW_STATIC_METRICS is BASELINE_ANALYSIS_STATIC_METRICS
 
 
 def test_member_state_colors_match_replica_set_roles():
