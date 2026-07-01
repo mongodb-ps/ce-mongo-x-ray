@@ -7,8 +7,6 @@ from math import isfinite
 from pathlib import Path
 from typing import Literal, Mapping, Optional, Sequence, Union
 
-import cairosvg
-
 BAR_COLORS = frozenset({"blue", "gray", "green", "red", "yellow"})
 
 
@@ -153,6 +151,8 @@ def write_bar_chart(
     )
     output_path = output_folder / relative_path
     if image_format == "png":
+        import cairosvg
+
         svg_bytes = svg.encode("utf-8")
         cairosvg.svg2png(bytestring=svg_bytes, write_to=str(output_path))
     else:

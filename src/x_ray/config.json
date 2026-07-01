@@ -166,7 +166,8 @@
         "ftdcsets": {
             "default": {
                 "items": [
-                    "BaselineAnalysisItem"
+                    "BaselineAnalysisItem",
+                    "MetadataReviewItem"
                 ]
             }
         },
