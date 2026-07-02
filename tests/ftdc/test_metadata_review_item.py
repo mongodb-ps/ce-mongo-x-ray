@@ -1,7 +1,5 @@
-from datetime import datetime, timezone
 from io import StringIO
 
-import pytest
 from pyftdc import FTDCError
 
 from x_ray.ftdc_analysis.ftdc_items.metadata_review_item import (

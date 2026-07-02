@@ -1,5 +1,4 @@
 import base64
-from pathlib import Path
 
 from x_ray.ftdc_analysis.parsers.baseline_analysis_parser import BaselineAnalysisParser, _chart_img
 
