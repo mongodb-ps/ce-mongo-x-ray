@@ -17,7 +17,7 @@ from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.gmd_items.summary_item import SummaryItem
 from x_ray.gmd_analysis.shared import load_json
 from x_ray.healthcheck.shared import str_to_md_id, to_json
-from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, env
+from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, html_to_pdf, env
 
 logger = logging.getLogger(__name__)
 GMD_CLASSES = load_classes("x_ray.gmd_analysis.gmd_items")
@@ -146,8 +146,8 @@ class Framework:
                     self._logger.warning(yellow(f"Failed to generate review markdown for GMD item '{item.name}': {e}"))
                     continue
 
-        if fmt == "html":
-            html_file = f"{batch_folder}report.html"
+        html_file = f"{batch_folder}report.html"
+        if fmt in {"html", "pdf"}:
             self._logger.info("Converting markdown to HTML: %s", green(html_file))
             with open(html_file, "w", encoding="utf-8") as output:
                 with open(output_file, "r", encoding="utf-8") as md_file:
@@ -161,3 +161,8 @@ class Framework:
                     # Replace the placeholder with the generated HTML content
                 final_html = template_content.replace("{{ content }}", html_content)
                 output.write(final_html)
+
+        if fmt == "pdf":
+            pdf_file = f"{batch_folder}report.pdf"
+            self._logger.info("Converting HTML report to: %s", green(pdf_file))
+            html_to_pdf(html_file, pdf_file)

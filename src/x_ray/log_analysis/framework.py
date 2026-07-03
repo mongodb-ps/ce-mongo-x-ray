@@ -18,7 +18,7 @@ import markdown
 from bson import json_util
 from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.healthcheck.shared import to_json
-from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, env
+from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, html_to_pdf, env
 
 logger = logging.getLogger(__name__)
 LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")
@@ -137,8 +137,8 @@ class Framework:
                     self._logger.warning(yellow(f"Failed to generate markdown for log item '{item.name}': {e}"))
                     continue
 
-        if fmt == "html":
-            html_file = f"{batch_folder}report.html"
+        html_file = f"{batch_folder}report.html"
+        if fmt in {"html", "pdf"}:
             self._logger.info("Converting markdown to HTML: %s", green(html_file))
             with open(html_file, "w", encoding="utf-8") as f:
                 with open(output_file, "r", encoding="utf-8") as md_file:
@@ -152,3 +152,8 @@ class Framework:
                     # Replace the placeholder with the generated HTML content
                 final_html = template_content.replace("{{ content }}", html_content)
                 f.write(final_html)
+
+        if fmt == "pdf":
+            pdf_file = f"{batch_folder}report.pdf"
+            self._logger.info("Converting HTML report to: %s", green(pdf_file))
+            html_to_pdf(html_file, pdf_file)

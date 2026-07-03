@@ -118,13 +118,13 @@ Besides, you can use environment variables to control some behaviors:
 
 #### 3.1.2 Full Arguments
 ```bash
-x-ray healthcheck [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] [uri]
+x-ray healthcheck [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [uri]
 ```
 | Argument           | Description                                 |  Default  |
 | ------------------ | ------------------------------------------- | :-------: |
 | `-s`, `--checkset` | Checkset to run.                            | `default` |
 | `-o`, `--output`   | Output folder path.                         | `output/` |
-| `-f`, `--format`   | Output format. Can be `markdown` or `html`. |  `html`   |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
 | `uri`              | MongoDB database URI.                       |   None    |
 
 For security reasons you may not want to include credentials in the command. There are 2 options:
@@ -149,13 +149,13 @@ Refer to the wiki for more details.
 
 #### 3.2.2 Full Arguments
 ```bash
-x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] [log_file]
+x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [log_file]
 ```
 | Argument           | Description                                       |  Default  |
 | ------------------ | ------------------------------------------------- | :-------: |
 | `-s`, `--checkset` | Checkset to run.                                  | `default` |
 | `-o`, `--output`   | Output folder path.                               | `output/` |
-| `-f`, `--format`   | Output format. Can be `markdown` or `html`.       |  `html`   |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
 | `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.       |    `1`    |
 | `--top`            | When analyzing the slow queries, only list top N. |   `10`    |
 
@@ -170,14 +170,14 @@ x-ray gmd misc/getMongoData-rs.json
 
 #### 3.3.2 Full Arguments
 ```bash
-x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
+x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] gmd_file
 ```
 | Argument           | Description                                                     |       Default        |
 | ------------------ | --------------------------------------------------------------- | :------------------: |
 | `-s`, `--checkset` | Checkset to run.                                                |      `default`       |
 | `-o`, `--output`   | Output folder path.                                             |      `output/`       |
 | `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. | `1 / ingested files` |
-| `-f`, `--format`   | Output format (markdown/html/pdf).                              |        `html`        |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. | `html` |
 
 ### 3.4 FTDC Analysis Component
 

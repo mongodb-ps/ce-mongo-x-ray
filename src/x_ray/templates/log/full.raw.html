@@ -156,6 +156,24 @@
                 display: none !important;
             }
         }
+
+        @media print {
+            .markdown-body {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            #outline,
+            #expand-outline {
+                display: none !important;
+            }
+
+            img,
+            canvas {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 

@@ -135,10 +135,10 @@ For more information on specific commands, use:
     hc_parser.add_argument(
         "-f",
         "--format",
-        help='Output format (markdown/html). Defaults to "html".',
+        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
         type=str,
         default="html",
-        choices=["markdown", "html"],
+        choices=["markdown", "html", "pdf"],
     )
 
     # Log analysis module
@@ -186,10 +186,10 @@ For more information on specific commands, use:
     log_parser.add_argument(
         "-f",
         "--format",
-        help='Output format (markdown/html). Defaults to "markdown".',
+        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
         type=str,
         default="html",
-        choices=["markdown", "html"],
+        choices=["markdown", "html", "pdf"],
     )
     log_parser.add_argument(
         "-r",
@@ -231,10 +231,10 @@ For more information on specific commands, use:
     gmd_parser.add_argument(
         "-f",
         "--format",
-        help='Output format (markdown/html). Defaults to "markdown".',
+        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
         type=str,
         default="html",
-        choices=["markdown", "html"],
+        choices=["markdown", "html", "pdf"],
     )
 
     # FTDC analysis module

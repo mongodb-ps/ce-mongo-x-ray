@@ -21,6 +21,7 @@ import numbers
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
+from typing import Union
 from bson import json_util
 from x_ray.version import Version
 
@@ -59,6 +60,18 @@ def get_script_path(filename=None):
     # Return specific file path
     resource_path = files("x_ray") / filename
     return str(resource_path)
+
+
+def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None:
+    """Render an HTML file to PDF, resolving relative assets beside the HTML."""
+    # Keep non-PDF commands from loading WeasyPrint and its native rendering
+    # dependencies.
+    logging.getLogger("weasyprint").setLevel(logging.ERROR)
+    logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
+    from weasyprint import HTML  # pylint: disable=import-outside-toplevel
+
+    html_path = Path(html_file)
+    HTML(filename=str(html_path), base_url=str(html_path.parent)).write_pdf(str(pdf_file))
 
 
 def _load_config():

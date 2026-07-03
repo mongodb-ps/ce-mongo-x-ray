@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 from x_ray.__main__ import setup_parser
 
 
@@ -26,5 +28,19 @@ def test_ftdc_accepts_sample_rate():
 
 def test_ftdc_accepts_pdf_format():
     args = setup_parser().parse_args(["ftdc", "/diagnostic.data", "-f", "pdf"])
+
+    assert args.format == "pdf"
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["healthcheck", "mongodb://localhost:27017", "-f", "pdf"],
+        ["log", "/var/log/mongodb/mongod.log", "-f", "pdf"],
+        ["gmd", "/tmp/getMongoData.json", "-f", "pdf"],
+    ],
+)
+def test_other_modules_accept_pdf_format(arguments):
+    args = setup_parser().parse_args(arguments)
 
     assert args.format == "pdf"

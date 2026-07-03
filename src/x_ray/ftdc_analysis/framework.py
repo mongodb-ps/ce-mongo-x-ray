@@ -11,7 +11,7 @@ from bson import decode_file_iter
 from bson.errors import InvalidBSON
 
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
-from x_ray.utils import bold, cyan, env, get_script_path, green, load_classes, yellow
+from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, load_classes, yellow
 
 FTDC_CLASSES = load_classes("x_ray.ftdc_analysis.ftdc_items")
 
@@ -194,12 +194,6 @@ class Framework:
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 
         if fmt == "pdf":
-            # Import only when requested so Markdown and HTML output do not load
-            # WeasyPrint or its native rendering dependencies.
-            from weasyprint import HTML  # pylint: disable=import-outside-toplevel
-
-            logging.getLogger("weasyprint").setLevel(logging.ERROR)
-            logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
             pdf_file = batch_folder / "report.pdf"
             self._logger.info("Converting HTML report to: %s", green(str(pdf_file)))
-            HTML(filename=str(html_file), base_url=str(batch_folder)).write_pdf(str(pdf_file))
+            html_to_pdf(html_file, pdf_file)

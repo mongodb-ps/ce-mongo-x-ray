@@ -18,7 +18,7 @@ import markdown
 
 from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.utils import load_classes, get_script_path, yellow, bold, green, env
+from x_ray.utils import load_classes, get_script_path, html_to_pdf, yellow, bold, green, env
 
 CHECKLIST_CLASSES = load_classes("x_ray.healthcheck.check_items")
 
@@ -131,8 +131,8 @@ class Framework:
                 f.write(f"[&larr; Review Test Results](#{title_id})\n\n")
                 f.write(item.review_result_markdown)
 
-        if fmt == "html":
-            html_file = f"{batch_folder}report.html"
+        html_file = f"{batch_folder}report.html"
+        if fmt in {"html", "pdf"}:
             self._logger.info("Converting results to HTML format and saving to: %s", green(html_file))
             with open(html_file, "w", encoding="utf-8") as f:
                 with open(output_file, "r", encoding="utf-8") as md_file:
@@ -143,5 +143,10 @@ class Framework:
                     template_content = template.read()
                     html = template_content.replace("{{ content }}", html)
                 f.write(html)
+
+        if fmt == "pdf":
+            pdf_file = f"{batch_folder}report.pdf"
+            self._logger.info("Converting HTML report to: %s", green(pdf_file))
+            html_to_pdf(html_file, pdf_file)
 
         self._logger.info(bold(green("All checks complete.")))
