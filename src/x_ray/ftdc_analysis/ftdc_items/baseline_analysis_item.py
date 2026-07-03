@@ -3,7 +3,7 @@
 import re
 from collections.abc import Iterable
 from datetime import datetime
-from math import isfinite
+from math import ceil, isfinite
 from posixpath import normpath
 from pathlib import Path
 from statistics import fmean
@@ -56,10 +56,13 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         super().__init__(output_folder, config, **kwargs)
         self._start_time = kwargs.get("start_time")
         self._end_time = kwargs.get("end_time")
-        self._max_gap = float(config.get("max_sample_gap_seconds", 5))
         total_ingest_files = int(kwargs.get("total_ingest_files", 1))
         default_sample_rate = 1 / total_ingest_files if total_ingest_files > 0 else 1.0
         self._sample_rate = float(config.get("sample_rate", default_sample_rate))
+        configured_max_gap = float(config.get("max_sample_gap_seconds", 5))
+        # Downsampling intentionally increases the interval between retained
+        # points. Do not mistake that interval for a gap in the source capture.
+        self._max_gap = max(configured_max_gap, ceil(1 / self._sample_rate))
         self._series: dict[str, dict[datetime, float]] = {}
         self._disk_queue_metrics: dict[str, str] = {}
         self._mount_metrics: dict[str, dict[str, str]] = {}

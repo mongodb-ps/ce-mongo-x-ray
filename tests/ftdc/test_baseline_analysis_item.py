@@ -50,6 +50,22 @@ def test_configured_sample_rate_overrides_ingest_file_default(tmp_path):
     assert item._sample_rate == 0.5
 
 
+def test_sampling_interval_is_not_treated_as_missing_data(tmp_path):
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {"max_sample_gap_seconds": 15},
+        total_ingest_files=22,
+    )
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    end = start + timedelta(seconds=22)
+    item._series = {
+        OPCOUNTER_METRICS["query"].key: {start: 100, end: 144},
+    }
+
+    assert item._sample_rate == pytest.approx(1 / 22)
+    assert item._counter_rate(OPCOUNTER_METRICS["query"].key) == [(end, 2)]
+
+
 def test_default_sample_rate_handles_no_ingest_files(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=0)
 
