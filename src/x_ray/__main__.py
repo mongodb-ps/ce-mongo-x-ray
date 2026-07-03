@@ -277,10 +277,10 @@ For more information on specific commands, use:
     ftdc_parser.add_argument(
         "-f",
         "--format",
-        help='Output format (markdown/html). Defaults to "html".',
+        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
         type=str,
         default="html",
-        choices=["markdown", "html"],
+        choices=["markdown", "html", "pdf"],
     )
     ftdc_parser.add_argument(
         "--svg",

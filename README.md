@@ -177,7 +177,7 @@ x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] gmd_file
 | `-s`, `--checkset` | Checkset to run.                                                |      `default`       |
 | `-o`, `--output`   | Output folder path.                                             |      `output/`       |
 | `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. | `1 / ingested files` |
-| `-f`, `--format`   | Output format (markdown/html).                                  |        `html`        |
+| `-f`, `--format`   | Output format (markdown/html/pdf).                              |        `html`        |
 
 ### 3.4 FTDC Analysis Component
 
@@ -197,5 +197,5 @@ x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:
 ```
 
 ```bash
-x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html}] [-r RATE] ftdc_path [start_time] [end_time]
+x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] ftdc_path [start_time] [end_time]
 ```

@@ -22,3 +22,9 @@ def test_ftdc_accepts_sample_rate():
     args = setup_parser().parse_args(["ftdc", "/diagnostic.data", "-r", "0.25"])
 
     assert args.rate == 0.25
+
+
+def test_ftdc_accepts_pdf_format():
+    args = setup_parser().parse_args(["ftdc", "/diagnostic.data", "-f", "pdf"])
+
+    assert args.format == "pdf"

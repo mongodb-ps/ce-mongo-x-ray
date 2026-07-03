@@ -183,8 +183,8 @@ class Framework:
                 except Exception as exc:  # pylint: disable=broad-exception-caught
                     self._logger.warning(yellow(f"Failed to render FTDC item '{item.name}': {exc}"))
 
-        if fmt == "html":
-            html_file = batch_folder / "report.html"
+        html_file = batch_folder / "report.html"
+        if fmt in {"html", "pdf"}:
             template_file = get_script_path(f"templates/{self._config.get('template', 'ftdc/full.html')}")
             html_content = markdown.markdown(
                 markdown_file.read_text(encoding="utf-8"),
@@ -192,3 +192,14 @@ class Framework:
             )
             template_content = Path(template_file).read_text(encoding="utf-8")
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
+
+        if fmt == "pdf":
+            # Import only when requested so Markdown and HTML output do not load
+            # WeasyPrint or its native rendering dependencies.
+            from weasyprint import HTML  # pylint: disable=import-outside-toplevel
+
+            logging.getLogger("weasyprint").setLevel(logging.ERROR)
+            logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
+            pdf_file = batch_folder / "report.pdf"
+            self._logger.info("Converting HTML report to: %s", green(str(pdf_file)))
+            HTML(filename=str(html_file), base_url=str(batch_folder)).write_pdf(str(pdf_file))
