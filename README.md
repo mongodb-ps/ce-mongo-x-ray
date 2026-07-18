@@ -1,6 +1,6 @@
 # x-ray
-[![Makefile](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/makefile.yml)
-[![Release](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/zhangyaoxing/x-ray/actions/workflows/release.yml)
+[![Makefile](https://github.com/mongodb-ps/ce-mongo-x-ray/actions/workflows/makefile.yml/badge.svg)](https://github.com/mongodb-ps/ce-mongo-x-ray/actions/workflows/makefile.yml)
+[![Release](https://github.com/mongodb-ps/ce-mongo-x-ray/actions/workflows/release.yml/badge.svg)](https://github.com/mongodb-ps/ce-mongo-x-ray/actions/workflows/release.yml)
 [![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
@@ -40,7 +40,7 @@ pip install mongo-x-ray
 
 #### 2.1.2 Build from Source
 ```bash
-git clone https://github.com/zhangyaoxing/x-ray
+git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd x-ray
 pip install .
 ```
@@ -52,12 +52,12 @@ Currently the prebuilt binaries are available on 3 platforms:
 - MacOS 14 (ARM64)
 - Windows 2022 (AMD64)
 
-Download them from [Releases](https://github.com/zhangyaoxing/x-ray/releases).
+Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/releases).
 
 #### 2.2.2 Build from Source
 x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
 ```bash
-git clone https://github.com/zhangyaoxing/x-ray
+git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd x-ray
 make deps # if it's the first time you build the project
 make # equal to `make build`
@@ -95,12 +95,12 @@ python3 -m pip install -e ".[dev]"
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 ```
-| Argument         | Description                                                                                                                        |           Default           |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                                                        |           `false`           |
-| `-h`, `--help`   | Show the help message and exit.                                                                                                    |             n/a             |
-| `-c`, `--config` | Path to configuration file.                                                                                                        | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |            None             |
+| Argument         | Description                                                                                                                                                                                         |        Default         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                         |        `false`         |
+| `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                     |          n/a           |
+| `-c`, `--config` | Path to configuration file.                                                                                                                                                                         | Built-in `config.json` |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
@@ -133,10 +133,10 @@ For security reasons you may not want to include credentials in the command. The
 
 #### 3.1.3 More Info
 Refer to the wiki for more details.
-- [Customize the thresholds](https://github.com/zhangyaoxing/x-ray/wiki/Health-Check-Configuration)
-- [Database permissions](https://github.com/zhangyaoxing/x-ray/wiki/Health-Check-Database-Permissions)
-- [Output](https://github.com/zhangyaoxing/x-ray/wiki/Health-Check-Output)
-- [Customize the output](https://github.com/zhangyaoxing/x-ray/wiki/Health-Check-Output-Template)
+- [Customize the thresholds](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Configuration)
+- [Database permissions](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Database-Permissions)
+- [Output](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Output)
+- [Customize the output](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Output-Template)
 
 ### 3.2 Log Analysis Component
 #### 3.2.1 Examples
@@ -198,15 +198,15 @@ x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:
 ```bash
 x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] ftdc_path [start_time] [end_time]
 ```
-| Argument           | Description                                                                       |        Default         |
-| ------------------ | --------------------------------------------------------------------------------- | :--------------------: |
-| `-s`, `--checkset` | Checkset to run.                                                                  |       `default`        |
-| `-o`, `--output`   | Output folder path.                                                               |       `output/`        |
-| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`.                   |  `1 / ingested files`  |
+| Argument           | Description                                                          |        Default         |
+| ------------------ | -------------------------------------------------------------------- | :--------------------: |
+| `-s`, `--checkset` | Checkset to run.                                                     |       `default`        |
+| `-o`, `--output`   | Output folder path.                                                  |       `output/`        |
+| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`.      |  `1 / ingested files`  |
 | `-f`, `--format`   | Output format (`html` or `pdf`). PDF also retains Markdown and HTML. |         `html`         |
-| `ftdc_path`        | Point to a folder of ftdc files or a single ftdc file                             |          n/a           |
-| `start_time`       | FTDC time filter start.                                                           | beginning of all files |
-| `end_time`         | FTDC time filter end.                                                             |    end of all files    |
+| `ftdc_path`        | Point to a folder of ftdc files or a single ftdc file                |          n/a           |
+| `start_time`       | FTDC time filter start.                                              | beginning of all files |
+| `end_time`         | FTDC time filter end.                                                |    end of all files    |
 
 
 ```json
@@ -227,18 +227,18 @@ Markdown pipe tables support a `{width}` spec on header cells to set column widt
 in generated HTML and PDF output:
 
 ```
-| Name{120}   | Description{*} | Status{50%} |
-|-------------|----------------|-------------|
-| foo         | bar            | active      |
+| Name{120} | Description{*} | Status{50%} |
+| --------- | -------------- | ----------- |
+| foo       | bar            | active      |
 ```
 
-| Spec   | Meaning                                       | Example HTML                        |
-| ------ | --------------------------------------------- | ----------------------------------- |
-| `{N}`  | CSS width — bare numbers default to pixels  | `<col style="width:120px" ...>`     |
-| `{Npx}`  | Explicit pixels                         | `<col style="width:120px" ...>`     |
-| `{N%}` | Percentage of the table width                 | `<col style="width:50%" ...>`       |
-| `{Nunit}` | Any valid CSS unit (`em`, `rem`, `vw`, …) | `<col style="width:10em">`      |
-| `{*}`  | Auto (no constraint)                          | `<col />`                           |
+| Spec      | Meaning                                    | Example HTML                    |
+| --------- | ------------------------------------------ | ------------------------------- |
+| `{N}`     | CSS width — bare numbers default to pixels | `<col style="width:120px" ...>` |
+| `{Npx}`   | Explicit pixels                            | `<col style="width:120px" ...>` |
+| `{N%}`    | Percentage of the table width              | `<col style="width:50%" ...>`   |
+| `{Nunit}` | Any valid CSS unit (`em`, `rem`, `vw`, …)  | `<col style="width:10em">`      |
+| `{*}`     | Auto (no constraint)                       | `<col />`                       |
 
 The spec is stripped from the rendered header text and a `<colgroup>` of `<col>`
 elements is inserted into the `<table>`. Columns without a `{width}` spec are
