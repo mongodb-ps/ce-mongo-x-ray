@@ -1,3 +1,4 @@
+from html import unescape
 from io import StringIO
 
 from pyftdc import FTDCError
@@ -94,21 +95,34 @@ def test_review_results_renders_tabbed_html(tmp_path):
     item.review_results_markdown(output, section_number=2)
 
     report = output.getvalue()
+    visible_report = unescape(report)
     assert "## 2 Metadata Review" in report
     assert 'id="metadata-tabs"' in report
     for tab_key, label, _dotted in _METADATA_TABS:
         assert f'data-tab="metadata-tabs-{tab_key}"' in report
         assert f">{label}<" in report
         assert f'id="metadata-tabs-{tab_key}"' in report
-    assert '"port"' in report and "27017" in report
-    assert '"mongod"' in report
-    assert '"version"' in report and '"8.0.0"' in report
-    assert '"hostname"' in report and '"test-host"' in report
-    assert '"nofile"' in report
-    assert "65536" in report
+    assert '"port"' in visible_report and "27017" in visible_report
+    assert '"mongod"' in visible_report
+    assert '"version"' in visible_report and '"8.0.0"' in visible_report
+    assert '"hostname"' in visible_report and '"test-host"' in visible_report
+    assert '"nofile"' in visible_report
+    assert "65536" in visible_report
     assert "metadata-tab-btn active" in report
     assert "metadata-tab-pane active" in report
-    assert '<pre><code class="language-json">' in report
+    assert '<pre><code class="metadata-code language-json">' in report
+
+
+def test_review_results_escapes_metadata_code_html(tmp_path):
+    item = MetadataReviewItem(str(tmp_path), {})
+    item._raw_metadata = {"buildInfo": {"unsafe": "<script>alert('x')</script>"}}
+    output = StringIO()
+
+    item.review_results_markdown(output)
+
+    report = output.getvalue()
+    assert "<script>alert" not in report
+    assert "&lt;script&gt;alert" in report
 
 
 def test_review_results_shows_not_available_for_missing_metadata_keys(tmp_path):

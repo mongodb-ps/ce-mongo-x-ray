@@ -86,3 +86,86 @@ def test_normal_fragmentation():
     assert len(results) == 0  # No issues
     assert frag_data["collFragmentation"]["fragmentation"] == 0.2
     assert frag_data["indexFragmentations"][0]["fragmentation"] == 0.2
+
+
+# --- Sharded tests ---
+
+SHARDED_DATA_HIGH_FRAGMENTATION = {
+    "ns": "test.sharded_collection",
+    "sharded": True,
+    "shards": {
+        "shard01": {
+            "storageSize": 10 * 1024**3,  # 10 GB
+            "wiredTiger": {
+                "block-manager": {
+                    "file bytes available for reuse": 2 * 1024**3,  # 2 GB → 20% (below threshold)
+                },
+            },
+        },
+        "shard02": {
+            "storageSize": 10 * 1024**3,  # 10 GB
+            "wiredTiger": {
+                "block-manager": {
+                    "file bytes available for reuse": 6 * 1024**3,  # 6 GB → 60% (above threshold)
+                },
+            },
+        },
+    },
+    "storageStats": {
+        "storageSize": 20 * 1024**3,  # 20 GB aggregate
+        "wiredTiger": {
+            "block-manager": {
+                "file bytes available for reuse": 8 * 1024**3,  # 8 GB → 40% (below threshold)
+            },
+        },
+    },
+}
+
+SHARDED_DATA_NORMAL_FRAGMENTATION = {
+    "ns": "test.sharded_collection",
+    "sharded": True,
+    "shards": {
+        "shard01": {
+            "storageSize": 10 * 1024**3,
+            "wiredTiger": {
+                "block-manager": {
+                    "file bytes available for reuse": 2 * 1024**3,  # 20%
+                },
+            },
+        },
+        "shard02": {
+            "storageSize": 10 * 1024**3,
+            "wiredTiger": {
+                "block-manager": {
+                    "file bytes available for reuse": 3 * 1024**3,  # 30%
+                },
+            },
+        },
+    },
+    "storageStats": {
+        "storageSize": 20 * 1024**3,
+        "wiredTiger": {
+            "block-manager": {
+                "file bytes available for reuse": 5 * 1024**3,  # 25% aggregate
+            },
+        },
+    },
+}
+
+
+def test_sharded_high_fragmentation():
+    """Only shard02 exceeds the fragmentation threshold."""
+    rule = FragmentationRule(thresholds=config)
+    results, frag_data = rule.apply(SHARDED_DATA_HIGH_FRAGMENTATION)
+    assert len(results) == 1
+    assert results[0]["id"] == ISSUE.HIGH_COLLECTION_FRAGMENTATION
+    assert results[0]["host"] == "shard02"
+    # Aggregate frag_data is still returned from top-level storageStats
+    assert frag_data["collFragmentation"]["fragmentation"] == 0.4
+
+
+def test_sharded_normal_fragmentation():
+    """No shard exceeds the fragmentation threshold."""
+    rule = FragmentationRule(thresholds=config)
+    results, frag_data = rule.apply(SHARDED_DATA_NORMAL_FRAGMENTATION)
+    assert len(results) == 0

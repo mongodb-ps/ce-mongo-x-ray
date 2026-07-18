@@ -32,29 +32,64 @@ class DataSizeRule(BaseRule):
         """
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         test_result = []
-        storage_stats = data.get("storageStats", {})
-        if storage_stats.get("size", 0) > self._collection_size_gb:
+        if data.get("sharded", False):
+            for sh_name, sh_stats in data.get("shards", {}).items():
+                test_result.extend(
+                    self._check_size(
+                        data.get("ns", ""),
+                        sh_name,
+                        sh_stats.get("size", 0),
+                        sh_stats.get("avgObjSize", 0),
+                        ISSUE.COLLECTION_TOO_LARGE_SHARDED,
+                    )
+                )
+        else:
+            storage_stats = data.get("storageStats", {})
+            test_result.extend(
+                self._check_size(
+                    data.get("ns", ""),
+                    host,
+                    storage_stats.get("size", 0),
+                    storage_stats.get("avgObjSize", 0),
+                    ISSUE.COLLECTION_TOO_LARGE,
+                )
+            )
+        return test_result, data
+
+    def _check_size(self, ns: str, host: str, size: int, avg_obj_size: int, coll_issue_id) -> list:
+        """Check a single size value against thresholds.
+
+        Args:
+            ns (str): The namespace.
+            host (str): The host or shard name.
+            size (int): The collection/shard size in bytes.
+            avg_obj_size (int): The average object size in bytes.
+            coll_issue_id (ISSUE): The issue ID to raise when size exceeds the threshold.
+        Returns:
+            list: Issues found.
+        """
+        test_result = []
+        if size > self._collection_size_gb:
             issue = create_issue(
-                ISSUE.COLLECTION_TOO_LARGE,
+                coll_issue_id,
                 host=host,
                 params={
-                    "ns": data.get("ns", ""),
-                    "size_gb": storage_stats.get("size", 0) / 1024**3,
+                    "ns": ns,
+                    "host": host,
+                    "size_gb": size / 1024**3,
                     "collection_size_gb": self._collection_size_gb / 1024**3,
                 },
             )
             test_result.append(issue)
-        # Check for average object size
-        if storage_stats.get("avgObjSize", 0) > self._obj_size_bytes:
+        if avg_obj_size > self._obj_size_bytes:
             issue = create_issue(
                 ISSUE.AVG_OBJECT_SIZE_TOO_LARGE,
                 host=host,
                 params={
-                    "ns": data.get("ns", ""),
-                    "avg_obj_size_kb": storage_stats.get("avgObjSize", 0) / 1024,
+                    "ns": ns,
+                    "avg_obj_size_kb": avg_obj_size / 1024,
                     "obj_size_kb": self._obj_size_bytes / 1024,
                 },
             )
             test_result.append(issue)
-
-        return test_result, data
+        return test_result

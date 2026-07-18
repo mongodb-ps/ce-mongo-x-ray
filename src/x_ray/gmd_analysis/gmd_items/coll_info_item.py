@@ -33,8 +33,25 @@ class CollInfoItem(BaseItem):
             output: dict = block.get("output", {})
             wt: dict = output.get("wiredTiger", {})
             block_manager: dict = wt.get("block-manager", {})
+            shards: dict = output.get("shards", {})
+            shards_data: dict = {}
+            for sh_name, sh_stats in shards.items():
+                sh_bm: dict = sh_stats.get("wiredTiger", {}).get("block-manager", {})
+                shards_data[sh_name] = {
+                    "size": sh_stats.get("size", 0) * 1024**2,
+                    "avgObjSize": sh_stats.get("avgObjSize", 0),
+                    "storageSize": sh_stats.get("storageSize", 0) * 1024**2,
+                    "wiredTiger": {
+                        "block-manager": {
+                            "file bytes available for reuse": sh_bm.get("file bytes available for reuse", 0),
+                            "file size in bytes": sh_bm.get("file size in bytes", 0),
+                        },
+                    },
+                }
             stats: dict = {
                 "ns": output.get("ns", ""),
+                "sharded": output.get("sharded", False),
+                "shards": shards_data,
                 "storageStats": {
                     "size": output.get("size", 0) * 1024**2,
                     "avgObjSize": output.get("avgObjSize", 0),

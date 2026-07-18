@@ -31,9 +31,30 @@ class DBItem(BaseItem):
             self._databases = block.get("output", {})
 
         def get_db_stats(block):
-            db_stats = block.get("output", [])
-            db_name = db_stats.get("db", "unknown")
-            self._db_stats[db_name] = db_stats
+            raw_output = block.get("output", {})
+            raw_stats = raw_output.get("raw", {})
+            if raw_stats:
+                # Sharded cluster: aggregate per-shard stats by db name
+                for shard_stats in raw_stats.values():
+                    db_name = shard_stats.get("db", "unknown")
+                    if db_name not in self._db_stats:
+                        self._db_stats[db_name] = {
+                            "dataSize": 0,
+                            "collections": 0,
+                            "views": 0,
+                            "objects": 0,
+                            "indexes": 0,
+                        }
+                    agg = self._db_stats[db_name]
+                    agg["dataSize"] += shard_stats.get("dataSize", 0)
+                    agg["collections"] += shard_stats.get("collections", 0)
+                    agg["views"] += shard_stats.get("views", 0)
+                    agg["objects"] += shard_stats.get("objects", 0)
+                    agg["indexes"] += shard_stats.get("indexes", 0)
+            else:
+                # Standalone/replicaset: stats are directly in output
+                db_name = raw_output.get("db", "unknown")
+                self._db_stats[db_name] = raw_output
 
         self.watch_one(GMD_EVENTS.SHARDED_DATABASES, get_sharded_databases)
         self.watch_one(GMD_EVENTS.LIST_OF_DATABASES, get_databases)

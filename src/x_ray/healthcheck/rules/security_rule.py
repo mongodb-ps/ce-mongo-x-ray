@@ -31,7 +31,8 @@ class SecurityRule(BaseRule):
         security_settings = parsed.get("security", {})
         net = parsed.get("net", {})
         audit_log = parsed.get("auditLog", {})
-        authorization = security_settings.get("authorization", None)
+        keyfile = security_settings.get("keyFile", None)
+        authorization = "enabled" if keyfile is not None else "disabled"
         redact_logs = security_settings.get("redactClientLogData", None)
         bind_ip = net.get("bindIp", "127.0.0.1")
         port = net.get("port", None)

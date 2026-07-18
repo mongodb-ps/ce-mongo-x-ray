@@ -30,10 +30,36 @@ class FragmentationRule(BaseRule):
         host = kwargs.get("extra_info", {}).get("host", "unknown")
         ns = data["ns"]
         test_result = []
-        # Check for fragmentation
-        storage_stats = data.get("storageStats", {})
-        storage_size = storage_stats["storageSize"]
-        coll_reusable = storage_stats["wiredTiger"]["block-manager"]["file bytes available for reuse"]
+        if data.get("sharded", False):
+            for sh_name, sh_stats in data.get("shards", {}).items():
+                sh_storage_stats = {
+                    "storageSize": sh_stats.get("storageSize", 0),
+                    "wiredTiger": sh_stats.get("wiredTiger", {}),
+                }
+                issues, _ = self._check_fragmentation(ns, sh_name, sh_storage_stats)
+                test_result.extend(issues)
+        else:
+            issues, _ = self._check_fragmentation(ns, host, data.get("storageStats", {}))
+            test_result.extend(issues)
+        # Always compute aggregate frag_data from top-level storageStats for the return value
+        _, frag_data = self._check_fragmentation(ns, host, data.get("storageStats", {}))
+        return test_result, frag_data
+
+    def _check_fragmentation(self, ns: str, host: str, storage_stats: dict) -> tuple:
+        """Check fragmentation for a single storage unit (collection or shard).
+
+        Args:
+            ns (str): The namespace.
+            host (str): The host or shard name.
+            storage_stats (dict): Storage stats containing storageSize, wiredTiger, and indexDetails.
+        Returns:
+            tuple: (list of issues found, frag_data dict)
+        """
+        test_result = []
+        storage_size = storage_stats.get("storageSize", 0)
+        coll_reusable = storage_stats.get("wiredTiger", {}).get("block-manager", {}).get(
+            "file bytes available for reuse", 0
+        )
         coll_frag_ratio = round(coll_reusable / storage_size if storage_size else 0, 4)
         if coll_frag_ratio > self._fragmentation_ratio:
             issue = create_issue(

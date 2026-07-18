@@ -73,7 +73,13 @@ def test_default_sample_rate_handles_no_ingest_files(tmp_path):
 
 
 def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path, monkeypatch):
-    item = BaselineAnalysisItem(str(tmp_path), {})
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {
+            "chart_width": 620,
+            "chart_height": 230,
+        },
+    )
     item._disk_queue_metrics = {"disk.queue": "sda"}
     item._mount_metrics = {
         "/data": {
@@ -82,10 +88,25 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
         }
     }
     chart_thresholds = {}
+    chart_types = {}
 
-    def write_chart(output_folder, metric, points, *, slug=None, thresholds=None, image_format=None):
+    def write_chart(
+        output_folder,
+        metric,
+        points,
+        *,
+        slug=None,
+        thresholds=None,
+        image_format=None,
+        chart_type=None,
+        width=450,
+        height=150,
+    ):
         assert output_folder == tmp_path
+        assert width == 620
+        assert height == 230
         chart_thresholds[metric] = thresholds
+        chart_types[metric] = chart_type
         return f"charts/{slug or metric}.svg"
 
     monkeypatch.setattr(
@@ -108,6 +129,9 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
     assert chart_thresholds[f'{MOUNT_METRICS["capacity"].name} (/data)'] is None
     assert chart_thresholds[OPCOUNTER_METRICS["query"].name] is None
+    assert chart_types[OPCOUNTER_METRICS["query"].name] == "line"
+    assert chart_types[DERIVED_METRIC_NAMES["system_memory_utilization"]] == "line"
+    assert chart_types[f'{MOUNT_METRICS["capacity"].name} (/data)'] == "line"
 
 
 def test_analyze_uses_batched_pyftdc_api_and_discovers_devices(tmp_path, monkeypatch):
@@ -226,7 +250,15 @@ def test_mongodb_mount_points_use_configured_paths_and_default_db_path(tmp_path)
 
 
 def test_baseline_analysis_calculates_requested_sections(tmp_path):
-    item = BaselineAnalysisItem(str(tmp_path), {"max_sample_gap_seconds": 5}, image_format="svg")
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {
+            "max_sample_gap_seconds": 5,
+            "chart_width": 640,
+            "chart_height": 250,
+        },
+        image_format="svg",
+    )
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     middle = start + timedelta(seconds=1)
     end = middle + timedelta(seconds=1)
@@ -298,6 +330,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert workload[0]["peak"] == 20
     assert workload[0]["average"] == 15
     assert workload[len(OPCOUNTER_METRICS)]["peak"] == 0
+    assert all(result["chart_type"] == "line" for result in workload)
 
     reads, read_latency, writes, write_latency = item._results["Ops and Latencies"]
     assert (reads["peak"], reads["average"]) == (20, 15)
@@ -306,11 +339,13 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert (write_latency["peak"], write_latency["average"]) == (3, 2.5)
 
     performance_results = item._results["Performance"]
+    assert all(result["chart_type"] == "line" for result in performance_results)
     performance = {result["metric"]: result for result in performance_results}
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["peak"] == 70
     assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["average"] == pytest.approx(0.146484375)
     assert performance[DERIVED_METRIC_NAMES["memory_fragmentation_ratio"]]["warning_threshold"] == 15
     assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["warning_threshold"] == 85
+    assert performance[DERIVED_METRIC_NAMES["system_memory_utilization"]]["critical_threshold"] == 95
     assert performance[CPU_METRICS["user"].name]["peak"] == 20
     assert performance[CPU_METRICS["system"].name]["average"] == pytest.approx(7.5)
     assert performance[CPU_METRICS["iowait"].name]["peak"] == 3
@@ -329,6 +364,9 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert local_state["member"] == "0"
     assert local_state["myself"] == "Yes"
     assert remote_state["myself"] == "No"
+    assert remote_state["chart_type"] == "bar"
+    assert remote_state["chart_width"] == 500
+    assert remote_state["chart_height"] == 50
     assert "peak" not in local_state
     assert "average" not in local_state
     assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
@@ -350,6 +388,13 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert all(chart.is_file() for chart in chart_paths)
     for chart in chart_paths:
         assert ElementTree.parse(chart).getroot().tag == "{http://www.w3.org/2000/svg}svg"
+    workload_chart = ElementTree.parse(tmp_path / workload[0]["chart"]).getroot()
+    assert workload_chart.attrib["width"] == "640"
+    assert workload_chart.attrib["height"] == "250"
+    assert workload_chart.find(".//{http://www.w3.org/2000/svg}line[@class='metric-line']") is not None
+    member_chart = ElementTree.parse(tmp_path / remote_state["chart"]).getroot()
+    assert member_chart.attrib["width"] == "500"
+    assert member_chart.attrib["height"] == "50"
     remote_bars = (
         ElementTree.parse(tmp_path / remote_state["chart"]).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
     )
@@ -418,6 +463,14 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
     assert report.index("Member State:\n\n") < report.index("|Member|Me|State|") < report.index("### 1.1 Workload")
+    workload = report.split("### 1.1 Workload", 1)[1].split("### 1.2 Ops and Latencies", 1)[0]
+    ops_and_latencies = report.split("### 1.2 Ops and Latencies", 1)[1].split("### 1.3 Performance", 1)[0]
+    performance = report.split("### 1.3 Performance", 1)[1]
+    assert "|Metric|Peak / Average|Chart|" in workload
+    assert "|Metric|Peak / Average|Chart|" in ops_and_latencies
+    assert "Warning / Critical Threshold" not in workload
+    assert "Warning / Critical Threshold" not in ops_and_latencies
+    assert "|Metric|Peak / Average|Warning / Critical Threshold|Chart|" in performance
 
 
 def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):
@@ -468,7 +521,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
 
     report = output.getvalue()
     assert "- Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
-    assert "- Sample rate: `0.25`" in report
+    assert "- Sample rate: `25%`" in report
     assert "- Hostname: `mongo.example.test:27017`" in report
     assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report

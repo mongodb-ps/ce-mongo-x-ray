@@ -74,6 +74,40 @@ def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None
     HTML(filename=str(html_path), base_url=str(html_path.parent)).write_pdf(str(pdf_file))
 
 
+def inject_assets(template: str, module: str) -> str:
+    """Inject CSS and JS assets into a template by replacing placeholders.
+
+    The template must contain ``{{ style }}`` and ``{{ script }}``
+    markers.  This function reads the shared CSS/JS plus any module-specific
+    files and wraps them in ``<style>`` / ``<script>`` tags.
+
+    Args:
+        template: Raw HTML template with ``{{ style }}`` and ``{{ script }}`` placeholders.
+        module: Template module name (``healthcheck``, ``ftdc``, ``log``, ``gmd``).
+    """
+    template_dir = Path(get_script_path("templates"))
+
+    # --- CSS ---
+    css_parts = [template_dir / "css" / "shared.css"]
+    module_css = template_dir / module / "style.css"
+    if module_css.exists():
+        css_parts.append(module_css)
+    style_content = "\n".join(p.read_text(encoding="utf-8") for p in css_parts)
+    template = template.replace("{{ style }}", f"<style>\n{style_content}\n</style>")
+
+    # --- JS ---
+    js_parts = [template_dir / "js" / "common.js"]
+    if module != "gmd":
+        js_parts.append(template_dir / "js" / "outline.js")
+    module_js = template_dir / module / "script.js"
+    if module_js.exists():
+        js_parts.append(module_js)
+    script_content = "\n".join(p.read_text(encoding="utf-8") for p in js_parts)
+    template = template.replace("{{ script }}", f"<script type=\"text/javascript\">\n{script_content}\n</script>")
+
+    return template
+
+
 def _load_config():
     # Use a mutable container to hold cached config to avoid nonlocal assignment warnings.
     config = None

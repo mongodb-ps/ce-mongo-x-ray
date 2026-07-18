@@ -24,7 +24,24 @@ def test_empty_checkset_writes_reports(tmp_path, monkeypatch):
     report = Path(output_folder, "report.md")
     assert report.is_file()
     assert "No FTDC analysis items are configured" in report.read_text(encoding="utf-8")
-    assert Path(output_folder, "report.html").is_file()
+    html = Path(output_folder, "report.html").read_text(encoding="utf-8")
+    assert "table-copy-button" in html
+    assert 'querySelectorAll("table")' in html
+    assert '"text/html"' in html
+    assert '"text/plain"' in html
+    assert "tableForClipboard" in html
+    assert 'style.width = "9in"' in html
+    assert 'setAttribute("width", String(' in html
+    assert 'querySelectorAll("img")' in html
+    assert 'objectFit = "contain"' in html
+    assert 'querySelectorAll(".metadata-code")' in html
+    assert "highlightElement" in html
+    assert "typeof CopyButtonPlugin" in html
+    assert "autohide: false" in html
+    assert "@media print" in html
+    assert ".hljs-copy-container" in html
+    assert "@page" in html
+    assert "size: landscape" in html
 
 
 def test_pdf_format_writes_markdown_html_and_pdf(tmp_path, monkeypatch):
@@ -54,6 +71,9 @@ def test_pdf_format_writes_markdown_html_and_pdf(tmp_path, monkeypatch):
 
     assert Path(output_folder, "report.md").is_file()
     assert Path(output_folder, "report.html").is_file()
+    report_html = Path(output_folder, "report.html").read_text(encoding="utf-8")
+    assert "@page" in report_html
+    assert "size: landscape" in report_html
     assert Path(output_folder, "report.pdf").read_bytes().startswith(b"%PDF")
     assert conversion == {
         "filename": str(output_folder / "report.html"),

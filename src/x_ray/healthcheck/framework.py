@@ -16,9 +16,11 @@ from typing import Optional
 
 import markdown
 
+from x_ray.table_width_extension import TableWidthExtension
+
 from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.utils import load_classes, get_script_path, html_to_pdf, yellow, bold, green, env
+from x_ray.utils import load_classes, get_script_path, html_to_pdf, inject_assets, yellow, bold, green, env
 
 CHECKLIST_CLASSES = load_classes("x_ray.healthcheck.check_items")
 
@@ -84,7 +86,7 @@ class Framework:
             f.write("## Overview\n\n")
             f.write("### By Severity\n\n")
             f.write(
-                "|<span style='color: red;'>HIGH</span>|<span style='color: orange;'>MEDIUM</span>|<span style='color: green;'>LOW</span>|<span style='color: gray;'>INFO</span>|\n"
+                "|<span style='color: red;'>HIGH</span>{200}|<span style='color: orange;'>MEDIUM</span>{200}|<span style='color: green;'>LOW</span>{200}|<span style='color: gray;'>INFO</span>{200}|\n"
             )
             f.write("|---|---|---|---|\n")
             all_test_result = []
@@ -99,7 +101,7 @@ class Framework:
             f.write("### By Category\n\n")
             all_categories = [result["title"] for result in all_test_result]
             category_counts = {category: all_categories.count(category) for category in set(all_categories)}
-            f.write("|Category|Count|\n")
+            f.write("|Category{300}|Count{100}|\n")
             f.write("|---:|:---:|\n")
             for category, count in category_counts.items():
                 f.write(f"|{category}|**{count}**|\n")
@@ -137,10 +139,12 @@ class Framework:
             with open(html_file, "w", encoding="utf-8") as f:
                 with open(output_file, "r", encoding="utf-8") as md_file:
                     md_text = md_file.read()
-                html = markdown.markdown(md_text, extensions=["tables", "fenced_code", "toc", "md_in_html"])
+                html = markdown.markdown(
+                    md_text, extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"]
+                )
 
                 with open(template_file, "r", encoding="utf-8") as template:
-                    template_content = template.read()
+                    template_content = inject_assets(template.read(), "healthcheck")
                     html = template_content.replace("{{ content }}", html)
                 f.write(html)
 

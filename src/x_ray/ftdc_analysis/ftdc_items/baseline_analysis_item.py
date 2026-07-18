@@ -7,11 +7,17 @@ from math import ceil, isfinite
 from posixpath import normpath
 from pathlib import Path
 from statistics import fmean
-from typing import Optional
+from typing import Literal, Optional
 
 from pyftdc import FTDCError, FTDCReader
 
-from x_ray.ftdc_analysis.charts import write_bar_chart
+from x_ray.ftdc_analysis.charts import (
+    DEFAULT_CHART_HEIGHT,
+    DEFAULT_CHART_WIDTH,
+    MEMBER_STATE_CHART_HEIGHT,
+    MEMBER_STATE_CHART_WIDTH,
+    write_bar_chart,
+)
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.baseline_analysis_parser import BaselineAnalysisParser
 from x_ray.ftdc_analysis.shared import (
@@ -73,6 +79,8 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._mongodb_config: Optional[dict] = None
         self._hostname: Optional[str] = None
         self._image_format = kwargs.get("image_format", "png")
+        self._chart_width = int(config.get("chart_width", DEFAULT_CHART_WIDTH))
+        self._chart_height = int(config.get("chart_height", DEFAULT_CHART_HEIGHT))
 
     def analyze(self, file_path: Path) -> None:
         reader = FTDCReader(file_path)
@@ -230,37 +238,37 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             )
 
         performance = [
-            self._summary(
+            self._performance_summary(
                 DERIVED_METRIC_NAMES["system_memory_utilization"],
                 self._system_memory_utilization(),
                 "%",
                 thresholds=(85, 95),
             ),
-            self._summary(
+            self._performance_summary(
                 DERIVED_METRIC_NAMES["memory_fragmentation_ratio"],
                 self._pageheap_fragmentation(),
                 "%",
                 thresholds=(15, 25),
             ),
-            self._summary(
+            self._performance_summary(
                 CPU_METRICS["user"].name,
                 self._cpu_rates(CPU_METRICS["user"].key),
                 "%",
                 thresholds=(85, 95),
             ),
-            self._summary(
+            self._performance_summary(
                 CPU_METRICS["system"].name,
                 self._cpu_rates(CPU_METRICS["system"].key),
                 "%",
                 thresholds=(20, 30),
             ),
-            self._summary(
+            self._performance_summary(
                 CPU_METRICS["iowait"].name,
                 self._cpu_rates(CPU_METRICS["iowait"].key),
                 "%",
                 thresholds=(10, 20),
             ),
-            self._summary(
+            self._performance_summary(
                 DERIVED_METRIC_NAMES["cache_fill"],
                 self._ratio(
                     WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
@@ -269,7 +277,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 "%",
                 thresholds=(80, 95),
             ),
-            self._summary(
+            self._performance_summary(
                 DERIVED_METRIC_NAMES["cache_dirty"],
                 self._ratio(
                     WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
@@ -278,7 +286,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 "%",
                 thresholds=(5, 20),
             ),
-            self._summary(
+            self._performance_summary(
                 DERIVED_METRIC_NAMES["cache_update_ratio"],
                 self._ratio(
                     WIREDTIGER_CACHE_METRICS["bytes_maximum"].key,
@@ -294,7 +302,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             # average queue depth over the interval.
             points = [(timestamp, value / 1000) for timestamp, value in self._counter_rate(metric)]
             performance.append(
-                self._summary(
+                self._performance_summary(
                     f'{DISK_METRICS["io_in_progress"].name} ({block_device})',
                     points,
                     "requests",
@@ -327,7 +335,13 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                         slug=f"rs-member-state-{self._mount_slug(member)}",
                         value_colors=MEMBER_STATE_COLORS,
                         image_format=self._image_format,
+                        chart_type="bar",
+                        width=MEMBER_STATE_CHART_WIDTH,
+                        height=MEMBER_STATE_CHART_HEIGHT,
                     ),
+                    "chart_type": "bar",
+                    "chart_width": MEMBER_STATE_CHART_WIDTH,
+                    "chart_height": MEMBER_STATE_CHART_HEIGHT,
                 }
             )
 
@@ -355,7 +369,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 suffix += 1
             used_mount_slugs.add(slug)
             performance.append(
-                self._summary(
+                self._performance_summary(
                     f'{MOUNT_METRICS["free"].name} ({display_mount})',
                     free_points,
                     "GiB",
@@ -363,7 +377,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
             performance.append(
-                self._summary(
+                self._performance_summary(
                     f'{MOUNT_METRICS["capacity"].name} ({display_mount})',
                     capacity_points,
                     "GiB",
@@ -371,7 +385,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
             performance.append(
-                self._summary(
+                self._performance_summary(
                     f'{DERIVED_METRIC_NAMES["disk_utilization"]} ({display_mount})',
                     self._ratio(
                         metrics.get("capacity", ""),
@@ -446,7 +460,11 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         points = []
         for timestamp in sorted(set(total) & set(free) & set(buffers) & set(cached)):
             if total[timestamp] > 0:
-                value = 100 * (total[timestamp] - free[timestamp] - buffers[timestamp] - cached[timestamp]) / total[timestamp]
+                value = (
+                    100
+                    * (total[timestamp] - free[timestamp] - buffers[timestamp] - cached[timestamp])
+                    / total[timestamp]
+                )
                 if isfinite(value):
                     points.append((timestamp, value))
         return points
@@ -490,6 +508,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         *,
         slug: Optional[str] = None,
         thresholds: Optional[tuple[float, float]] = None,
+        chart_type: Literal["bar", "line"] = "line",
     ) -> dict:
         values = [value for _, value in points]
         return {
@@ -497,6 +516,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "peak": max(values, default=0.0),
             "average": fmean(values) if values else 0.0,
             "warning_threshold": thresholds[0] if thresholds else None,
+            "critical_threshold": thresholds[1] if thresholds else None,
             "unit": unit,
             "chart": write_bar_chart(
                 self.output_folder,
@@ -505,8 +525,32 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 slug=slug,
                 thresholds=thresholds,
                 image_format=self._image_format,
+                chart_type=chart_type,
+                width=self._chart_width,
+                height=self._chart_height,
             ),
+            "chart_type": chart_type,
+            "chart_width": self._chart_width,
+            "chart_height": self._chart_height,
         }
+
+    def _performance_summary(
+        self,
+        metric: str,
+        points: list[tuple[datetime, float]],
+        unit: str,
+        *,
+        slug: Optional[str] = None,
+        thresholds: Optional[tuple[float, float]] = None,
+    ) -> dict:
+        return self._summary(
+            metric,
+            points,
+            unit,
+            slug=slug,
+            thresholds=thresholds,
+            chart_type="line",
+        )
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
         output.write(f"## {section_number} Baseline Analysis\n\n")
@@ -516,7 +560,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             output.write(f"- Capture timespan: `{start}` to `{end}`\n")
         else:
             output.write("- Capture timespan: _No data available._\n")
-        output.write(f"- Sample rate: `{self._sample_rate:.6g}`\n")
+        output.write(f"- Sample rate: `{self._sample_rate * 100:.6g}%`\n")
         if self._hostname is not None:
             output.write(f"- Hostname: `{self._hostname}`\n")
         else:
@@ -546,5 +590,6 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     results,
                     caption=None,
                     output_folder=str(self.output_folder),
+                    show_thresholds=section == "Performance",
                 )
             )

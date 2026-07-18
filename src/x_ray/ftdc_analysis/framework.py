@@ -10,8 +10,10 @@ import markdown
 from bson import decode_file_iter
 from bson.errors import InvalidBSON
 
+from x_ray.table_width_extension import TableWidthExtension
+
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
-from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, load_classes, yellow
+from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 
 FTDC_CLASSES = load_classes("x_ray.ftdc_analysis.ftdc_items")
 
@@ -188,9 +190,9 @@ class Framework:
             template_file = get_script_path(f"templates/{self._config.get('template', 'ftdc/full.html')}")
             html_content = markdown.markdown(
                 markdown_file.read_text(encoding="utf-8"),
-                extensions=["tables", "fenced_code", "toc", "md_in_html"],
+                extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
             )
-            template_content = Path(template_file).read_text(encoding="utf-8")
+            template_content = inject_assets(Path(template_file).read_text(encoding="utf-8"), "ftdc")
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 
         if fmt == "pdf":

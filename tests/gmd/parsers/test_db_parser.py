@@ -65,7 +65,7 @@ def test_db_parser_sharded():
         {"text": "Data Size", "align": "left"},
         {"text": "Storage Size", "align": "left"},
         "Is Sharded",
-        "Is Primary",
+        "Primary Shard",
         "# Collections",
         "# Views",
         "# Objects",
@@ -121,6 +121,17 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][4][7] == 1
     assert dbs_table["rows"][4][8] == 1
 
+    # SUM row
+    assert dbs_table["rows"][5][0] == "**(SUM)**"
+    assert dbs_table["rows"][5][1].startswith("30.00 MB")
+    assert dbs_table["rows"][5][2].startswith("8.53 MB")
+    assert dbs_table["rows"][5][3] == "N/A"
+    assert dbs_table["rows"][5][4] == "N/A"
+    assert dbs_table["rows"][5][5] == 26
+    assert dbs_table["rows"][5][6] == 0
+    assert dbs_table["rows"][5][7] == 34
+    assert dbs_table["rows"][5][8] == 34
+
     dbs_data = result[1]
     assert dbs_data["type"] == "chart"
     assert len(dbs_data["data"]) == 5
@@ -148,7 +159,7 @@ def test_db_parser_non_sharded():
         {"text": "Data Size", "align": "left"},
         {"text": "Storage Size", "align": "left"},
         "Is Sharded",
-        "Is Primary",
+        "Primary Shard",
         "# Collections",
         "# Views",
         "# Objects",
@@ -203,6 +214,17 @@ def test_db_parser_non_sharded():
     assert dbs_table["rows"][4][6] == 0
     assert dbs_table["rows"][4][7] == 1
     assert dbs_table["rows"][4][8] == 1
+
+    # SUM row
+    assert dbs_table["rows"][5][0] == "**(SUM)**"
+    assert dbs_table["rows"][5][1].startswith("30.00 MB")
+    assert dbs_table["rows"][5][2].startswith("8.53 MB")
+    assert dbs_table["rows"][5][3] == "N/A"
+    assert dbs_table["rows"][5][4] == "N/A"
+    assert dbs_table["rows"][5][5] == 26
+    assert dbs_table["rows"][5][6] == 0
+    assert dbs_table["rows"][5][7] == 34
+    assert dbs_table["rows"][5][8] == 34
 
     dbs_data = result[1]
     assert dbs_data["type"] == "chart"

@@ -5,18 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
-            }
-        },
-        {
             "name": "App: X-Ray-HC",
             "type": "debugpy",
             "request": "launch",
@@ -113,10 +101,10 @@
                 "src/x_ray/config.json",
                 "ftdc",
                 "-f",
-                "pdf",
+                "html",
                 "misc/ftdc",
                 "2026-05-19T00:00:00",
-                "2026-05-20T00:00:00"
+                "2026-05-19T06:00:00"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
@@ -133,6 +121,18 @@
             "args": [],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        },
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
+                "LOG_LEVEL": "INFO",
+                "ENV": "development"
             }
         }
     ]

@@ -1,5 +1,6 @@
 """Metadata inspection item for FTDC analysis reports."""
 
+import html
 import json
 from pathlib import Path
 from typing import Any, Optional
@@ -87,8 +88,8 @@ class MetadataReviewItem(BaseItem):
             if value is None:
                 content = "Not available."
             else:
-                escaped = json.dumps(value, indent=2, sort_keys=True, default=str)
-                content = f"<pre><code class=\"language-json\">{escaped}</code></pre>"
+                escaped = html.escape(json.dumps(value, indent=2, sort_keys=True, default=str))
+                content = f'<pre><code class="metadata-code language-json">{escaped}</code></pre>'
             output.write(f'<div class="metadata-tab-pane{active_class}" id="{tab_id}-{tab_key}">\n')
             output.write(f"{content}\n")
             output.write("</div>\n")

@@ -1,0 +1,141 @@
+/* Shared report styles */
+
+.markdown-body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 1200px;
+    margin: 0 auto 0 300px;
+    padding: 45px;
+}
+
+#outline {
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px;
+    padding: 40px 24px;
+    overflow-y: auto;
+    background: var(--bgColor-muted, #f6f8fa);
+    border-right: 1px solid var(--borderColor-default, #d0d7de);
+}
+
+#outline > ul {
+    padding-left: 20px;
+}
+
+#outline li {
+    list-style: none;
+}
+
+#outline a {
+    color: var(--fgColor-accent, #0969da);
+    text-decoration: none;
+}
+
+#outline a.in-view {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#outline li.outline-h2 {
+    margin-left: 12px;
+}
+
+#outline li.outline-h3 {
+    margin-left: 32px;
+}
+
+#expand-outline {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    padding: 6px 10px;
+    background: var(--bgColor-muted, #f6f8fa);
+    border: 1px solid var(--borderColor-default, #d0d7de);
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.pie {
+    display: inline-block;
+    width: 30%;
+}
+
+.pie50 {
+    display: inline-block;
+    width: 48%;
+}
+
+.bar,
+.pie100 {
+    display: inline-block;
+    width: 100%;
+}
+
+.hljs-copy-wrapper {
+    position: relative;
+}
+
+.hljs-copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    opacity: 0.6;
+    background-color: var(--bgColor-default);
+    border: none;
+    border-radius: 4px;
+}
+
+.markdown-body table {
+    display: table;
+    max-width: 100%;
+    table-layout: auto;
+}
+
+.markdown-body td,
+.markdown-body th {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+@media (max-width: 900px) {
+    .markdown-body {
+        margin: 0 auto;
+        padding: 24px 16px;
+    }
+
+    #outline {
+        display: none;
+    }
+
+    #expand-outline {
+        display: none !important;
+    }
+}
+
+@page {
+    size: landscape;
+}
+
+@media print {
+    .markdown-body {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #outline,
+    #expand-outline {
+        display: none !important;
+    }
+
+    img,
+    canvas {
+        max-width: 100%;
+    }
+}

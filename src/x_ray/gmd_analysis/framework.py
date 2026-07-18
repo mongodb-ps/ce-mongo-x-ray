@@ -13,11 +13,12 @@ import re
 from pathlib import Path
 import logging
 import markdown
+from x_ray.table_width_extension import TableWidthExtension
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.gmd_items.summary_item import SummaryItem
 from x_ray.gmd_analysis.shared import load_json
 from x_ray.healthcheck.shared import str_to_md_id, to_json
-from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, html_to_pdf, env
+from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, html_to_pdf, inject_assets, env
 
 logger = logging.getLogger(__name__)
 GMD_CLASSES = load_classes("x_ray.gmd_analysis.gmd_items")
@@ -153,11 +154,11 @@ class Framework:
                 with open(output_file, "r", encoding="utf-8") as md_file:
                     html_content = markdown.markdown(
                         md_file.read(),
-                        extensions=["tables", "fenced_code", "toc", "md_in_html"],
+                        extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
                     )
                 # Load the template file
                 with open(template_file, "r", encoding="utf-8") as tf:
-                    template_content = tf.read()
+                    template_content = inject_assets(tf.read(), "gmd")
                     # Replace the placeholder with the generated HTML content
                 final_html = template_content.replace("{{ content }}", html_content)
                 output.write(final_html)

@@ -1,0 +1,35 @@
+/* Log-specific styles */
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.tooltip::after {
+    content: attr(data-tip);
+    background: gray;
+    color: white;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    top: 100%;
+    white-space: nowrap;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: solid 1px #ccc;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s, transform .15s;
+    z-index: 10;
+    width: 100%;
+    white-space: normal;
+    box-sizing: border-box;
+}
+
+.tooltip:hover::after,
+.tooltip:focus::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}

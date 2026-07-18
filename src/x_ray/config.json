@@ -173,7 +173,9 @@
         },
         "item_config": {
             "BaselineAnalysisItem": {
-                "max_sample_gap_seconds": 15
+                "max_sample_gap_seconds": 15,
+                "chart_width": 500,
+                "chart_height": 150
             }
         },
         "template": "ftdc/full.html"

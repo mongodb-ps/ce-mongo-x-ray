@@ -43,14 +43,14 @@ class SummaryItem:
 
         output.write("#### By Severity\n\n")
         output.write(
-            f"|{format_header(SEVERITY.HIGH)}|{format_header(SEVERITY.MEDIUM)}|{format_header(SEVERITY.LOW)}|{format_header(SEVERITY.INFO)}|\n"
+            f"|{format_header(SEVERITY.HIGH)}{{200}}|{format_header(SEVERITY.MEDIUM)}{{200}}|{format_header(SEVERITY.LOW)}{{200}}|{format_header(SEVERITY.INFO)}{{200}}|\n"
         )
         output.write("|:---:|:---:|:---:|:---:|\n")
         output.write(
             f"|{self._summary_severity[SEVERITY.HIGH]}|{self._summary_severity[SEVERITY.MEDIUM]}|{self._summary_severity[SEVERITY.LOW]}|{self._summary_severity[SEVERITY.INFO]}|\n\n"
         )
         output.write("#### By Category\n\n")
-        output.write("|Category|Count|\n")
+        output.write("|Category{300}|Count{100}|\n")
         output.write("|---:|:---:|\n")
         for title, count in self._summary_title.items():
             output.write(f"|{title}|**{count}**|\n")

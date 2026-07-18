@@ -212,4 +212,4 @@ output/
 export_secret.sh
 
 misc/ftdc*
-.qwen
+.qwenmisc/getMongoData-output.json

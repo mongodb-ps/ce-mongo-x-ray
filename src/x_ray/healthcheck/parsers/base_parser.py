@@ -32,7 +32,10 @@ class BaseParser(ABC):
         Args:
             item (dict): The table item containing
                 caption (str, optional): The table caption.
-                header (list): List of column names. Accepts strings or dicts {"text": str, "align": "center" | "left" | "right"}.
+                header (list): List of column names. Accepts strings or dicts
+                    {"text": str, "align": "center"|"left"|"right", "width": str}.
+                    The optional ``width`` key sets the column width using the
+                    ``{width}`` markdown syntax (e.g. ``"200"``, ``"50%"``, ``"*"``).
                 rows (list): List of rows, where each row is a list of values.
             i (int): The index of the table in the output list, used for generating unique IDs if needed.
         Returns:
@@ -48,10 +51,17 @@ class BaseParser(ABC):
         if rows is None or len(rows) == 0:
             output += "_No data available._\n"
             return output
-        header_text = [h["text"] if isinstance(h, dict) else h for h in header]
+        header_text_parts = []
+        for h in header:
+            if isinstance(h, dict):
+                text = h["text"]
+                width = h.get("width", "")
+                header_text_parts.append(f"{text}{{{width}}}" if width else text)
+            else:
+                header_text_parts.append(h)
         alignments = [h.get("align", "center") if isinstance(h, dict) else "center" for h in header]
         align_md = [TABLE_ALIGNMENT[a] for a in alignments]
-        output += f"|{'|'.join(header_text)}|\n"
+        output += f"|{'|'.join(header_text_parts)}|\n"
         output += f"|{'|'.join(align_md)}|\n"
         for row in rows:
             row_text = [str(cell) for cell in row]

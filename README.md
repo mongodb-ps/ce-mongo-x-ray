@@ -99,8 +99,8 @@ x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- | :-------------------------: |
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                        |           `false`           |
 | `-h`, `--help`   | Show the help message and exit.                                                                                                    |             n/a             |
-| `-c`, `--config` | Path to configuration file.                                                                                                        | Built-in `libs/config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `version`: Show version info. |            None             |
+| `-c`, `--config` | Path to configuration file.                                                                                                        | Built-in `config.json` |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |            None             |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
@@ -120,12 +120,12 @@ Besides, you can use environment variables to control some behaviors:
 ```bash
 x-ray healthcheck [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [uri]
 ```
-| Argument           | Description                                 |  Default  |
-| ------------------ | ------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                            | `default` |
-| `-o`, `--output`   | Output folder path.                         | `output/` |
+| Argument           | Description                                                                       |  Default  |
+| ------------------ | --------------------------------------------------------------------------------- | :-------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
+| `-o`, `--output`   | Output folder path.                                                               | `output/` |
 | `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
-| `uri`              | MongoDB database URI.                       |   None    |
+| `uri`              | MongoDB database URI.                                                             |   None    |
 
 For security reasons you may not want to include credentials in the command. There are 2 options:
 - If the URI is not provided, user will be asked to input one.
@@ -151,13 +151,13 @@ Refer to the wiki for more details.
 ```bash
 x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [log_file]
 ```
-| Argument           | Description                                       |  Default  |
-| ------------------ | ------------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                                  | `default` |
-| `-o`, `--output`   | Output folder path.                               | `output/` |
+| Argument           | Description                                                                       |  Default  |
+| ------------------ | --------------------------------------------------------------------------------- | :-------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
+| `-o`, `--output`   | Output folder path.                                                               | `output/` |
 | `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
-| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.       |    `1`    |
-| `--top`            | When analyzing the slow queries, only list top N. |   `10`    |
+| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.                                       |    `1`    |
+| `--top`            | When analyzing the slow queries, only list top N.                                 |   `10`    |
 
 ### 3.3 getMongoData Analysis Component
 #### 3.3.1 Examples
@@ -172,12 +172,11 @@ x-ray gmd misc/getMongoData-rs.json
 ```bash
 x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] gmd_file
 ```
-| Argument           | Description                                                     |       Default        |
-| ------------------ | --------------------------------------------------------------- | :------------------: |
-| `-s`, `--checkset` | Checkset to run.                                                |      `default`       |
-| `-o`, `--output`   | Output folder path.                                             |      `output/`       |
-| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`. | `1 / ingested files` |
-| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. | `html` |
+| Argument           | Description                                                                       |  Default  |
+| ------------------ | --------------------------------------------------------------------------------- | :-------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
+| `-o`, `--output`   | Output folder path.                                                               | `output/` |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
 
 ### 3.4 FTDC Analysis Component
 
@@ -199,3 +198,48 @@ x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:
 ```bash
 x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] ftdc_path [start_time] [end_time]
 ```
+| Argument           | Description                                                                       |        Default         |
+| ------------------ | --------------------------------------------------------------------------------- | :--------------------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  |       `default`        |
+| `-o`, `--output`   | Output folder path.                                                               |       `output/`        |
+| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`.                   |  `1 / ingested files`  |
+| `-f`, `--format`   | Output format (`html` or `pdf`). PDF also retains Markdown and HTML. |         `html`         |
+| `ftdc_path`        | Point to a folder of ftdc files or a single ftdc file                             |          n/a           |
+| `start_time`       | FTDC time filter start.                                                           | beginning of all files |
+| `end_time`         | FTDC time filter end.                                                             |    end of all files    |
+
+
+```json
+"BaselineAnalysisItem": {
+  "chart_width": 450,
+  "chart_height": 150
+}
+```
+
+The fallback dimensions are defined in `ftdc_analysis/charts.py`.
+Vertical grid lines are spaced every 100 pixels and horizontal grid lines every 50 pixels.
+Workload and operation/latency charts use lines. Performance charts use bars.
+Member-state charts are always 450×50 pixel bars.
+
+### 3.5 Table Column Widths
+
+Markdown pipe tables support a `{width}` spec on header cells to set column widths
+in generated HTML and PDF output:
+
+```
+| Name{120}   | Description{*} | Status{50%} |
+|-------------|----------------|-------------|
+| foo         | bar            | active      |
+```
+
+| Spec   | Meaning                                       | Example HTML                        |
+| ------ | --------------------------------------------- | ----------------------------------- |
+| `{N}`  | CSS width — bare numbers default to pixels  | `<col style="width:120px" ...>`     |
+| `{Npx}`  | Explicit pixels                         | `<col style="width:120px" ...>`     |
+| `{N%}` | Percentage of the table width                 | `<col style="width:50%" ...>`       |
+| `{Nunit}` | Any valid CSS unit (`em`, `rem`, `vw`, …) | `<col style="width:10em">`      |
+| `{*}`  | Auto (no constraint)                          | `<col />`                           |
+
+The spec is stripped from the rendered header text and a `<colgroup>` of `<col>`
+elements is inserted into the `<table>`. Columns without a `{width}` spec are
+left unconstrained.

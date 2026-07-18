@@ -31,7 +31,7 @@ DATA_WITH_ISSUES_2 = {
     "parsed": {
         "net": {"port": 37017, "bindIp": "192.168.0.1", "tls": {"mode": "allowTLS"}},
         "security": {
-            "authorization": "enabled",
+            "keyFile": "/data/keyfile",
             "redactClientLogData": True,
             "enableEncryption": True,
             "encryptionKeyFile": "/path/to/keyfile",
@@ -54,7 +54,7 @@ DATA_WITH_NO_ISSUES = {
     "parsed": {
         "net": {"port": 37017, "bindIp": "192.168.0.1", "tls": {"mode": "requireTLS"}},
         "security": {
-            "authorization": "enabled",
+            "keyFile": "/data/keyfile",
             "redactClientLogData": True,
             "enableEncryption": True,
             "kmip": {

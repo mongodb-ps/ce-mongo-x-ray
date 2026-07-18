@@ -46,7 +46,7 @@ SECURITY_INFOS = [
                     "path": "/Users/yaoxing.zhang/Workspace/MongoDB/sh_5.0.19/data/shard02/rs1/mongod.log",
                 },
                 "security": {
-                    "authorization": "enabled",
+                    "keyFile": "/data/keyfile",
                     "enableEncryption": True,
                     "encryptionKeyFile": "/etc/ssl/mongodb-keyfile",
                     "redactClientLogData": True,

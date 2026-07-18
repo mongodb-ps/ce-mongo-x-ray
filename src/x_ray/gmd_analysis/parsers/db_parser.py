@@ -25,7 +25,7 @@ class DBParser(BaseParser):
                 {"text": "Data Size", "align": "left"},
                 {"text": "Storage Size", "align": "left"},
                 "Is Sharded",
-                "Is Primary",
+                "Primary Shard",
                 "# Collections",
                 "# Views",
                 "# Objects",
@@ -37,6 +37,14 @@ class DBParser(BaseParser):
         dbs: list = data.get("databases", {}).get("databases", [])
         sharded_dbs: Optional[list] = data.get("sharded_databases")
         db_stats: dict = data.get("db_stats", {})
+        totals: dict = {
+            "dataSize": 0,
+            "storageSize": 0,
+            "collections": 0,
+            "views": 0,
+            "objects": 0,
+            "indexes": 0,
+        }
         for db in dbs:
             db_name: str = db["name"]
             stats: dict = db_stats.get(db_name, {})
@@ -81,6 +89,26 @@ class DBParser(BaseParser):
             data_line["objects"] = stats.get("objects", 0)
             data_line["indexes"] = stats.get("indexes", 0)
             db_data.append(data_line)
+
+            totals["dataSize"] += stats.get("dataSize", 0)
+            totals["storageSize"] += db.get("sizeOnDisk", 0)
+            totals["collections"] += num_collections
+            totals["views"] += num_views
+            totals["objects"] += num_objects
+            totals["indexes"] += num_indexes
+        rows.append(
+            [
+                "**(SUM)**",
+                format_size(totals["dataSize"] * 1024 * 1024),
+                format_size(totals["storageSize"]),
+                "N/A",
+                "N/A",
+                totals["collections"],
+                totals["views"],
+                totals["objects"],
+                totals["indexes"],
+            ]
+        )
         output_list.append(db_table)
         output_list.append({"type": "chart", "data": db_data})
         return output_list

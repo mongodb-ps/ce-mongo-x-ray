@@ -5,13 +5,17 @@ from html import escape
 from pathlib import Path
 from typing import Any, Optional
 
+from x_ray.ftdc_analysis.charts import DEFAULT_CHART_HEIGHT, DEFAULT_CHART_WIDTH
 from x_ray.ftdc_analysis.parsers.base_parser import BaseParser
 
-_CHART_WIDTH = 480
-_CHART_HEIGHT = 50
 
-
-def _chart_img(chart_path: str, alt: str, output_folder: Optional[str] = None) -> str:
+def _chart_img(
+    chart_path: str,
+    alt: str,
+    output_folder: Optional[str] = None,
+    width: int = DEFAULT_CHART_WIDTH,
+    height: int = DEFAULT_CHART_HEIGHT,
+) -> str:
     if chart_path.endswith(".png"):
         src = chart_path
         if output_folder is not None:
@@ -20,11 +24,18 @@ def _chart_img(chart_path: str, alt: str, output_folder: Optional[str] = None) -
                 data = resolved.read_bytes()
                 b64 = base64.b64encode(data).decode("ascii")
                 src = f"data:image/png;base64,{b64}"
-        return (
-            f'<img src="{src}" width="{_CHART_WIDTH}" height="{_CHART_HEIGHT}"'
-            f' alt="{escape(alt)}">'
-        )
+        return f'<img src="{src}" width="{width}" height="{height}"' f' alt="{escape(alt)}">'
     return f"![{alt}]({chart_path})"
+
+
+def _thresholds(item: dict) -> str:
+    warning = item.get("warning_threshold")
+    critical = item.get("critical_threshold")
+    if warning is None and critical is None:
+        return "\u2014"
+    if critical is None:
+        return str(round(warning, 2))
+    return f"{round(warning, 2)} / {round(critical, 2)}"
 
 
 class BaselineAnalysisParser(BaseParser):
@@ -46,34 +57,50 @@ class BaselineAnalysisParser(BaseParser):
                         [
                             item["member"],
                             item["myself"],
-                            _chart_img(item["chart"], f'{item["metric"]} bar chart', output_folder),
+                            _chart_img(
+                                item["chart"],
+                                f'{item["metric"]} {item.get("chart_type", "bar")} chart',
+                                output_folder,
+                                item.get("chart_width", DEFAULT_CHART_WIDTH),
+                                item.get("chart_height", DEFAULT_CHART_HEIGHT),
+                            ),
                         ]
                         for item in data
                     ],
                 }
             ]
 
-        rows = [
-            [
+        show_thresholds = kwargs.get("show_thresholds", True)
+        rows = []
+        for item in data:
+            row = [
                 f'{item["metric"]} ({item["unit"]})',
-                round(item["peak"], 2),
-                round(item["average"], 2),
-                round(item["warning_threshold"], 2) if item.get("warning_threshold") is not None else "\u2014",
-                _chart_img(item["chart"], f'{item["metric"]} bar chart', output_folder),
+                f'{round(item["peak"], 2)} / {round(item["average"], 2)}',
             ]
-            for item in data
+            if show_thresholds:
+                row.append(_thresholds(item))
+            row.append(
+                _chart_img(
+                    item["chart"],
+                    f'{item["metric"]} {item.get("chart_type", "bar")} chart',
+                    output_folder,
+                    item.get("chart_width", DEFAULT_CHART_WIDTH),
+                    item.get("chart_height", DEFAULT_CHART_HEIGHT),
+                )
+            )
+            rows.append(row)
+        header = [
+            {"text": "Metric", "align": "left"},
+            "Peak / Average",
         ]
+        if show_thresholds:
+            header.append("Warning / Critical Threshold")
+        header.append("Chart")
         return [
             {
                 "type": "table",
                 "caption": kwargs.get("caption", "Baseline Analysis"),
-                "header": [
-                    {"text": "Metric", "align": "left"},
-                    "Peak",
-                    "Average",
-                    "Warning Threshold",
-                    "Chart",
-                ],
+                "header": header,
                 "rows": rows,
             }
         ]

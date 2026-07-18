@@ -40,6 +40,7 @@ class ISSUE(enum.Enum):
     OPLOG_WINDOW_TOO_SMALL = 500
     # Data Size Issues
     COLLECTION_TOO_LARGE = 600
+    COLLECTION_TOO_LARGE_SHARDED = 602
     AVG_OBJECT_SIZE_TOO_LARGE = 601
     # Fragmentation Issues
     HIGH_COLLECTION_FRAGMENTATION = 700
@@ -202,6 +203,12 @@ ISSUE_MSG_MAP = {
         "severity": SEVERITY.LOW,
         "title": "Collection Too Large",
         "description": "Collection `{ns}` has size `{size_gb} GB`, which exceeds the recommended maximum of `{collection_size_gb} GB`. Consider sharding the collection.",
+    },
+    ISSUE.COLLECTION_TOO_LARGE_SHARDED: {
+        "id": ISSUE.COLLECTION_TOO_LARGE_SHARDED,
+        "severity": SEVERITY.LOW,
+        "title": "Collection Too Large",
+        "description": "Collection `{ns}` has size `{size_gb} GB` on shard `{host}`, which exceeds the recommended maximum of `{collection_size_gb} GB`. Consider refining the shard key or balancing chunks across shards.",
     },
     ISSUE.AVG_OBJECT_SIZE_TOO_LARGE: {
         "id": ISSUE.AVG_OBJECT_SIZE_TOO_LARGE,
