@@ -213,5 +213,5 @@ export_secret.sh
 
 misc/ftdc*
 .qwen
-misc/getMongoData-output.json
+getMongoData-output.json
 
