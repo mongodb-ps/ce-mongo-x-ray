@@ -17,7 +17,14 @@ class BuildInfoParser(BaseParser):
         table_build_info: dict = {
             "type": "table",
             "caption": "Server Build Information",
-            "header": ["Component", "Host", "Version", "OpenSSL", "Target Arch", "Target OS"],
+            "header": [
+                {"width": "150px", "text": "Component"},
+                {"width": "*", "text": "Host"},
+                {"width": "100px", "text": "Version"},
+                {"width": "200px", "text": "OpenSSL"},
+                {"width": "180px", "text": "Target Arch"},
+                {"width": "180px", "text": "Target OS"},
+            ],
             "rows": rows,
         }
 

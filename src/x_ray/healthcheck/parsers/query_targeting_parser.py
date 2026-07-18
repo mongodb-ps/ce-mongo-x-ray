@@ -9,7 +9,12 @@ class QueryTargetingParser(BaseParser):
         qt_table: dict = {
             "type": "table",
             "caption": "Query Targeting",
-            "header": ["Component", "Host", "Scanned / Returned", "Scanned Objects / Returned"],
+            "header": [
+                {"text": "Component", "width": "120px"},
+                {"text": "Host", "width": "*"},
+                {"text": "Scanned / Returned", "width": "250px"},
+                {"text": "Scanned Objects / Returned", "width": "250px"},
+            ],
             "rows": rows,
         }
         output_list.append(qt_table)

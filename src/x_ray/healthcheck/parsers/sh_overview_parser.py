@@ -19,14 +19,22 @@ class SHOverviewParser(BaseParser):
         overview_table = {
             "type": "table",
             "caption": "Sharded Cluster Overview",
-            "header": ["#Shards", "#Mongos", "#Active mongos"],
+            "header": [
+                {"text": "#Shards", "width": "33.3%"},
+                {"text": "#Mongos", "width": "33.3%"},
+                {"text": "#Active mongos", "width": "33.3%"},
+            ],
             "rows": overview_rows,
         }
         mongos_rows: list = []
         mongos_table = {
             "type": "table",
             "caption": "Component Details - `mongos`",
-            "header": ["Host", "Ping Latency (sec)", "Last Ping"],
+            "header": [
+                {"text": "Host", "width": "*"},
+                {"text": "Ping Latency (sec)", "width": "200px"},
+                {"text": "Last Ping", "width": "250px"},
+            ],
             "rows": mongos_rows,
         }
 

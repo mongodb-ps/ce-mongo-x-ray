@@ -23,7 +23,10 @@ class SHDetailsParser(BaseParser):
         details_table = {
             "type": "table",
             "caption": "Component Details - `shards/csrs`",
-            "header": ["Component Name", "Hosts"],
+            "header": [
+                {"text": "Component", "width": "200px"},
+                {"text": "Hosts", "width": "*"},
+            ],
             "rows": rows,
         }
         return [details_table]

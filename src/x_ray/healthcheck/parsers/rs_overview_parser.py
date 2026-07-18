@@ -17,7 +17,13 @@ class RSOverviewParser(BaseParser):
         overview_table = {
             "type": "table",
             "caption": "Components Overview",
-            "header": ["Name", "#Members", "#Voting Members", "#Arbiters", "#Hidden Members"],
+            "header": [
+                {"text": "Name", "width": "*"},
+                {"text": "#Members", "width": "120px"},
+                {"text": "#Votings", "width": "120px"},
+                {"text": "#Arbiters", "width": "120px"},
+                {"text": "#Hiddens", "width": "120px"},
+            ],
             "rows": rows,
         }
         for set_name, rs_config in data:

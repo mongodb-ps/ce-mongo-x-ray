@@ -20,12 +20,12 @@ class HostInfoParser(BaseParser):
             "type": "table",
             "caption": "Host Hardware Information",
             "header": [
-                "Host",
-                "CPU Family",
-                "CPU Cores",
-                "Memory",
-                "OS",
-                "NUMA Enabled",
+                {"text": "Host", "width": "*"},
+                {"text": "CPU Family", "width": "350px"},
+                {"text": "CPU Cores", "width": "100px"},
+                {"text": "Memory", "width": "100px"},
+                {"text": "OS", "width": "150px"},
+                {"text": "NUMA Enabled", "width": "100px"},
             ],
             "rows": rows,
         }
@@ -34,10 +34,10 @@ class HostInfoParser(BaseParser):
             "type": "table",
             "caption": "Mount Points",
             "header": [
-                "Host",
-                "Mount Point",
-                "Type",
-                "Options",
+                {"text": "Host", "width": "*"},
+                {"text": "Mount Point", "width": "550px"},
+                {"text": "Type", "width": "100px"},
+                {"text": "Options", "width": "200px"},
             ],
             "rows": rows_mounts,
         }

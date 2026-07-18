@@ -9,7 +9,15 @@ class CacheParser(BaseParser):
         cache_table = {
             "type": "table",
             "caption": "WiredTiger Cache",
-            "header": ["Component", "Host", "Cache Size", "In-Cache Size", "Bytes Dirty", "Read Into", "Written From"],
+            "header": [
+                {"text": "Component", "width": "120px"},
+                {"text": "Host", "width": "*"},
+                {"text": "Cache Size", "width": "150px"},
+                {"text": "In-Cache Size", "width": "150px"},
+                {"text": "Bytes Dirty", "width": "150px"},
+                {"text": "Read Into", "width": "150px"},
+                {"text": "Written From", "width": "150px"},
+            ],
             "rows": rows,
         }
         cache_data: dict = {}

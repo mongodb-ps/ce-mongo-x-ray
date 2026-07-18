@@ -10,7 +10,13 @@ class IndexInfoParser(BaseParser):
         table = {
             "type": "table",
             "caption": "Index Review",
-            "header": ["Component", "Namespace", "Name", {"text": "Definition", "align": "left"}, "Access per Hour"],
+            "header": [
+                {"text": "Component", "width": "150px"},
+                {"text": "Namespace", "width": "*"},
+                {"text": "Name", "width": "*"},
+                {"text": "Definition", "align": "left", "width": "*"},
+                {"text": "Access per Hour", "width": "120px"},
+            ],
             "rows": rows,
         }
         output_list.append(table)

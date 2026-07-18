@@ -11,7 +11,16 @@ class ConnParser(BaseParser):
             "caption": "Connections",
             "notes": "- `Rejected` is only available for MongoDB 6.3 and later.\n"
             + "- `Threaded` is only available for MongoDB 5.0 and later.\n",
-            "header": ["Component", "Host", "Current", "Available", "Active", "Created", "Rejected", "Threaded"],
+            "header": [
+                {"text": "Component", "width": "120px"},
+                {"text": "Host", "width": "*"},
+                {"text": "Current", "width": "100px"},
+                {"text": "Available", "width": "100px"},
+                {"text": "Active", "width": "100px"},
+                {"text": "Created", "width": "100px"},
+                {"text": "Rejected", "width": "100px"},
+                {"text": "Threaded", "width": "100px"},
+            ],
             "rows": rows,
         }
         conn_data: dict = {}

@@ -128,7 +128,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             output.write("<b style='color: green;'>Pass.</b>\n\n")
             return
 
-        output.write("| \\# | Host | Severity | Category | Message |\n")
+        output.write("| \\#{30px} | Host{180px} | Severity{100px} | Category{200px} | Message{*} |\n")
         output.write("|:----------:|:----------:|:----------:|---------|---------|\n")
         for idx, item in enumerate(self._test_result):
             output.write(
