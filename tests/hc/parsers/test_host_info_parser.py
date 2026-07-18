@@ -65,12 +65,12 @@ def test_host_info_parser():
     assert table_hardware["type"] == "table"
     assert table_hardware["caption"] == "Host Hardware Information"
     assert table_hardware["header"] == [
-        "Host",
-        "CPU Family",
-        "CPU Cores",
-        "Memory",
-        "OS",
-        "NUMA Enabled",
+        {"text": "Host", "width": "*"},
+        {"text": "CPU Family", "width": "350px"},
+        {"text": "CPU Cores", "width": "100px"},
+        {"text": "Memory", "width": "100px"},
+        {"text": "OS", "width": "150px"},
+        {"text": "NUMA Enabled", "width": "100px"},
     ]
     assert table_hardware["rows"][0] == [
         "M-QTFH0WFXLG:30017",
@@ -100,10 +100,10 @@ def test_host_info_parser():
     assert table_mounts["type"] == "table"
     assert table_mounts["caption"] == "Mount Points"
     assert table_mounts["header"] == [
-        "Host",
-        "Mount Point",
-        "Type",
-        "Options",
+        {"text": "Host", "width": "*"},
+        {"text": "Mount Point", "width": "550px"},
+        {"text": "Type", "width": "100px"},
+        {"text": "Options", "width": "200px"},
     ]
     assert table_mounts["rows"][0] == [
         "ip-172-31-22-196",

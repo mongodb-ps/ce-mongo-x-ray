@@ -104,15 +104,15 @@ def test_security_parser():
     table = result[0]
     assert table["caption"] == "Security Information"
     assert table["header"] == [
-        "Component",
-        "Host",
-        "Listen",
-        "TLS",
-        "Authorization",
-        "Cluster Auth",
-        "Log Redaction",
-        "EAR",
-        "Auditing",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Listen", "width": "150px"},
+        {"text": "TLS", "width": "100px"},
+        {"text": "Auth", "width": "120px"},
+        {"text": "Cluster Auth", "width": "120px"},
+        {"text": "Log Redaction", "width": "120px"},
+        {"text": "EAR", "width": "80px"},
+        {"text": "Auditing", "width": "120px"},
     ]
     rows = table["rows"]
     assert rows[0][0] == "shard01"

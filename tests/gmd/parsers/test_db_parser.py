@@ -61,15 +61,15 @@ def test_db_parser_sharded():
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
     assert dbs_table["header"] == [
-        "Database Name",
-        {"text": "Data Size", "align": "left"},
-        {"text": "Storage Size", "align": "left"},
-        "Is Sharded",
-        "Primary Shard",
-        "# Collections",
-        "# Views",
-        "# Objects",
-        "# Indexes",
+        {"text": "Database Name", "width": "*"},
+        {"text": "Data Size", "align": "left", "width": "120px"},
+        {"text": "Storage Size", "align": "left", "width": "150px"},
+        {"text": "Is Sharded", "width": "100px"},
+        {"text": "Primary Shard", "width": "120px"},
+        {"text": "# Colls", "width": "100px"},
+        {"text": "# Views", "width": "100px"},
+        {"text": "# Objects", "width": "100px"},
+        {"text": "# Indexes", "width": "100px"},
     ]
     assert dbs_table["rows"][0][0] == "admin"
     assert dbs_table["rows"][0][1].startswith("4.00 MB")
@@ -155,15 +155,15 @@ def test_db_parser_non_sharded():
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
     assert dbs_table["header"] == [
-        "Database Name",
-        {"text": "Data Size", "align": "left"},
-        {"text": "Storage Size", "align": "left"},
-        "Is Sharded",
-        "Primary Shard",
-        "# Collections",
-        "# Views",
-        "# Objects",
-        "# Indexes",
+        {"text": "Database Name", "width": "*"},
+        {"text": "Data Size", "align": "left", "width": "120px"},
+        {"text": "Storage Size", "align": "left", "width": "150px"},
+        {"text": "Is Sharded", "width": "100px"},
+        {"text": "Primary Shard", "width": "120px"},
+        {"text": "# Colls", "width": "100px"},
+        {"text": "# Views", "width": "100px"},
+        {"text": "# Objects", "width": "100px"},
+        {"text": "# Indexes", "width": "100px"},
     ]
     assert dbs_table["rows"][0][0] == "admin"
     assert dbs_table["rows"][0][1].startswith("4.00 MB")

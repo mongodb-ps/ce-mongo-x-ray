@@ -50,13 +50,13 @@ def test_cache_parser() -> None:
     assert result[0]["type"] == "table"
     assert result[0]["caption"] == "WiredTiger Cache"
     assert result[0]["header"] == [
-        "Component",
-        "Host",
-        "Cache Size",
-        "In-Cache Size",
-        "Bytes Dirty",
-        "Read Into",
-        "Written From",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Cache Size", "width": "150px"},
+        {"text": "In-Cache Size", "width": "150px"},
+        {"text": "Bytes Dirty", "width": "150px"},
+        {"text": "Read Into", "width": "150px"},
+        {"text": "Written From", "width": "150px"},
     ]
     assert len(result[0]["rows"]) == 3
     assert result[0]["rows"][0] == [
@@ -129,13 +129,13 @@ def test_cache_parser_no_data() -> None:
     assert result[0]["type"] == "table"
     assert result[0]["caption"] == "WiredTiger Cache"
     assert result[0]["header"] == [
-        "Component",
-        "Host",
-        "Cache Size",
-        "In-Cache Size",
-        "Bytes Dirty",
-        "Read Into",
-        "Written From",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Cache Size", "width": "150px"},
+        {"text": "In-Cache Size", "width": "150px"},
+        {"text": "Bytes Dirty", "width": "150px"},
+        {"text": "Read Into", "width": "150px"},
+        {"text": "Written From", "width": "150px"},
     ]
     assert len(result[0]["rows"]) == 1
     assert result[0]["rows"][0] == ["shard01", "localhost:30018", "N/A", "N/A", "N/A", "N/A", "N/A"]

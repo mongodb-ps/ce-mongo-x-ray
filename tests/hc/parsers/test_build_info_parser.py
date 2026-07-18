@@ -44,7 +44,14 @@ def test_build_info_parser():
     table = parsed_output[0]
     assert table["type"] == "table"
     assert table["caption"] == "Server Build Information"
-    assert table["header"] == ["Component", "Host", "Version", "OpenSSL", "Target Arch", "Target OS"]
+    assert table["header"] == [
+        {"width": "150px", "text": "Component"},
+        {"width": "*", "text": "Host"},
+        {"width": "100px", "text": "Version"},
+        {"width": "200px", "text": "OpenSSL"},
+        {"width": "180px", "text": "Target Arch"},
+        {"width": "180px", "text": "Target OS"},
+    ]
     assert len(table["rows"]) == 3
     assert table["rows"][0] == [
         "shard01",

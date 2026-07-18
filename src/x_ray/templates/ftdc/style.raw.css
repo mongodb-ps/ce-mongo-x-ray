@@ -1,0 +1,36 @@
+/* FTDC-specific styles */
+
+.table-copy-wrapper {
+    margin: 16px 0;
+}
+
+.table-copy-wrapper > table {
+    margin: 0;
+}
+
+.table-copy-toolbar {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 4px;
+}
+
+.table-copy-button {
+    padding: 4px 10px;
+    color: var(--fgColor-default, #1f2328);
+    background: var(--bgColor-muted, #f6f8fa);
+    border: 1px solid var(--borderColor-default, #d0d7de);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.table-copy-button:hover {
+    background: var(--button-default-bgColor-hover, #f3f4f6);
+}
+
+@media print {
+    .table-copy-toolbar,
+    .hljs-copy-container,
+    .hljs-copy-button {
+        display: none !important;
+    }
+}

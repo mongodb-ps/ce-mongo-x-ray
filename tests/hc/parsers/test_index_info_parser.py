@@ -30,11 +30,11 @@ def test_index_info_parser():
     assert table["type"] == "table"
     assert table["caption"] == "Index Review"
     assert table["header"] == [
-        "Component",
-        "Namespace",
-        "Name",
-        {"text": "Definition", "align": "left"},
-        "Access per Hour",
+        {"text": "Component", "width": "150px"},
+        {"text": "Namespace", "width": "*"},
+        {"text": "Name", "width": "*"},
+        {"text": "Definition", "align": "left", "width": "*"},
+        {"text": "Access per Hour", "width": "120px"},
     ]
     assert len(table["rows"]) == 1
     assert table["rows"][0][0] == "shard01"
@@ -52,11 +52,11 @@ def test_index_info_parser_no_data():
     assert table["type"] == "table"
     assert table["caption"] == "Index Review"
     assert table["header"] == [
-        "Component",
-        "Namespace",
-        "Name",
-        {"text": "Definition", "align": "left"},
-        "Access per Hour",
+        {"text": "Component", "width": "150px"},
+        {"text": "Namespace", "width": "*"},
+        {"text": "Name", "width": "*"},
+        {"text": "Definition", "align": "left", "width": "*"},
+        {"text": "Access per Hour", "width": "120px"},
     ]
     assert len(table["rows"]) == 1
     assert table["rows"][0] == ["test_set"] + ["N/A"] * 4

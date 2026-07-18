@@ -39,14 +39,14 @@ def test_conn_parser():
     assert output[0]["type"] == "table"
     assert output[0]["caption"] == "Connections"
     assert output[0]["header"] == [
-        "Component",
-        "Host",
-        "Current",
-        "Available",
-        "Active",
-        "Created",
-        "Rejected",
-        "Threaded",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Current", "width": "100px"},
+        {"text": "Available", "width": "100px"},
+        {"text": "Active", "width": "100px"},
+        {"text": "Created", "width": "100px"},
+        {"text": "Rejected", "width": "100px"},
+        {"text": "Threaded", "width": "100px"},
     ]
     assert len(output[0]["rows"]) == 2
     assert output[0]["rows"][0][0] == "testSet"
@@ -97,14 +97,14 @@ def test_conn_parser_with_empty_data():
     assert output[0]["type"] == "table"
     assert output[0]["caption"] == "Connections"
     assert output[0]["header"] == [
-        "Component",
-        "Host",
-        "Current",
-        "Available",
-        "Active",
-        "Created",
-        "Rejected",
-        "Threaded",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Current", "width": "100px"},
+        {"text": "Available", "width": "100px"},
+        {"text": "Active", "width": "100px"},
+        {"text": "Created", "width": "100px"},
+        {"text": "Rejected", "width": "100px"},
+        {"text": "Threaded", "width": "100px"},
     ]
     assert len(output[0]["rows"]) == 1
     assert output[0]["rows"][0][0] == "testSet"

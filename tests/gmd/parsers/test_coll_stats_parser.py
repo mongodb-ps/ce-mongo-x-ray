@@ -76,14 +76,14 @@ def test_coll_stats_parser() -> None:
     assert table_item["type"] == "table"
     assert table_item["caption"] == "Storage Stats"
     assert table_item["header"] == [
-        {"text": "NS", "align": "left"},
-        {"text": "Count", "align": "left"},
-        {"text": "Data Size", "align": "left"},
-        {"text": "Storage Size", "align": "left"},
-        {"text": "Avg Object Size", "align": "left"},
-        {"text": "Total Index Size", "align": "left"},
-        {"text": "Fragmentation Ratio", "align": "left"},
-        {"text": "Cached", "align": "left"},
+        {"text": "NS", "align": "left", "width": "*"},
+        {"text": "Count", "align": "left", "width": "80px"},
+        {"text": "Data Size", "align": "left", "width": "100px"},
+        {"text": "Storage Size", "align": "left", "width": "100px"},
+        {"text": "Avg Object Size", "align": "left", "width": "120px"},
+        {"text": "Total Index Size", "align": "left", "width": "120px"},
+        {"text": "Frag Ratio", "align": "left", "width": "100px"},
+        {"text": "Cached", "align": "left", "width": "200px"},
     ]
     assert len(table_item["rows"]) == 2
     assert table_item["rows"][0][0] == "foo.unsharded\\_collection"

@@ -158,7 +158,13 @@ def test_rs_overview_parser():
     table = result[0]
     assert table["type"] == "table"
     assert table["caption"] == "Components Overview"
-    assert table["header"] == ["Name", "#Members", "#Voting Members", "#Arbiters", "#Hidden Members"]
+    assert table["header"] == [
+        {"text": "Name", "width": "*"},
+        {"text": "#Members", "width": "120px"},
+        {"text": "#Votings", "width": "120px"},
+        {"text": "#Arbiters", "width": "120px"},
+        {"text": "#Hiddens", "width": "120px"},
+    ]
     assert len(table["rows"]) == 3
     assert table["rows"][0] == ["shard01", 3, 3, 0, 0]
     assert table["rows"][1] == ["shard02", 3, 3, 0, 0]

@@ -22,10 +22,10 @@ def test_query_targeting_parser():
     assert table["type"] == "table"
     assert table["caption"] == "Query Targeting"
     assert table["header"] == [
-        "Component",
-        "Host",
-        "Scanned / Returned",
-        "Scanned Objects / Returned",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Scanned / Returned", "width": "250px"},
+        {"text": "Scanned Objects / Returned", "width": "250px"},
     ]
     assert len(table["rows"]) == 2
     assert table["rows"][0] == ["shard02", "localhost:30022", "0.96", "0.96"]
@@ -48,10 +48,10 @@ def test_query_targeting_parser_no_data():
     assert table["type"] == "table"
     assert table["caption"] == "Query Targeting"
     assert table["header"] == [
-        "Component",
-        "Host",
-        "Scanned / Returned",
-        "Scanned Objects / Returned",
+        {"text": "Component", "width": "120px"},
+        {"text": "Host", "width": "*"},
+        {"text": "Scanned / Returned", "width": "250px"},
+        {"text": "Scanned Objects / Returned", "width": "250px"},
     ]
     assert len(table["rows"]) == 1
     assert table["rows"][0] == ["shard02", "localhost:30022", "N/A", "N/A"]

@@ -514,16 +514,16 @@ def test_rs_details_parser():
 
         assert details_table["caption"] == f"Component Details - `{set_name}`"
         assert details_table["header"] == [
-            "Host",
-            "_id",
-            "Arbiter",
-            "Build Indexes",
-            "Hidden",
-            "Priority",
-            "Votes",
-            "Configured Delay (sec)",
-            "Current Delay (sec)",
-            "Oplog Window Hours",
+            {"text": "Host", "width": "*"},
+            {"text": "_id", "width": "70px"},
+            {"text": "Arbiter", "width": "80px"},
+            {"text": "Build Indexes", "width": "120px"},
+            {"text": "Hidden", "width": "90px"},
+            {"text": "Priority", "width": "90px"},
+            {"text": "Votes", "width": "80px"},
+            {"text": "Configured Delay (sec)", "width": "120px"},
+            {"text": "Current Delay (sec)", "width": "120px"},
+            {"text": "Oplog Window Hours", "width": "120px"},
         ]
         assert len(details_table["rows"]) == len(rs_config["members"])
 
