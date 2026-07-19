@@ -25,9 +25,8 @@ if (!navigator.clipboard) {
                 try {
                     document.execCommand("copy");
                     this.innerHTML = "Copied!";
-                    this.dataset.copied = "true";
                     var self = this;
-                    setTimeout(function () { self.innerHTML = "Copy"; self.dataset.copied = "false"; }, 2000);
+                    setTimeout(function () { self.innerHTML = "Copy"; }, 2000);
                 } catch (e) { /* ignore */ }
                 document.body.removeChild(ta);
             };

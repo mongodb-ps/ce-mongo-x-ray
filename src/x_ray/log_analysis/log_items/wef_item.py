@@ -70,8 +70,8 @@ class WEFItem(BaseItem):
     def review_results_markdown(self, f):
         super().review_results_markdown(f)
         f.write('<div id="wef_positioner"></div>\n\n')
-        f.write("|Code|Severity|Message|Count|\n")
-        f.write("|---|---|---|---|\n")
+        f.write("|Code{100px}|Severity{100px}|Message|Count{100px}|\n")
+        f.write("|:---:|:---:|---|:---:|\n")
         rows = []
         i = 0
         with open(self._output_file, "r", encoding="utf-8") as data:

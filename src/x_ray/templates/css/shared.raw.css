@@ -91,6 +91,10 @@
     border-radius: 4px;
 }
 
+.hljs-copy-alert {
+    display: none !important;
+}
+
 .markdown-body table {
     display: table;
     max-width: 100%;

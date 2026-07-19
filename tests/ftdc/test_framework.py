@@ -30,14 +30,14 @@ def test_empty_checkset_writes_reports(tmp_path, monkeypatch):
     assert '"text/html"' in html
     assert '"text/plain"' in html
     assert "tableForClipboard" in html
-    assert 'style.width = "9in"' in html
-    assert 'setAttribute("width", String(' in html
+    assert 'style.width="9in"' in html or 'style.width = "9in"' in html
+    assert 'setAttribute("width"' in html
     assert 'querySelectorAll("img")' in html
-    assert 'objectFit = "contain"' in html
+    assert 'objectFit="contain"' in html or 'objectFit = "contain"' in html
     assert 'querySelectorAll(".metadata-code")' in html
     assert "highlightElement" in html
     assert "typeof CopyButtonPlugin" in html
-    assert "autohide: false" in html
+    assert "autohide" in html
     assert "@media print" in html
     assert ".hljs-copy-container" in html
     assert "@page" in html

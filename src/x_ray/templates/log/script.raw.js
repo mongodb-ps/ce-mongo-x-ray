@@ -22,7 +22,8 @@ charts = charts || [];
 Chart.register(ChartZoom);
 
 hljs.addPlugin(new CopyButtonPlugin({
-    hook: (_, el) => el.textContent
+    hook: (_, el) => el.textContent,
+    callback: function () { return false; }
 }));
 
 hljs.highlightAll();
