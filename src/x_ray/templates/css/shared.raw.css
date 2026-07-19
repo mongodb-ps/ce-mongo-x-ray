@@ -103,6 +103,19 @@
     word-break: break-word;
 }
 
+/* Sortable table headers */
+.markdown-body th[data-sort-dir]::after {
+    font-size: 0.7em;
+}
+
+.markdown-body th[data-sort-dir="asc"]::after {
+    content: " ▲";
+}
+
+.markdown-body th[data-sort-dir="desc"]::after {
+    content: " ▼";
+}
+
 @media (max-width: 900px) {
     .markdown-body {
         margin: 0 auto;

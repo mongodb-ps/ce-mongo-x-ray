@@ -28,7 +28,7 @@ class CollStatsParser(BaseParser):
                 "Host",
                 "Namespace",
                 "Collection Fragmentation",
-                {"text": "Index Fragmentation", "align": "left"},
+                {"text": "Index Fragmentation", "align": "left", "sortable": False},
             ],
             "rows": frag_rows,
         }

@@ -97,6 +97,9 @@ def inject_assets(template: str, module: str) -> str:
 
     # --- JS ---
     js_parts = [template_dir / "js" / "common.js"]
+    sort_js = template_dir / "js" / "sort.js"
+    if sort_js.exists():
+        js_parts.append(sort_js)
     if module != "gmd":
         js_parts.append(template_dir / "js" / "outline.js")
     module_js = template_dir / module / "script.js"

@@ -462,15 +462,20 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
-    assert report.index("Member State:\n\n") < report.index("|Member|Me|State|") < report.index("### 1.1 Workload")
+    assert report.index("Member State:\n\n") < report.index(
+        '|<span data-sortable="true">Member</span>|<span data-sortable="false">Me</span>|<span data-sortable="false">State</span>|'
+    ) < report.index("### 1.1 Workload")
     workload = report.split("### 1.1 Workload", 1)[1].split("### 1.2 Ops and Latencies", 1)[0]
     ops_and_latencies = report.split("### 1.2 Ops and Latencies", 1)[1].split("### 1.3 Performance", 1)[0]
     performance = report.split("### 1.3 Performance", 1)[1]
-    assert "|Metric|Peak / Average|Chart|" in workload
-    assert "|Metric|Peak / Average|Chart|" in ops_and_latencies
+    assert '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|<span data-sortable="false">Chart</span>|' in workload
+    assert '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|<span data-sortable="false">Chart</span>|' in ops_and_latencies
     assert "Warning / Critical Threshold" not in workload
     assert "Warning / Critical Threshold" not in ops_and_latencies
-    assert "|Metric|Peak / Average|Warning / Critical Threshold|Chart|" in performance
+    assert (
+        '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|'
+        '<span data-sortable="true">Warning / Critical Threshold</span>|<span data-sortable="false">Chart</span>|'
+    ) in performance
 
 
 def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):

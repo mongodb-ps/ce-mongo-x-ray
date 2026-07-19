@@ -42,7 +42,7 @@ def test_coll_stats_parser():
         "Host",
         "Namespace",
         "Collection Fragmentation",
-        {"text": "Index Fragmentation", "align": "left"},
+        {"text": "Index Fragmentation", "align": "left", "sortable": False},
     ]
     assert len(output[0]["rows"]) == 2
     assert output[0]["rows"][0][0] == "testSet"
@@ -113,7 +113,7 @@ def test_coll_stats_parser_with_empty_data():
         "Host",
         "Namespace",
         "Collection Fragmentation",
-        {"text": "Index Fragmentation", "align": "left"},
+        {"text": "Index Fragmentation", "align": "left", "sortable": False},
     ]
     assert len(output[0]["rows"]) == 1
     assert output[0]["rows"][0][0] == "testSet"

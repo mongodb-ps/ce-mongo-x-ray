@@ -14,7 +14,7 @@ class IndexInfoParser(BaseParser):
                 {"text": "Component", "width": "150px"},
                 {"text": "Namespace", "width": "*"},
                 {"text": "Name", "width": "*"},
-                {"text": "Definition", "align": "left", "width": "*"},
+                {"text": "Definition", "align": "left", "width": "*", "sortable": False},
                 {"text": "Access per Hour", "width": "120px"},
             ],
             "rows": rows,

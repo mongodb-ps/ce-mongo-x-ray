@@ -90,10 +90,10 @@ def test_shard_key_parser():
     assert table["header"] == [
         "Namespace",
         "Shard Key",
-        {"text": "Data Size", "align": "left"},
-        {"text": "Storage Size", "align": "left"},
-        {"text": "Index Size", "align": "left"},
-        {"text": "Docs Count", "align": "left"},
+        {"text": "Data Size", "align": "left", "sortable": False},
+        {"text": "Storage Size", "align": "left", "sortable": False},
+        {"text": "Index Size", "align": "left", "sortable": False},
+        {"text": "Docs Count", "align": "left", "sortable": False},
     ]
     assert len(table["rows"]) == 3
     assert table["rows"][0][0] == "foo.bar"
@@ -128,10 +128,10 @@ def test_shard_key_parser_with_none():
     assert table["header"] == [
         "Namespace",
         "Shard Key",
-        {"text": "Data Size", "align": "left"},
-        {"text": "Storage Size", "align": "left"},
-        {"text": "Index Size", "align": "left"},
-        {"text": "Docs Count", "align": "left"},
+        {"text": "Data Size", "align": "left", "sortable": False},
+        {"text": "Storage Size", "align": "left", "sortable": False},
+        {"text": "Index Size", "align": "left", "sortable": False},
+        {"text": "Docs Count", "align": "left", "sortable": False},
     ]
     assert len(table["rows"]) == 1
     assert table["rows"][0][0] == "N/A"

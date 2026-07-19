@@ -24,7 +24,7 @@ def test_parse_baseline_analysis_table():
                 {"text": "Metric", "align": "left"},
                 "Peak / Average",
                 "Warning / Critical Threshold",
-                "Chart",
+                {"text": "Chart", "sortable": False},
             ],
             "rows": [
                 [
@@ -75,7 +75,7 @@ def test_parse_can_omit_threshold_column():
     assert parsed[0]["header"] == [
         {"text": "Metric", "align": "left"},
         "Peak / Average",
-        "Chart",
+        {"text": "Chart", "sortable": False},
     ]
     assert parsed[0]["rows"][0] == [
         "Query operations (ops/s)",
@@ -103,8 +103,8 @@ def test_parse_member_state_table_without_peak_and_average():
             "caption": "Member State",
             "header": [
                 {"text": "Member", "align": "left"},
-                "Me",
-                "State",
+                {"text": "Me", "sortable": False},
+                {"text": "State", "sortable": False},
             ],
             "rows": [
                 [

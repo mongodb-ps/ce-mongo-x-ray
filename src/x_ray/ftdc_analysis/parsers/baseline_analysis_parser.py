@@ -50,8 +50,8 @@ class BaselineAnalysisParser(BaseParser):
                     "caption": kwargs.get("caption", "Member State"),
                     "header": [
                         {"text": "Member", "align": "left"},
-                        "Me",
-                        "State",
+                        {"text": "Me", "sortable": False},
+                        {"text": "State", "sortable": False},
                     ],
                     "rows": [
                         [
@@ -95,7 +95,7 @@ class BaselineAnalysisParser(BaseParser):
         ]
         if show_thresholds:
             header.append("Warning / Critical Threshold")
-        header.append("Chart")
+        header.append({"text": "Chart", "sortable": False})
         return [
             {
                 "type": "table",

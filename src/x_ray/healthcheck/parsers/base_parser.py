@@ -1,6 +1,7 @@
 """Base parser for healthcheck results."""
 
 from abc import ABC, abstractmethod
+import html as html_mod
 import os
 from typing import Any
 from uuid import uuid4
@@ -33,10 +34,15 @@ class BaseParser(ABC):
             item (dict): The table item containing
                 caption (str, optional): The table caption.
                 header (list): List of column names. Accepts strings or dicts
-                    {"text": str, "align": "center"|"left"|"right", "width": str}.
+                    {"text": str, "align": "center"|"left"|"right", "width": str,
+                     "sortable": bool}.
                     The optional ``width`` key sets the column width using the
                     ``{width}`` markdown syntax (e.g. ``"200"``, ``"50%"``, ``"*"``).
+                    The optional ``sortable`` key controls whether the column
+                    can be sorted (defaults to ``true``).
                 rows (list): List of rows, where each row is a list of values.
+                    A cell can be a plain string or a ``(display, sort_value)``
+                    tuple to provide an explicit sort key.
             i (int): The index of the table in the output list, used for generating unique IDs if needed.
         Returns:
             str: Parsed table as a markdown string.
@@ -56,15 +62,26 @@ class BaseParser(ABC):
             if isinstance(h, dict):
                 text = h["text"]
                 width = h.get("width", "")
-                header_text_parts.append(f"{text}{{{width}}}" if width else text)
+                sortable = h.get("sortable", True)
+                span = f'<span data-sortable="{"true" if sortable else "false"}">{text}</span>'
+                header_text_parts.append(f"{span}{{{width}}}" if width else span)
             else:
-                header_text_parts.append(h)
+                header_text_parts.append(f'<span data-sortable="true">{h}</span>')
         alignments = [h.get("align", "center") if isinstance(h, dict) else "center" for h in header]
         align_md = [TABLE_ALIGNMENT[a] for a in alignments]
         output += f"|{'|'.join(header_text_parts)}|\n"
         output += f"|{'|'.join(align_md)}|\n"
         for row in rows:
-            row_text = [str(cell) for cell in row]
+            row_text = []
+            for cell in row:
+                if isinstance(cell, tuple):
+                    display, sort_value = cell
+                    escaped_sort = html_mod.escape(str(sort_value), quote=True)
+                    row_text.append(
+                        f'<span data-sort-value="{escaped_sort}">{display}</span>'
+                    )
+                else:
+                    row_text.append(str(cell))
             output += f"|{'|'.join(row_text)}|\n"
 
         return output

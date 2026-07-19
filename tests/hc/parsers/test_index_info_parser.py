@@ -33,7 +33,7 @@ def test_index_info_parser():
         {"text": "Component", "width": "150px"},
         {"text": "Namespace", "width": "*"},
         {"text": "Name", "width": "*"},
-        {"text": "Definition", "align": "left", "width": "*"},
+        {"text": "Definition", "align": "left", "width": "*", "sortable": False},
         {"text": "Access per Hour", "width": "120px"},
     ]
     assert len(table["rows"]) == 1
@@ -55,7 +55,7 @@ def test_index_info_parser_no_data():
         {"text": "Component", "width": "150px"},
         {"text": "Namespace", "width": "*"},
         {"text": "Name", "width": "*"},
-        {"text": "Definition", "align": "left", "width": "*"},
+        {"text": "Definition", "align": "left", "width": "*", "sortable": False},
         {"text": "Access per Hour", "width": "120px"},
     ]
     assert len(table["rows"]) == 1
