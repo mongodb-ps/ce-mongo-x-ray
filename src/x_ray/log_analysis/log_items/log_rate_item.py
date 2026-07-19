@@ -18,7 +18,9 @@ class LogRateItem(BaseItem):
         self._temp_cache: dict = {}
         self.name: str = "Log Rate Analysis"
         self.description: str = (
-            "The show up rate of different logs (grouped by ID) over time. \n\nOnly showing INFO logs (Refer to `W/E/F Logs` for W/E/F logs)."
+            "The show up rate of different logs (grouped by ID) over time. \n\n"
+            "- Only showing INFO logs (Refer to [W/E/F Logs](#warningerrorfatal-logs) for W/E/F logs).\n\n"
+            "- The INFO logs usually don't mean anything. But if you see a log ID that is showing up at a high rate, it may indicate an issue. \n\n"
         )
 
     def analyze(self, log_line) -> None:
