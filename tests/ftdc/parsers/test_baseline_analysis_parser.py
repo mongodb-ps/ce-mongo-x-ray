@@ -21,10 +21,10 @@ def test_parse_baseline_analysis_table():
             "type": "table",
             "caption": "Baseline Analysis",
             "header": [
-                {"text": "Metric", "align": "left"},
-                "Peak / Average",
-                "Warning / Critical Threshold",
-                {"text": "Chart", "sortable": False},
+                {"text": "Metric", "sortable": False, "width": "*"},
+                {"text": "Peak / Average", "sortable": False, "width": "200px"},
+                {"text": "Warning / Critical Threshold", "sortable": False, "width": "200px"},
+                {"text": "Chart", "sortable": False, "width": "500px"},
             ],
             "rows": [
                 [
@@ -73,9 +73,9 @@ def test_parse_can_omit_threshold_column():
     )
 
     assert parsed[0]["header"] == [
-        {"text": "Metric", "align": "left"},
-        "Peak / Average",
-        {"text": "Chart", "sortable": False},
+        {"text": "Metric", "sortable": False, "width": "*"},
+        {"text": "Peak / Average", "sortable": False, "width": "200px"},
+        {"text": "Chart", "sortable": False, "width": "500px"},
     ]
     assert parsed[0]["rows"][0] == [
         "Query operations (ops/s)",
@@ -102,9 +102,9 @@ def test_parse_member_state_table_without_peak_and_average():
             "type": "table",
             "caption": "Member State",
             "header": [
-                {"text": "Member", "align": "left"},
-                {"text": "Me", "sortable": False},
-                {"text": "State", "sortable": False},
+                {"text": "Member", "align": "left", "sortable": False, "width": "100px"},
+                {"text": "Me", "sortable": False, "width": "100px"},
+                {"text": "State", "sortable": False, "width": "*"},
             ],
             "rows": [
                 [

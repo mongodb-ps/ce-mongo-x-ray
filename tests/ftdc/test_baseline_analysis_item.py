@@ -463,18 +463,27 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
     assert report.index("Member State:\n\n") < report.index(
-        '|<span data-sortable="true">Member</span>|<span data-sortable="false">Me</span>|<span data-sortable="false">State</span>|'
+        '|<span data-sortable="false">Member</span>{100px}|'
+        '<span data-sortable="false">Me</span>{100px}|'
+        '<span data-sortable="false">State</span>{*}|'
     ) < report.index("### 1.1 Workload")
     workload = report.split("### 1.1 Workload", 1)[1].split("### 1.2 Ops and Latencies", 1)[0]
     ops_and_latencies = report.split("### 1.2 Ops and Latencies", 1)[1].split("### 1.3 Performance", 1)[0]
     performance = report.split("### 1.3 Performance", 1)[1]
-    assert '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|<span data-sortable="false">Chart</span>|' in workload
-    assert '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|<span data-sortable="false">Chart</span>|' in ops_and_latencies
+    baseline_header_base = (
+        '|<span data-sortable="false">Metric</span>{*}|'
+        '<span data-sortable="false">Peak / Average</span>{200px}|'
+        '<span data-sortable="false">Chart</span>{500px}|'
+    )
+    assert baseline_header_base in workload
+    assert baseline_header_base in ops_and_latencies
     assert "Warning / Critical Threshold" not in workload
     assert "Warning / Critical Threshold" not in ops_and_latencies
     assert (
-        '|<span data-sortable="true">Metric</span>|<span data-sortable="true">Peak / Average</span>|'
-        '<span data-sortable="true">Warning / Critical Threshold</span>|<span data-sortable="false">Chart</span>|'
+        '|<span data-sortable="false">Metric</span>{*}|'
+        '<span data-sortable="false">Peak / Average</span>{200px}|'
+        '<span data-sortable="false">Warning / Critical Threshold</span>{200px}|'
+        '<span data-sortable="false">Chart</span>{500px}|'
     ) in performance
 
 
