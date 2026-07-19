@@ -34,8 +34,8 @@ def _thresholds(item: dict) -> str:
     if warning is None and critical is None:
         return "\u2014"
     if critical is None:
-        return str(round(warning, 2))
-    return f"{round(warning, 2)} / {round(critical, 2)}"
+        return str(round(warning or 0, 2))
+    return f"{round(warning or 0, 2)} / {round(critical or 0, 2)}"
 
 
 class BaselineAnalysisParser(BaseParser):
@@ -49,9 +49,9 @@ class BaselineAnalysisParser(BaseParser):
                     "type": "table",
                     "caption": kwargs.get("caption", "Member State"),
                     "header": [
-                        {"text": "Member", "align": "left"},
-                        {"text": "Me", "sortable": False},
-                        {"text": "State", "sortable": False},
+                        {"text": "Member", "align": "left", "sortable": False, "width": "100px"},
+                        {"text": "Me", "sortable": False, "width": "100px"},
+                        {"text": "State", "sortable": False, "width": "*"},
                     ],
                     "rows": [
                         [
@@ -90,12 +90,12 @@ class BaselineAnalysisParser(BaseParser):
             )
             rows.append(row)
         header = [
-            {"text": "Metric", "align": "left"},
-            "Peak / Average",
+            {"text": "Metric", "sortable": False, "width": "*"},
+            {"text": "Peak / Average", "sortable": False, "width": "200px"},
         ]
         if show_thresholds:
-            header.append("Warning / Critical Threshold")
-        header.append({"text": "Chart", "sortable": False})
+            header.append({"text": "Warning / Critical Threshold", "sortable": False, "width": "200px"})
+        header.append({"text": "Chart", "sortable": False, "width": "500px"})
         return [
             {
                 "type": "table",
