@@ -101,7 +101,7 @@ def inject_assets(template: str, module: str) -> str:
 
     # --- JS (pre-body) ---
     js_dir = template_dir / "js"
-    pre_parts = sorted(js_dir.glob("pre_*.js"))
+    pre_parts = sorted(p for p in js_dir.glob("pre_*.js") if ".raw." not in p.name)
     if pre_parts:
         pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
         template = template.replace(
@@ -110,7 +110,9 @@ def inject_assets(template: str, module: str) -> str:
         )
 
     # --- JS (post-body) ---
-    post_parts = sorted(js_dir.glob("post_*.js"))
+    post_parts = sorted(p for p in js_dir.glob("post_*.js") if ".raw." not in p.name)
+    if module == "gmd":
+        post_parts = [p for p in post_parts if "outline" not in p.name]
     module_js = template_dir / module / "script.js"
     if module_js.exists():
         post_parts.append(module_js)

@@ -107,6 +107,10 @@
     word-break: break-word;
 }
 
+.markdown-body th {
+    background-color: #f0f0f0;
+}
+
 /* Sortable table headers */
 .markdown-body th[data-sortable="true"] {
     cursor: pointer;
