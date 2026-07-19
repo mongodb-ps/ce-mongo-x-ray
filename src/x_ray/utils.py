@@ -77,9 +77,13 @@ def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None
 def inject_assets(template: str, module: str) -> str:
     """Inject CSS and JS assets into a template by replacing placeholders.
 
-    The template must contain ``{{ style }}`` and ``{{ script }}``
-    markers.  This function reads the shared CSS/JS plus any module-specific
-    files and wraps them in ``<style>`` / ``<script>`` tags.
+    The template must contain ``{{ style }}``, ``{{ script }}`` and
+    ``{{ pre_script }}`` markers.  This function reads the shared CSS/JS plus
+    any module-specific files and wraps them in ``<style>`` / ``<script>`` tags.
+
+    JS files in ``templates/js/`` are split by naming convention:
+    - ``pre_*.js`` → ``{{ pre_script }}`` (before ``<body>``)
+    - ``post_*.js`` → ``{{ script }}`` (after ``<body>``)
 
     Args:
         template: Raw HTML template with ``{{ style }}`` and ``{{ script }}`` placeholders.
@@ -95,17 +99,22 @@ def inject_assets(template: str, module: str) -> str:
     style_content = "\n".join(p.read_text(encoding="utf-8") for p in css_parts)
     template = template.replace("{{ style }}", f"<style>\n{style_content}\n</style>")
 
-    # --- JS ---
-    js_parts = [template_dir / "js" / "common.js"]
-    sort_js = template_dir / "js" / "sort.js"
-    if sort_js.exists():
-        js_parts.append(sort_js)
-    if module != "gmd":
-        js_parts.append(template_dir / "js" / "outline.js")
+    # --- JS (pre-body) ---
+    js_dir = template_dir / "js"
+    pre_parts = sorted(js_dir.glob("pre_*.js"))
+    if pre_parts:
+        pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
+        template = template.replace(
+            "{{ pre_script }}",
+            f"<script type=\"text/javascript\">\n{pre_content}\n</script>",
+        )
+
+    # --- JS (post-body) ---
+    post_parts = sorted(js_dir.glob("post_*.js"))
     module_js = template_dir / module / "script.js"
     if module_js.exists():
-        js_parts.append(module_js)
-    script_content = "\n".join(p.read_text(encoding="utf-8") for p in js_parts)
+        post_parts.append(module_js)
+    script_content = "\n".join(p.read_text(encoding="utf-8") for p in post_parts)
     template = template.replace("{{ script }}", f"<script type=\"text/javascript\">\n{script_content}\n</script>")
 
     return template

@@ -13,22 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-    <script>
-        try { Chart.register(ChartDataLabels); } catch (e) {}
-        Chart.defaults.plugins.datalabels = {
-            display: function (ctx) {
-                return ctx.chart.config.type === "pie" && ctx.dataset.data.length <= 20 ? "auto" : false;
-            },
-            color: "#333",
-            font: { weight: "bold", size: 11 }, 
-            formatter: function (value, ctx) {
-                var label = ctx.chart.data.labels[ctx.dataIndex];
-                var total = ctx.dataset.data.reduce(function (a, b) { return a + b; }, 0);
-                return label + "\n" + (total > 0 ? (value / total * 100).toFixed(1) : "0.0") + "%";
-            }
-        };
-    </script>
-    <script>var charts=[];</script>
+    {{ pre_script }}
     {{ style }}
 </head>
 
