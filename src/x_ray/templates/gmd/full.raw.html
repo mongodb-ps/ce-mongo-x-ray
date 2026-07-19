@@ -20,7 +20,7 @@
                 return ctx.chart.config.type === "pie" && ctx.dataset.data.length <= 20 ? "auto" : false;
             },
             color: "#333",
-            font: { weight: "bold", size: 11 },
+            font: { weight: "bold", size: 11 }, 
             formatter: function (value, ctx) {
                 var label = ctx.chart.data.labels[ctx.dataIndex];
                 var total = ctx.dataset.data.reduce(function (a, b) { return a + b; }, 0);
@@ -30,7 +30,6 @@
     </script>
     <script>var charts=[];</script>
     {{ style }}
-        .markdown-body {
 </head>
 
 <body class="markdown-body">
