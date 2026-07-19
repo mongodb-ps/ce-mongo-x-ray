@@ -32,8 +32,8 @@ class TopSlowItem(BaseItem):
             return
         attr = log_line.get("attr", {})
         ns = attr.get("ns", "")
-        # Skip system namespaces
-        if ns.startswith("admin.") or ns.startswith("local.") or ns.startswith("config."):
+        # Skip system namespaces and system.* collections
+        if ns.startswith("admin.") or ns.startswith("local.") or ns.startswith("config.") or ".system." in ns:
             return
         duration = attr.get("durationMillis", 0)
         has_sort = attr.get("hasSortStage", False)
