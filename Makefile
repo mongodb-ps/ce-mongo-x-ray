@@ -56,7 +56,7 @@ check-lint:
 # Minify templates
 minify:
 	@echo "Minifying templates..."
-	cd src/x_ray/templates && ./minify.sh healthcheck log gmd ftdc
+	cd src/x_ray/templates && ./minify.sh healthcheck log gmd ftdc js
 	@echo "\033[32m✓ Templates minified!\033[0m"
 
 # Clean build artifacts
