@@ -30,6 +30,12 @@ Analyze & visualize the [getMongoData.js](https://github.com/mongodb/support-too
 | :-----------: | :-------------: | :--------: |
 | >=4.4 &check; |  >=4.4 &check;  |  &cross;   |
 
+### 1.4 FTDC Analysis
+Run a basic FTDC analysis.
+|  Replica Set  | Sharded Cluster |  Standalone   |
+| :-----------: | :-------------: | :-----------: |
+| >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
+
 ## 2 How to Install
 ### 2.1 PyPi
 #### 2.1.1 Install with Pip
@@ -220,26 +226,3 @@ The fallback dimensions are defined in `ftdc_analysis/charts.py`.
 Vertical grid lines are spaced every 100 pixels and horizontal grid lines every 50 pixels.
 Workload and operation/latency charts use lines. Performance charts use bars.
 Member-state charts are always 450×50 pixel bars.
-
-### 3.5 Table Column Widths
-
-Markdown pipe tables support a `{width}` spec on header cells to set column widths
-in generated HTML and PDF output:
-
-```
-| Name{120} | Description{*} | Status{50%} |
-| --------- | -------------- | ----------- |
-| foo       | bar            | active      |
-```
-
-| Spec      | Meaning                                    | Example HTML                    |
-| --------- | ------------------------------------------ | ------------------------------- |
-| `{N}`     | CSS width — bare numbers default to pixels | `<col style="width:120px" ...>` |
-| `{Npx}`   | Explicit pixels                            | `<col style="width:120px" ...>` |
-| `{N%}`    | Percentage of the table width              | `<col style="width:50%" ...>`   |
-| `{Nunit}` | Any valid CSS unit (`em`, `rem`, `vw`, …)  | `<col style="width:10em">`      |
-| `{*}`     | Auto (no constraint)                       | `<col />`                       |
-
-The spec is stripped from the rendered header text and a `<colgroup>` of `<col>`
-elements is inserted into the `<table>`. Columns without a `{width}` spec are
-left unconstrained.
