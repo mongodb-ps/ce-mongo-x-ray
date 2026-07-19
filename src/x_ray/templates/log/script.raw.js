@@ -17,7 +17,7 @@ ZOOM_OPTIONS = {
     limits: { x: { min: "original", max: "original" } }
 };
 data = {};
-charts = [];
+charts = charts || [];
 
 Chart.register(ChartZoom);
 

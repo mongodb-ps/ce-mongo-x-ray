@@ -1,7 +1,7 @@
 VIEWPORT_WIDTH = 1200;
 linkElms = [];
 titleElms = [];
-charts = [];
+charts = charts || [];
 
 hljs.addPlugin(new CopyButtonPlugin({
     hook: (_, el) => el.textContent

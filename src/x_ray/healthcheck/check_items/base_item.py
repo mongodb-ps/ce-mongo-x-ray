@@ -9,6 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from typing import Optional, Union
+import html as html_mod
 import os
 import logging
 from abc import ABC, abstractmethod
@@ -64,7 +65,6 @@ class BaseItem(ABC):
         return desc
 
     @property
-
     def captured_sample(self) -> Optional[Union[dict, list]]:
         try:
             if self.cache_file_name.endswith(".gz"):
@@ -100,10 +100,28 @@ class BaseItem(ABC):
             result += "<b style='color: green;'>Pass.</b>\n\n"
             return result
 
-        result += "| \\# | Host | Severity | Category | Message |\n"
+        result += (
+            '| <span data-sortable="false">\\#</span>{60px}'
+            ' | <span data-sortable="true">Host</span>{180px}'
+            ' | <span data-sortable="true">Severity</span>{120px}'
+            ' | <span data-sortable="true">Category</span>{200px}'
+            ' | <span data-sortable="false">Message</span>{*} |\n'
+        )
         result += "|:----------:|:----------:|:----------:|---------|---------|\n"
         for idx, item in enumerate(self._test_result):
-            result += f"| **{idx + 1}** | `{item['host']}` | <b style='color: {colorize_severity(item['severity'])}'> {item['severity'].name} </b> | {item['title']} | {item['message']} |\n"
+            severity = item["severity"]
+            severity_cell = (
+                f'<span data-sort-value="{severity.value}">'
+                f"<b style='color: {colorize_severity(severity)}'>"
+                f" {severity.name} </b></span>"
+            )
+            result += (
+                f"| **{idx + 1}** "
+                f"| `{item['host']}` "
+                f"| {severity_cell} "
+                f"| {item['title']} "
+                f"| {item['message']} |\n"
+            )
         result += "\n"
         return result
 
@@ -126,15 +144,26 @@ class BaseItem(ABC):
             if chart_type == "table":
                 result += f"#### ({i + 1}) {caption}\n"
                 result += f"{notes}\n"
-                header = [col.get("name", "(NOT SET)") for col in block.get("columns", [])]
-                align = [
-                    TABLE_ALIGNMENT.get(col.get("align", "center"), TABLE_ALIGNMENT["center"])
-                    for col in block.get("columns", [])
-                ]
-                result += f"|{'|'.join(header)}|\n"
+                columns = block.get("columns", [])
+                header_parts = []
+                for col in columns:
+                    name = col.get("name", "(NOT SET)")
+                    sortable = col.get("sortable", True)
+                    header_parts.append(f'<span data-sortable="{"true" if sortable else "false"}">{name}</span>')
+                align = [TABLE_ALIGNMENT.get(col.get("align", "center"), TABLE_ALIGNMENT["center"]) for col in columns]
+                result += f"|{'|'.join(header_parts)}|\n"
                 result += f"|{'|'.join(align)}|\n"
                 for row in block.get("rows", []):
-                    result += "|" + "|".join(str(cell) for cell in row) + "|\n"
+                    row_text = []
+                    for cell in row:
+                        if isinstance(cell, tuple):
+                            display, sort_value = cell
+                            row_text.append(
+                                f'<span data-sort-value="{html_mod.escape(str(sort_value), quote=True)}">{display}</span>'
+                            )
+                        else:
+                            row_text.append(str(cell))
+                    result += "|" + "|".join(row_text) + "|\n"
                 result += "\n"
                 i += 1
             elif chart_type == "chart":

@@ -128,11 +128,27 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             output.write("<b style='color: green;'>Pass.</b>\n\n")
             return
 
-        output.write("| \\#{30px} | Host{180px} | Severity{100px} | Category{200px} | Message{*} |\n")
+        output.write(
+            '| <span data-sortable="false">\\#</span>{60px}'
+            ' | <span data-sortable="true">Host</span>{180px}'
+            ' | <span data-sortable="true">Severity</span>{120px}'
+            ' | <span data-sortable="true">Category</span>{200px}'
+            ' | <span data-sortable="false">Message</span>{*} |\n'
+        )
         output.write("|:----------:|:----------:|:----------:|---------|---------|\n")
         for idx, item in enumerate(self._test_result):
+            severity = item["severity"]
+            severity_cell = (
+                f'<span data-sort-value="{severity.value}">'
+                f"<b style='color: {colorize_severity(severity)}'>"
+                f" {severity.name} </b></span>"
+            )
             output.write(
-                f"| **{idx + 1}** | `{item['host']}` | <b style='color: {colorize_severity(item['severity'])}'> {item['severity'].name} </b> | {item['title']} | {item['message']} |\n"
+                f"| **{idx + 1}** "
+                f"| `{item['host']}` "
+                f"| {severity_cell} "
+                f"| {item['title']} "
+                f"| {item['message']} |\n"
             )
         output.write("\n")
 

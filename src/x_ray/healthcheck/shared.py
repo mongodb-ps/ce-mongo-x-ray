@@ -34,10 +34,10 @@ MEMBER_STATE = {
 
 
 class SEVERITY(Enum):
-    HIGH = 1
-    MEDIUM = 2
-    LOW = 3
-    INFO = 4
+    HIGH = 4
+    MEDIUM = 3
+    LOW = 2
+    INFO = 1
 
 
 MAX_MONGOS_PING_LATENCY = 60  # seconds

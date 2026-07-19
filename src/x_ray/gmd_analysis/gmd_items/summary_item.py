@@ -50,8 +50,8 @@ class SummaryItem:
             f"|{self._summary_severity[SEVERITY.HIGH]}|{self._summary_severity[SEVERITY.MEDIUM]}|{self._summary_severity[SEVERITY.LOW]}|{self._summary_severity[SEVERITY.INFO]}|\n\n"
         )
         output.write("#### By Category\n\n")
-        output.write("|Category{300}|Count{100}|\n")
+        output.write("| <span data-sortable=\"true\">Category</span>{300} | <span data-sortable=\"true\">Count</span>{100} |\n")
         output.write("|---:|:---:|\n")
         for title, count in self._summary_title.items():
-            output.write(f"|{title}|**{count}**|\n")
+            output.write(f"|{title}|<span data-sort-value=\"{count}\"><strong>{count}</strong></span>|\n")
         output.write("\n")

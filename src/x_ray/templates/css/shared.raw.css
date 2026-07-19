@@ -104,8 +104,17 @@
 }
 
 /* Sortable table headers */
+.markdown-body th[data-sortable="true"] {
+    cursor: pointer;
+}
+
+.markdown-body th[data-sortable="true"]::after {
+    content: " ⇅";
+    opacity: 0.35;
+}
+
 .markdown-body th[data-sort-dir]::after {
-    font-size: 0.7em;
+    opacity: 1;
 }
 
 .markdown-body th[data-sort-dir="asc"]::after {

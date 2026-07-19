@@ -80,22 +80,24 @@
         setSortIndicator(th, newDir);
     }
 
-    // Attach click handlers to all sortable table headers.
+    // Attach click handlers and set sortable attributes on <th> elements.
     document.addEventListener("DOMContentLoaded", function () {
         var tables = document.querySelectorAll("table");
         for (var t = 0; t < tables.length; t++) {
             var table = tables[t];
-            var ths = table.querySelectorAll("thead th span[" + SORTABLE + "]");
-            if (ths.length === 0) continue;
+            var spanList = table.querySelectorAll("thead th span[" + SORTABLE + "]");
+            if (spanList.length === 0) continue;
 
-            for (var h = 0; h < ths.length; h++) {
-                var span = ths[h];
-                if (span.getAttribute(SORTABLE) !== "true") continue;
+            for (var h = 0; h < spanList.length; h++) {
+                var span = spanList[h];
+                var sortable = span.getAttribute(SORTABLE) === "true";
                 var th = span.parentNode;
-                th.style.cursor = "pointer";
-                th.addEventListener("click", function () {
-                    onHeaderClick(this);
-                });
+                th.setAttribute(SORTABLE, sortable ? "true" : "false");
+                if (sortable) {
+                    th.addEventListener("click", function () {
+                        onHeaderClick(this);
+                    });
+                }
             }
         }
     });

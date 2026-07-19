@@ -101,10 +101,10 @@ class Framework:
             f.write("### By Category\n\n")
             all_categories = [result["title"] for result in all_test_result]
             category_counts = {category: all_categories.count(category) for category in set(all_categories)}
-            f.write("|Category{300}|Count{100}|\n")
+            f.write("| <span data-sortable=\"true\">Category</span>{300} | <span data-sortable=\"true\">Count</span>{100} |\n")
             f.write("|---:|:---:|\n")
             for category, count in category_counts.items():
-                f.write(f"|{category}|**{count}**|\n")
+                f.write(f"|{category}|<span data-sort-value=\"{count}\"><strong>{count}</strong></span>|\n")
             f.write("\n")
             if len(irresponsive_nodes) > 0:
                 f.write("The following nodes have been detected as irresponsive during the checks:\n\n")
