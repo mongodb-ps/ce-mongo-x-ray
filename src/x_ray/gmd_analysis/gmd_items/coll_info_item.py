@@ -31,6 +31,9 @@ class CollInfoItem(BaseItem):
         def _get_collections_stats(block) -> None:
             # rebuild the collection stats data structure to match the one used in health check for easier review
             output: dict = block.get("output", {})
+            ns = output.get("ns", "")
+            if ns.startswith("admin.") or ns.startswith("local.") or ns.startswith("config.") or ".system." in ns:
+                return
             wt: dict = output.get("wiredTiger", {})
             block_manager: dict = wt.get("block-manager", {})
             shards: dict = output.get("shards", {})
@@ -93,6 +96,8 @@ class CollInfoItem(BaseItem):
                 self._logger.warning(yellow(f"Collection stats command failed: {stats.get('errmsg', 'Unknown error')}"))
                 continue
             ns = stats.get("ns", "")
+            if ns.startswith("admin.") or ns.startswith("local.") or ns.startswith("config.") or ".system." in ns:
+                continue
             shard_key = self.shard_keys.get(ns, {})
             if shard_key:
                 stats["shardKey"] = shard_key
