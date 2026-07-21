@@ -51,3 +51,5 @@ function genDefaultLegendLabels(chart) {
         return label;
     });
 }
+
+addTableCopyButtons();

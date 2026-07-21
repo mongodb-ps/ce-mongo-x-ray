@@ -102,4 +102,5 @@ window.onload = function () {
     highlightOutline();
     window.onscroll = highlightOutline;
     hljs.highlightAll();
+    addTableCopyButtons();
 };

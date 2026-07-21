@@ -1,1 +1,1 @@
-VIEWPORT_WIDTH=1200,charts=charts||[],hljs.addPlugin(new CopyButtonPlugin({hook:(t,l)=>l.textContent,callback:function(){return!1}})),hljs.highlightAll();
+VIEWPORT_WIDTH=1200,charts=charts||[],hljs.addPlugin(new CopyButtonPlugin({hook:(t,l)=>l.textContent,callback:function(){return!1}})),hljs.highlightAll(),addTableCopyButtons();
