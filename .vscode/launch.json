@@ -50,7 +50,8 @@
                 "log",
                 "-r",
                 "1",
-                "misc/example.log"
+                "misc/example.log",
+                
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",

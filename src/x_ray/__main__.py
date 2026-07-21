@@ -158,6 +158,7 @@ For more information on specific commands, use:
     log_epilog = """
     Examples:
       x-ray log /var/log/mongodb/mongod.log
+      x-ray log /var/log/mongodb/ 2026-07-20T08:00:00Z 2026-07-20T10:00:00Z
       x-ray log /path/to/mongod.log -f html -o /path/to/output/
     """
 
@@ -168,7 +169,19 @@ For more information on specific commands, use:
         epilog=log_epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    log_parser.add_argument("log_file", help="Path to the MongoDB log file to analyze")
+    log_parser.add_argument("log_file", help="Path to the MongoDB log file or a folder of log files to analyze")
+    log_parser.add_argument(
+        "start_time",
+        nargs="?",
+        type=utc_iso_datetime,
+        help="Inclusive UTC start time in ISO-8601 format. Defaults to the first log line.",
+    )
+    log_parser.add_argument(
+        "end_time",
+        nargs="?",
+        type=utc_iso_datetime,
+        help="Inclusive UTC end time in ISO-8601 format. Defaults to the last log line.",
+    )
     log_parser.add_argument(
         "-s",
         "--checkset",
@@ -330,10 +343,14 @@ def health_check_command(args):
 
 def log_analysis_command(args):
     """Log analysis command"""
-    if not Path(args.log_file).is_file():
-        logger.error("Log file not found: %s", args.log_file)
+    log_path = Path(args.log_file)
+    if not log_path.exists():
+        logger.error("Log path not found: %s", args.log_file)
         return 1
-    logger.info("Analyzing log file: %s", args.log_file)
+    if args.start_time and args.end_time and args.start_time > args.end_time:
+        logger.error("Log start time must be before or equal to end time.")
+        return 1
+    logger.info("Analyzing log: %s", args.log_file)
     try:
         config = load_config(args.config)["log"]
         config["sample_rate"] = args.rate
@@ -345,7 +362,12 @@ def log_analysis_command(args):
 
     checkset = args.checkset
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
-    framework = LogAnalysisFramework(args.log_file, config)
+    framework = LogAnalysisFramework(
+        args.log_file,
+        config,
+        start_time=args.start_time,
+        end_time=args.end_time,
+    )
     framework.run_logs_analysis(checkset, output_folder=output_folder)
     framework.output_results(output_folder=output_folder, fmt=args.format)
     return 0

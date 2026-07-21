@@ -29,9 +29,17 @@ SKIP_LINE_MSG = "HEADER INCLUDED, NOW SKIPPING 64728 LINES ACCORDING TO REQUESTE
 class Framework:
     _logset_name = ""
 
-    def __init__(self, file_path: str, config: dict):
+    def __init__(
+        self,
+        file_path: str,
+        config: dict,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+    ):
         self._file_path = file_path
         self._config = config
+        self._start_time = start_time
+        self._end_time = end_time
         self._logger = logging.getLogger(__name__)
         self._items: list[BaseItem] = []
         now = str(datetime.now(tz=timezone.utc))
@@ -49,6 +57,62 @@ class Framework:
             batch_folder = f"{output_folder}{self._logset_name}-{self._timestamp}/"
         Path(batch_folder).mkdir(parents=True, exist_ok=True)
         return batch_folder
+
+    def _log_files(self) -> list[Path]:
+        """Return a sorted list of log files to process."""
+        path = Path(self._file_path)
+        if path.is_file():
+            return [path]
+        files = sorted(path.glob("*.log"))
+        if not files:
+            files = sorted(path.glob("*"))
+        return files
+
+    @staticmethod
+    def _file_time_range(file_path: Path) -> tuple:
+        """Read the first and last JSON log line to get the file's time range."""
+        first_ts = None
+        last_ts = None
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                first_line = f.readline()
+                if first_line:
+                    try:
+                        first_ts = json_util.loads(first_line).get("t")
+                    except Exception:
+                        pass
+                # Scan backwards from end for the last line
+                f.seek(0, 2)
+                pos = f.tell()
+                if pos > 0:
+                    pos -= 1
+                    while pos > 0:
+                        f.seek(pos)
+                        if f.read(1) == "\n":
+                            break
+                        pos -= 1
+                    last_line = f.readline()
+                    if last_line:
+                        try:
+                            last_ts = json_util.loads(last_line).get("t")
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+        return first_ts, last_ts
+
+    def _file_overlaps_range(self, file_path: Path) -> bool:
+        """Return False if the file's time range is entirely outside the requested range."""
+        if self._start_time is None and self._end_time is None:
+            return True
+        first_ts, last_ts = self._file_time_range(file_path)
+        if first_ts is None or last_ts is None:
+            return True  # can't determine, process anyway
+        if self._end_time is not None and first_ts > self._end_time:
+            return False
+        if self._start_time is not None and last_ts < self._start_time:
+            return False
+        return True
 
     def run_logs_analysis(self, logset_name: str, *args, **kwargs):
         self._logset_name = logset_name
@@ -71,40 +135,65 @@ class Framework:
             if not item_cls:
                 self._logger.warning(yellow(f"Log item '{item_name}' not found. Skipping."))
                 continue
-            # The config for the item can be specified in the `item_config` section, under the item class name.
             item_config = self._config.get("item_config", {}).get(item_name, {})
             item = item_cls(batch_folder, item_config)
             self._items.append(item)
             self._logger.info("Log analyze item loaded: %s", bold(cyan(item_name)))
-        log_file = self._file_path
+
         rate = self._config.get("sample_rate", 1.0)
-        # Read the log file line by line and pass each line to the log items for analysis
+        log_files = self._log_files()
         log_line: dict = {}
-        with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
-            counter: int = 0
-            for line in f:
-                counter += 1
-                if counter % 10000 == 0:
-                    self._logger.info("%s lines ingested...", green(str(counter)))
-                # Sampling based on the rate. For dealing with large log files.
-                if random.random() > rate:
-                    continue
-                try:
-                    if counter == 101 and line.startswith(SKIP_LINE_MSG):
-                        self._logger.debug("Some lines are skipped due to the size limit. This is expected.")
+        global_counter: int = 0
+
+        for lf in log_files:
+            if not self._file_overlaps_range(lf):
+                self._logger.info(
+                    "Skipping %s (outside time range %s – %s)",
+                    lf.name,
+                    self._start_time.isoformat() if self._start_time else "…",
+                    self._end_time.isoformat() if self._end_time else "…",
+                )
+                continue
+            self._logger.info("Processing %s", green(str(lf)))
+
+            with open(lf, "r", encoding="utf-8", errors="ignore") as f:
+                counter: int = 0
+                for line in f:
+                    counter += 1
+                    global_counter += 1
+                    if global_counter % 10000 == 0:
+                        self._logger.info("%s lines ingested...", green(str(global_counter)))
+                    if random.random() > rate:
                         continue
-                    log_line = json_util.loads(line)
-                    if self._log_start is None:
-                        self._log_start = log_line.get("t", None)
-                    for item in self._items:
-                        try:
-                            item.analyze(log_line)
-                        except Exception as e:
-                            self._logger.warning(yellow(f"Log analysis item '{item.name}' failed: {e}"))
+                    try:
+                        if counter == 101 and line.startswith(SKIP_LINE_MSG):
+                            self._logger.debug(
+                                "Some lines are skipped due to the size limit. This is expected."
+                            )
                             continue
-                except Exception:
-                    self._logger.warning(yellow(f"Failed to parse log line as JSON: {line.strip()}"))
-                    continue
+                        log_line = json_util.loads(line)
+                        line_ts = log_line.get("t")
+                        if line_ts is not None:
+                            if self._start_time is not None and line_ts < self._start_time:
+                                continue
+                            if self._end_time is not None and line_ts > self._end_time:
+                                continue
+                        if self._log_start is None:
+                            self._log_start = line_ts
+                        for item in self._items:
+                            try:
+                                item.analyze(log_line)
+                            except Exception as e:
+                                self._logger.warning(
+                                    yellow(f"Log analysis item '{item.name}' failed: {e}")
+                                )
+                                continue
+                    except Exception:
+                        self._logger.warning(
+                            yellow(f"Failed to parse log line as JSON: {line.strip()}")
+                        )
+                        continue
+
         self._log_end = log_line.get("t", None) if log_line else None
         for item in self._items:
             try:
@@ -126,6 +215,10 @@ class Framework:
             f.write("# Log Analysis Report\n")
             f.write(f"Generated at: `{str(datetime.now(tz=timezone.utc))} UTC`\n\n")
             f.write(f"Log path: `{self._file_path}`\n\n")
+            if self._start_time or self._end_time:
+                start_str = self._start_time.isoformat() if self._start_time else "…"
+                end_str = self._end_time.isoformat() if self._end_time else "…"
+                f.write(f"Requested time range: `{start_str}` – `{end_str}`\n\n")
             f.write(f"Log analysis period: `{self._log_start.isoformat()}` to `{self._log_end.isoformat()}`\n\n")
             f.write("Histogram chart instructions:\n\n")
             f.write("- **zoom in/out:** _ctrl+wheel, or pinch_\n")
