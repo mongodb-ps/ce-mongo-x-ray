@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 import logging
+import webbrowser
 from pathlib import Path
 import re
 from typing import Optional
@@ -194,6 +195,9 @@ class Framework:
             )
             template_content = inject_assets(Path(template_file).read_text(encoding="utf-8"), "ftdc")
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
+
+        if fmt in {"html", "pdf"}:
+            webbrowser.open(str(html_file))
 
         if fmt == "pdf":
             pdf_file = batch_folder / "report.pdf"

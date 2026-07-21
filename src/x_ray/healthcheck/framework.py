@@ -11,6 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 from datetime import datetime, timezone
 import re
 import logging
+import webbrowser
 from pathlib import Path
 from typing import Optional
 
@@ -147,6 +148,9 @@ class Framework:
                     template_content = inject_assets(template.read(), "healthcheck")
                     html = template_content.replace("{{ content }}", html)
                 f.write(html)
+
+        if fmt in {"html", "pdf"}:
+            webbrowser.open(html_file)
 
         if fmt == "pdf":
             pdf_file = f"{batch_folder}report.pdf"
