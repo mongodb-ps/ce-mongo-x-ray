@@ -103,29 +103,39 @@ class Framework:
 
     @staticmethod
     def _file_time_range(file_path: Path) -> tuple:
-        """Read the first and last JSON log line to get the file's time range."""
+        """Read the first and last valid JSON log line to get the file's time range."""
         first_ts = None
         last_ts = None
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                first_line = f.readline()
-                if first_line:
-                    first_ts = _safe_json_loads(first_line).get("t")
-                # Scan backwards from end for the last line
+                # Skip preamble lines (e.g. Atlas download header)
+                for line in f:
+                    parsed = _safe_json_loads(line)
+                    if parsed:
+                        first_ts = parsed.get("t")
+                        break
+                # Scan backwards from end for the last non-empty line
                 f.seek(0, 2)
                 pos = f.tell()
-                if pos > 0:
+                last_line = ""
+                while pos > 0:
                     pos -= 1
-                    while pos > 0:
-                        f.seek(pos)
-                        if f.read(1) == "\n":
+                    f.seek(pos)
+                    if f.read(1) == "\n":
+                        candidate = f.readline().strip()
+                        if candidate:
+                            last_line = candidate
                             break
-                        pos -= 1
-                    last_line = f.readline()
-                    if last_line:
-                        last_ts = _safe_json_loads(last_line).get("t")
-        except Exception:
-            pass
+                if last_line:
+                    last_ts = _safe_json_loads(last_line).get("t")
+        except Exception as exc:
+            logger.warning("Failed to read time range from %s: %s", file_path.name, exc)
+        logger.debug(
+            "File %s time range: %s – %s",
+            file_path.name,
+            first_ts.isoformat() if first_ts else "?",
+            last_ts.isoformat() if last_ts else "?",
+        )
         return first_ts, last_ts
 
     def _file_overlaps_range(self, file_path: Path) -> bool:
