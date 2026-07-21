@@ -63,7 +63,8 @@ class Framework:
         path = Path(self._file_path)
         if path.is_file():
             return [path]
-        files = sorted(path.glob("*.log"))
+        # Match mongod.log, mongod.log.2026-06-10T01-58-56, etc.
+        files = sorted(path.glob("*.log*"))
         if not files:
             files = sorted(path.glob("*"))
         return files
