@@ -73,7 +73,7 @@ Repository = "https://github.com/mongodb-ps/ce-mongo-x-ray"
 Issues = "https://github.com/mongodb-ps/ce-mongo-x-ray/issues"
 
 [tool.setuptools]
-include-package-data = true
+include-package-data = false
 
 [project.scripts]
 x-ray = "x_ray.__main__:main"
@@ -87,8 +87,12 @@ exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 "x_ray" = [
   "config.json",
   "compatibility_matrix.json",
-  "templates/**/*.html",
-  "templates/**/*.js",
+  "templates/**/full.html",
+  "templates/**/script.js",
+  "templates/**/style.css",
+  "templates/css/shared.css",
+  "templates/**/snippets/*[!w].js",
+  "templates/js/*[!w].js",
 ]
 
 [tool.black]
