@@ -21,7 +21,7 @@
                 "hc",
                 "-s",
                 "default",
-                "mongodb://localhost:28017/admin?tls=false&connectTimeoutMS=5000",
+                "mongodb://localhost:27017/admin?tls=false&connectTimeoutMS=5000",
                 // "mongodb://localhost:27027/admin?tls=false&connectTimeoutMS=5000",
                 // "mongodb+srv://cluster0.wy1z6.mongodb.net/?appName=Cluster0"
             ],
@@ -50,7 +50,7 @@
                 "log",
                 "-r",
                 "1",
-                "misc/mongod.log.2025-06-04T01-01-05",
+                "misc/example.log",
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
