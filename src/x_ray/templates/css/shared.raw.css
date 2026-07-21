@@ -119,12 +119,6 @@
     background: var(--button-default-bgColor-hover, #f3f4f6);
 }
 
-@media print {
-    .table-copy-toolbar {
-        display: none !important;
-    }
-}
-
 .markdown-body table {
     display: table;
     max-width: 100%;
@@ -192,6 +186,18 @@
     #outline,
     #expand-outline {
         display: none !important;
+    }
+
+    /* Hide interactive elements in print/PDF */
+    .hljs-copy-button,
+    .table-copy-toolbar,
+    button {
+        display: none !important;
+    }
+
+    th[data-sortable]::after,
+    th[data-sort-dir]::after {
+        content: none !important;
     }
 
     img,
