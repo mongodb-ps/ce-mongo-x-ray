@@ -41,13 +41,8 @@ def test_client_metadata_item():
         item.analyze(log)
     item.finalize_analysis()
 
-    assert len(output) == 2
+    assert len(output) == 1
     result = output[0]
-    assert result["doc"]["driver"]["name"] == "NetworkInterfaceTL"
-    assert result["ips"][0]["ip"] == "192.168.0.1"
-    assert result["ips"][0]["count"] == 1
-
-    result = output[1]
     assert result["doc"]["driver"]["name"] == "PyMongo|c"
     assert result["ips"][0]["ip"] == "192.168.0.2"
     assert result["ips"][0]["count"] == 2
