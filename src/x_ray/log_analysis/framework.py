@@ -34,12 +34,28 @@ def _sanitize_date_numberlong(line: str) -> str:
 
 
 def _safe_json_loads(line: str) -> dict:
-    """Parse a JSON log line, sanitising out-of-range dates on failure only."""
+    """Parse a JSON log line, sanitising out-of-range dates on failure only.
+    Also ensures all datetime values are timezone-aware (UTC).
+    """
     try:
-        return json_util.loads(line)
-    except Exception:
-        # Retry with sentinel $date.$numberLong values replaced
-        return json_util.loads(_sanitize_date_numberlong(line))
+        parsed = json_util.loads(line)
+        _normalise_datetimes(parsed)
+        return parsed
+    except Exception as exc:
+        try:
+            parsed = json_util.loads(_sanitize_date_numberlong(line))
+            _normalise_datetimes(parsed)
+            return parsed
+        except Exception:
+            logger.debug("JSON parse failed (first error: %s): %s", exc, line.strip()[:200])
+            return {}
+
+
+def _normalise_datetimes(obj: dict) -> None:
+    """Ensure all datetime values in *obj* are UTC-aware (in place)."""
+    for key, value in obj.items():
+        if isinstance(value, datetime) and value.tzinfo is None:
+            obj[key] = value.replace(tzinfo=timezone.utc)
 
 
 class Framework:
@@ -94,12 +110,7 @@ class Framework:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 first_line = f.readline()
                 if first_line:
-                    try:
-                        first_ts = json_util.loads(first_line).get("t")
-                    except Exception:
-                        first_ts = json_util.loads(
-                            _sanitize_date_numberlong(first_line)
-                        ).get("t")
+                    first_ts = _safe_json_loads(first_line).get("t")
                 # Scan backwards from end for the last line
                 f.seek(0, 2)
                 pos = f.tell()
@@ -112,12 +123,7 @@ class Framework:
                         pos -= 1
                     last_line = f.readline()
                     if last_line:
-                        try:
-                            last_ts = json_util.loads(last_line).get("t")
-                        except Exception:
-                            last_ts = json_util.loads(
-                                _sanitize_date_numberlong(last_line)
-                            ).get("t")
+                        last_ts = _safe_json_loads(last_line).get("t")
         except Exception:
             pass
         return first_ts, last_ts
@@ -193,6 +199,11 @@ class Framework:
                             )
                             continue
                         log_line = _safe_json_loads(line)
+                        if not log_line:
+                            self._logger.warning(
+                                yellow(f"Failed to parse log line as JSON: {line.strip()}")
+                            )
+                            continue
                         line_ts = log_line.get("t")
                         if line_ts is not None:
                             if self._start_time is not None and line_ts < self._start_time:
@@ -209,9 +220,9 @@ class Framework:
                                     yellow(f"Log analysis item '{item.name}' failed: {e}")
                                 )
                                 continue
-                    except Exception:
+                    except Exception as exc:
                         self._logger.warning(
-                            yellow(f"Failed to parse log line as JSON: {line.strip()}")
+                            yellow(f"Unexpected error processing log line: {exc}")
                         )
                         continue
 
