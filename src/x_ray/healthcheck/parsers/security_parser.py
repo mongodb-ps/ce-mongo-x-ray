@@ -48,7 +48,9 @@ class SecurityParser(BaseParser):
             audit_log = parsed.get("auditLog", {})
             port = net.get("port", 27017)
             tls = net.get("tls", {}).get("mode", "disabled")
-            authorization = "enabled" if security.get("keyFile", None) is not None else "disabled"
+            authorization = "enabled" if (
+                security.get("authorization") == "enabled" or security.get("keyFile", None) is not None
+            ) else "disabled"
             log_redaction = security.get("redactClientLogData", "disabled")
             eat = security.get("enableEncryption", "false")
             bind_ip = net.get("bindIp", "127.0.0.1")
