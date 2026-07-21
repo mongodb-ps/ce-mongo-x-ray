@@ -25,6 +25,21 @@ from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path
 logger = logging.getLogger(__name__)
 LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")
 SKIP_LINE_MSG = "HEADER INCLUDED, NOW SKIPPING 64728 LINES ACCORDING TO REQUESTED SIZE LIMIT"
+_SANITIZE_DATE_RE = re.compile(r'\{\s*"\$date"\s*:\s*\{\s*"\$numberLong"\s*:\s*"-?\d{16,}"\s*\}\s*\}')
+
+
+def _sanitize_date_numberlong(line: str) -> str:
+    """Replace out-of-range $date.$numberLong sentinel values with null."""
+    return _SANITIZE_DATE_RE.sub("null", line)
+
+
+def _safe_json_loads(line: str) -> dict:
+    """Parse a JSON log line, sanitising out-of-range dates on failure only."""
+    try:
+        return json_util.loads(line)
+    except Exception:
+        # Retry with sentinel $date.$numberLong values replaced
+        return json_util.loads(_sanitize_date_numberlong(line))
 
 
 class Framework:
@@ -82,7 +97,9 @@ class Framework:
                     try:
                         first_ts = json_util.loads(first_line).get("t")
                     except Exception:
-                        pass
+                        first_ts = json_util.loads(
+                            _sanitize_date_numberlong(first_line)
+                        ).get("t")
                 # Scan backwards from end for the last line
                 f.seek(0, 2)
                 pos = f.tell()
@@ -98,7 +115,9 @@ class Framework:
                         try:
                             last_ts = json_util.loads(last_line).get("t")
                         except Exception:
-                            pass
+                            last_ts = json_util.loads(
+                                _sanitize_date_numberlong(last_line)
+                            ).get("t")
         except Exception:
             pass
         return first_ts, last_ts
@@ -173,7 +192,7 @@ class Framework:
                                 "Some lines are skipped due to the size limit. This is expected."
                             )
                             continue
-                        log_line = json_util.loads(line)
+                        log_line = _safe_json_loads(line)
                         line_ts = log_line.get("t")
                         if line_ts is not None:
                             if self._start_time is not None and line_ts < self._start_time:
