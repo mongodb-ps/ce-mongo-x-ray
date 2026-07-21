@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import re
 from pathlib import Path
 import logging
+import webbrowser
 import markdown
 from x_ray.table_width_extension import TableWidthExtension
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
@@ -162,6 +163,9 @@ class Framework:
                     # Replace the placeholder with the generated HTML content
                 final_html = template_content.replace("{{ content }}", html_content)
                 output.write(final_html)
+
+        if fmt in {"html", "pdf"}:
+            webbrowser.open(html_file)
 
         if fmt == "pdf":
             pdf_file = f"{batch_folder}report.pdf"
