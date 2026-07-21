@@ -36,6 +36,10 @@ class IndexRule(BaseRule):
         extra_info: dict = kwargs.get("extra_info", {})
         host: str = extra_info.get("host", "unknown")
         ns: str = extra_info.get("ns", "unknown")
+
+        # Skip system databases and system.* collections
+        if ns.startswith("admin.") or ns.startswith("local.") or ns.startswith("config.") or ".system." in ns:
+            return [], data
         capture_time: datetime = as_utc_datetime(extra_info.get("capture_time", datetime.now(timezone.utc)))
         check_items: list = kwargs.get("check_items", ["num_indexes", "unused_indexes", "redundant_indexes"])
         test_result: list = []
