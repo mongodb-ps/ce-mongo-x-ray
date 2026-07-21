@@ -19,6 +19,7 @@ function tableForClipboard(table) {
     clone.querySelectorAll("th, td").forEach((cell) => {
         cell.style.overflowWrap = "anywhere";
         cell.style.verticalAlign = "top";
+        cell.style.border = "1px solid black";
     });
     if (clone.querySelector("img")) {
         Array.from(clone.rows).forEach((row) => {
