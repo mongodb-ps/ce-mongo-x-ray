@@ -197,7 +197,7 @@ class Framework:
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 
         if fmt in {"html", "pdf"}:
-            webbrowser.open(str(html_file))
+            webbrowser.open(f"file://{html_file.resolve()}")
 
         if fmt == "pdf":
             pdf_file = batch_folder / "report.pdf"

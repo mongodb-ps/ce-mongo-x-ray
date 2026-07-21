@@ -150,7 +150,7 @@ class Framework:
                 f.write(html)
 
         if fmt in {"html", "pdf"}:
-            webbrowser.open(html_file)
+            webbrowser.open(f"file://{Path(html_file).resolve()}")
 
         if fmt == "pdf":
             pdf_file = f"{batch_folder}report.pdf"
