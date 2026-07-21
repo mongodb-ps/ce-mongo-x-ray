@@ -76,7 +76,7 @@
                 "-c",
                 "src/x_ray/config.json",
                 "gmd",
-                "misc/getMongoData-rs.json"
+                "misc/getMongoData-output.json"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
