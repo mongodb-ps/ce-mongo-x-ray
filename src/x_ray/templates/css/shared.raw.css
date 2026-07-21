@@ -191,7 +191,8 @@
     /* Hide interactive elements in print/PDF */
     .hljs-copy-button,
     .table-copy-toolbar,
-    button {
+    button,
+    input[type="button"] {
         display: none !important;
     }
 

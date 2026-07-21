@@ -79,7 +79,7 @@ class BaseItem:
         f.write(f"{self.description}\n\n")
 
         if self._show_reset:
-            f.write(f'<input type="button" id="reset_{self.__class__.__name__}" value="Reset">\n\n')
+            f.write(f'<input type="button" id="reset_{self.__class__.__name__}" class="table-copy-button" value="Reset">\n\n')
         f.write('<script type="text/javascript">\n')
         f.write("document.addEventListener('DOMContentLoaded', function() {\n")
         if self._show_reset:
