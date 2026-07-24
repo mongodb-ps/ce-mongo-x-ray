@@ -177,7 +177,7 @@ class Framework:
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 self._logger.warning(yellow(f"FTDC item '{item.name}' finalization failed: {exc}"))
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html") -> None:
+    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True) -> None:
         """Write the FTDC analysis report."""
         batch_folder = self._get_output_folder(output_folder)
         markdown_file = batch_folder / "report.md"
@@ -205,7 +205,7 @@ class Framework:
             template_content = inject_assets(Path(template_file).read_text(encoding="utf-8"), "ftdc")
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 
-        if fmt in {"html", "pdf"}:
+        if fmt in {"html", "pdf"} and open_browser:
             webbrowser.open(f"file://{html_file.resolve()}")
 
         if fmt == "pdf":

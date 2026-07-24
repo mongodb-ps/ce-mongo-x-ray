@@ -12,6 +12,7 @@ import argparse
 import logging
 import os
 import shutil
+import webbrowser
 from copy import deepcopy
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as pkg_version
@@ -52,18 +53,22 @@ def _output_folder_name(discovered_path: Path) -> str:
     return discovered_path.name
 
 
-def _rename_with_hostname(batch_folder: str, framework) -> None:
-    """Rename *batch_folder* to include the hostname prefix if available."""
+def _rename_with_hostname(batch_folder: str, framework) -> str:
+    """Rename *batch_folder* to include the hostname prefix if available.
+
+    Returns the final folder path (renamed or original).
+    """
     hostname = framework.hostname
     if hostname is None:
-        return
+        return batch_folder
     batch_path = Path(batch_folder)
     if not batch_path.is_dir():
-        return
+        return batch_folder
     new_name = f"{hostname}-{batch_path.name}"
     new_path = batch_path.parent / new_name
     shutil.move(str(batch_path), str(new_path))
     logger.info("Renamed output folder to: %s", green(new_name))
+    return str(new_path)
 
 
 def utc_iso_datetime(value: str) -> datetime:
@@ -438,9 +443,13 @@ def log_analysis_command(args):
             end_time=args.end_time,
         )
         framework.run_logs_analysis(args.checkset, output_folder=output_folder)
-        framework.output_results(output_folder=output_folder, fmt=args.format)
-        # Rename output folder with hostname prefix if available
-        _rename_with_hostname(framework._get_output_folder(output_folder), framework)
+        framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
+        batch_folder = str(framework._get_output_folder(output_folder))
+        final_folder = _rename_with_hostname(batch_folder, framework)
+        if args.format in {"html", "pdf"}:
+            html_file = Path(final_folder) / "report.html"
+            if html_file.exists():
+                webbrowser.open(f"file://{html_file.resolve()}")
     return 0
 
 
@@ -513,9 +522,13 @@ def ftdc_analysis_command(args):
             image_format="svg" if args.svg else "png",
         )
         framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
-        framework.output_results(output_folder=output_folder, fmt=args.format)
-        # Rename output folder with hostname prefix if available
-        _rename_with_hostname(str(framework._get_output_folder(output_folder)), framework)
+        framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
+        batch_folder = str(framework._get_output_folder(output_folder))
+        final_folder = _rename_with_hostname(batch_folder, framework)
+        if args.format in {"html", "pdf"}:
+            html_file = Path(final_folder) / "report.html"
+            if html_file.exists():
+                webbrowser.open(f"file://{html_file.resolve()}")
     return 0
 
 

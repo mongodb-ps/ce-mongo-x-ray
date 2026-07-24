@@ -254,7 +254,7 @@ class Framework:
                 self._logger.warning(yellow(f"Log analysis item '{item.name}' finalize failed: {e}"))
                 continue
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html"):
+    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True):
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
         template_file = get_script_path(f"templates/{self._config.get('template', 'log/full.html')}")
@@ -299,7 +299,7 @@ class Framework:
                 final_html = template_content.replace("{{ content }}", html_content)
                 f.write(final_html)
 
-        if fmt in {"html", "pdf"}:
+        if fmt in {"html", "pdf"} and open_browser:
             webbrowser.open(f"file://{Path(html_file).resolve()}")
 
         if fmt == "pdf":
