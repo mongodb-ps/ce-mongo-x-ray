@@ -19,6 +19,7 @@ import markdown
 from bson import json_util
 from x_ray.table_width_extension import TableWidthExtension
 from x_ray.log_analysis.log_items.base_item import BaseItem
+from x_ray.log_analysis.log_items.info_item import InfoItem
 from x_ray.healthcheck.shared import to_json
 from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, html_to_pdf, inject_assets, env
 
@@ -95,11 +96,11 @@ class Framework:
     def hostname(self) -> Optional[str]:
         """The hostname from the Process Info log item, or from log lines."""
         for item in self._items:
-            cache = getattr(item, "_cache", None)
-            if isinstance(cache, dict):
-                host = cache.get("process", {}).get("host")
+            if isinstance(item, InfoItem):
+                host = item._cache.get("process", {}).get("host")
                 if host and host != "Unknown":
                     return host
+                break
         return self._hostname
 
     def _log_files(self) -> list[Path]:
