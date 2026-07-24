@@ -11,6 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 import argparse
 import logging
 import os
+import re
 import shutil
 import webbrowser
 from copy import deepcopy
@@ -43,14 +44,12 @@ def _discover_paths(root: Path, glob_pattern: str) -> list[Path]:
     return sorted(found.values(), key=lambda p: (len(p.relative_to(root).parts), str(p)))
 
 
-def _output_folder_name(discovered_path: Path) -> str:
-    """Return a meaningful output sub-folder name for *discovered_path*.
+_ILLEGAL_FILENAME_RE = re.compile(r'[<>:"/\\|?*]')
 
-    For ``diagnostic.data`` (common FTDC convention), use the parent folder name.
-    """
-    if discovered_path.name == "diagnostic.data":
-        return discovered_path.parent.name
-    return discovered_path.name
+
+def _sanitize_filename(name: str) -> str:
+    """Replace characters illegal in Windows filenames with underscores."""
+    return _ILLEGAL_FILENAME_RE.sub("_", name).strip(". ")
 
 
 def _rename_with_hostname(batch_folder: str, framework) -> str:
@@ -64,7 +63,10 @@ def _rename_with_hostname(batch_folder: str, framework) -> str:
     batch_path = Path(batch_folder)
     if not batch_path.is_dir():
         return batch_folder
-    new_name = f"{hostname}-{batch_path.name}"
+    safe_hostname = _sanitize_filename(hostname)
+    if not safe_hostname:
+        return batch_folder
+    new_name = f"{safe_hostname}-{batch_path.name}"
     new_path = batch_path.parent / new_name
     shutil.move(str(batch_path), str(new_path))
     logger.info("Renamed output folder to: %s", green(new_name))
@@ -431,11 +433,7 @@ def log_analysis_command(args):
             logger.error("Log path not found: %s", log_path_item)
             return 1
         logger.info("Analyzing log: %s", str(log_path_item))
-        base_output = args.output if args.output.endswith("/") else f"{args.output}/"
-        if len(discovered) > 1:
-            output_folder = f"{base_output}{_output_folder_name(log_path_item)}/"
-        else:
-            output_folder = base_output
+        output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
         framework = LogAnalysisFramework(
             str(log_path_item),
             deepcopy(config),
@@ -509,11 +507,7 @@ def ftdc_analysis_command(args):
             logger.error("FTDC folder not found: %s", ftdc_path_item)
             return 1
         logger.info("Analyzing FTDC data: %s", str(ftdc_path_item))
-        base_output = args.output if args.output.endswith("/") else f"{args.output}/"
-        if len(discovered) > 1:
-            output_folder = f"{base_output}{_output_folder_name(ftdc_path_item)}/"
-        else:
-            output_folder = base_output
+        output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
         framework = FTDCAnalysisFramework(
             str(ftdc_path_item),
             deepcopy(config),
