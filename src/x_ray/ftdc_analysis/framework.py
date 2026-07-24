@@ -63,7 +63,10 @@ class Framework:
 
     def _input_files(self) -> list[Path]:
         files = sorted(
-            (path for path in self._input_path.glob("metrics.*") if path.is_file() and not path.name.endswith(".tmp")),
+            (path for path in self._input_path.glob("metrics.*")
+             if path.is_file()
+             and not path.name.endswith(".tmp")
+             and not path.name.endswith(".interim")),
             key=lambda path: (self._file_end_time(path) or datetime.max.replace(tzinfo=timezone.utc), path.name),
         )
         if self._start_time is None and self._end_time is None:

@@ -129,12 +129,19 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         if not wanted:
             return
 
-        series = reader.get_metric(
-            wanted,
-            self._start_time,
-            self._end_time,
-            sample_rate=self._sample_rate,
-        )
+        try:
+            series = reader.get_metric(
+                wanted,
+                self._start_time,
+                self._end_time,
+                sample_rate=self._sample_rate,
+            )
+        except KeyError as exc:
+            self._logger.debug(
+                "Metric not found in FTDC file %s: %s (file may be from a different node type)",
+                file_path, exc,
+            )
+            return
         for metric, points in series.items():
             target = self._series.setdefault(metric, {})
             for point in points:
