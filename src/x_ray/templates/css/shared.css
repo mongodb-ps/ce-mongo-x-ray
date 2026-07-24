@@ -138,7 +138,11 @@
     z-index: 1;
 }
 
-/* Sortable table headers */
+.markdown-body td pre,
+.markdown-body th pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
 .markdown-body th[data-sortable="true"] {
     cursor: pointer;
 }
