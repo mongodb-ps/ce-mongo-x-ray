@@ -11,6 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 import argparse
 import logging
 import os
+import shutil
 from copy import deepcopy
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as pkg_version
@@ -39,6 +40,30 @@ def _discover_paths(root: Path, glob_pattern: str) -> list[Path]:
                 found[str(dirpath)] = Path(dirpath)
                 break  # one match per directory is enough
     return sorted(found.values(), key=lambda p: (len(p.relative_to(root).parts), str(p)))
+
+
+def _output_folder_name(discovered_path: Path) -> str:
+    """Return a meaningful output sub-folder name for *discovered_path*.
+
+    For ``diagnostic.data`` (common FTDC convention), use the parent folder name.
+    """
+    if discovered_path.name == "diagnostic.data":
+        return discovered_path.parent.name
+    return discovered_path.name
+
+
+def _rename_with_hostname(batch_folder: str, framework) -> None:
+    """Rename *batch_folder* to include the hostname prefix if available."""
+    hostname = framework.hostname
+    if hostname is None:
+        return
+    batch_path = Path(batch_folder)
+    if not batch_path.is_dir():
+        return
+    new_name = f"{hostname}-{batch_path.name}"
+    new_path = batch_path.parent / new_name
+    shutil.move(str(batch_path), str(new_path))
+    logger.info("Renamed output folder to: %s", green(new_name))
 
 
 def utc_iso_datetime(value: str) -> datetime:
@@ -377,8 +402,9 @@ def log_analysis_command(args):
         if not discovered:
             logger.error("No folder containing log files (*.log*) found under: %s", args.log_file)
             return 1
-        logger.info("Discovered %d log folder(s): %s", len(discovered),
-                     ", ".join(str(d) for d in discovered))
+        logger.info(bold(green(f"Discovered {len(discovered)} log folder(s) to process:")))
+        for i, d in enumerate(discovered, 1):
+            logger.info("  %d. %s", i, str(d))
     else:
         discovered = [log_path]
 
@@ -402,7 +428,7 @@ def log_analysis_command(args):
         logger.info("Analyzing log: %s", str(log_path_item))
         base_output = args.output if args.output.endswith("/") else f"{args.output}/"
         if len(discovered) > 1:
-            output_folder = f"{base_output}{log_path_item.name}/"
+            output_folder = f"{base_output}{_output_folder_name(log_path_item)}/"
         else:
             output_folder = base_output
         framework = LogAnalysisFramework(
@@ -413,6 +439,8 @@ def log_analysis_command(args):
         )
         framework.run_logs_analysis(args.checkset, output_folder=output_folder)
         framework.output_results(output_folder=output_folder, fmt=args.format)
+        # Rename output folder with hostname prefix if available
+        _rename_with_hostname(framework._get_output_folder(output_folder), framework)
     return 0
 
 
@@ -445,8 +473,9 @@ def ftdc_analysis_command(args):
         if not discovered:
             logger.error("No folder containing FTDC files (metrics.*) found under: %s", args.ftdc_path)
             return 1
-        logger.info("Discovered %d FTDC folder(s): %s", len(discovered),
-                     ", ".join(str(d) for d in discovered))
+        logger.info(bold(green(f"Discovered {len(discovered)} FTDC folder(s) to process:")))
+        for i, d in enumerate(discovered, 1):
+            logger.info("  %d. %s", i, str(d))
     else:
         discovered = [ftdc_path]
 
@@ -473,7 +502,7 @@ def ftdc_analysis_command(args):
         logger.info("Analyzing FTDC data: %s", str(ftdc_path_item))
         base_output = args.output if args.output.endswith("/") else f"{args.output}/"
         if len(discovered) > 1:
-            output_folder = f"{base_output}{ftdc_path_item.name}/"
+            output_folder = f"{base_output}{_output_folder_name(ftdc_path_item)}/"
         else:
             output_folder = base_output
         framework = FTDCAnalysisFramework(
@@ -485,6 +514,8 @@ def ftdc_analysis_command(args):
         )
         framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
         framework.output_results(output_folder=output_folder, fmt=args.format)
+        # Rename output folder with hostname prefix if available
+        _rename_with_hostname(str(framework._get_output_folder(output_folder)), framework)
     return 0
 
 

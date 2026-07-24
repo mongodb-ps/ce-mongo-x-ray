@@ -52,6 +52,15 @@ class Framework:
         batch_folder.mkdir(parents=True, exist_ok=True)
         return batch_folder
 
+    @property
+    def hostname(self) -> Optional[str]:
+        """The hostname extracted from FTDC files, or None."""
+        for item in self._items:
+            hostname = getattr(item, "_hostname", None)
+            if hostname:
+                return hostname
+        return None
+
     def _input_files(self) -> list[Path]:
         files = sorted(
             (path for path in self._input_path.glob("metrics.*") if path.is_file() and not path.name.endswith(".tmp")),

@@ -79,6 +79,7 @@ class Framework:
         self._logger.debug(to_json(self._config))
         self._log_start: Optional[datetime] = None
         self._log_end: Optional[datetime] = None
+        self._hostname: Optional[str] = None
         if env == "development":
             self._logger.info(yellow("Running in development mode."))
 
@@ -89,6 +90,11 @@ class Framework:
             batch_folder = f"{output_folder}{self._logset_name}-{self._timestamp}/"
         Path(batch_folder).mkdir(parents=True, exist_ok=True)
         return batch_folder
+
+    @property
+    def hostname(self) -> Optional[str]:
+        """The hostname extracted from log lines, or None."""
+        return self._hostname
 
     def _log_files(self) -> list[Path]:
         """Return a sorted list of log files to process."""
@@ -214,6 +220,10 @@ class Framework:
                                 yellow(f"Failed to parse log line as JSON: {line.strip()}")
                             )
                             continue
+                        if self._hostname is None:
+                            hostname = log_line.get("hostname")
+                            if isinstance(hostname, str) and hostname.strip():
+                                self._hostname = hostname.strip()
                         line_ts = log_line.get("t")
                         if line_ts is not None:
                             if self._start_time is not None and line_ts < self._start_time:
