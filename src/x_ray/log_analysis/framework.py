@@ -93,7 +93,12 @@ class Framework:
 
     @property
     def hostname(self) -> Optional[str]:
-        """The hostname extracted from log lines, or None."""
+        """The hostname from the Process Info log item, or from log lines."""
+        for item in self._items:
+            cache = getattr(item, "_cache", {})
+            host = cache.get("process", {}).get("host")
+            if host and host != "Unknown":
+                return host
         return self._hostname
 
     def _log_files(self) -> list[Path]:
