@@ -76,7 +76,7 @@ def test_host_info_parser():
         "M-QTFH0WFXLG:30017",
         "Apple M1 Max (x86_64) 2400 MHz",
         "10c",
-        "32.00 GB",
+        ("32.00 GB", 34359738368),
         "Mac OS X 24.6.0",
         False,
     ]
@@ -84,7 +84,7 @@ def test_host_info_parser():
         "ip-172-31-22-196",
         "Intel(R) Xeon(R) Platinum 8175M CPU @ 2.50GHz (x86_64) 3200.679 MHz",
         "2c",
-        "7.55 GB",
+        ("7.55 GB", 8111783936),
         "Ubuntu 22.04",
         False,
     ]

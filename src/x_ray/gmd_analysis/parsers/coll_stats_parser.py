@@ -106,12 +106,12 @@ class CollStatsParser(BaseParser):
                 [
                     ns_str,
                     count_str,
-                    size_str,
-                    storage_size_str,
-                    avg_obj_size_str,
-                    total_index_size_str,
-                    frag_ratio_str,
-                    cache_sum_str,
+                    (size_str, size),
+                    (storage_size_str, storage_size),
+                    (avg_obj_size_str, avg_obj_size),
+                    (total_index_size_str, total_index_size),
+                    (frag_ratio_str, frag_ratio),
+                    (cache_sum_str, bytes_in_cache),
                 ]
             )
             data_sizes[ns] = {"size": size, "index_size": total_index_size}

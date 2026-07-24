@@ -72,8 +72,8 @@ def test_db_parser_sharded():
         {"text": "# Indexes", "width": "100px"},
     ]
     assert dbs_table["rows"][0][0] == "admin"
-    assert dbs_table["rows"][0][1].startswith("4.00 MB")
-    assert dbs_table["rows"][0][2].startswith("400.00 KB")
+    assert dbs_table["rows"][0][1][0].startswith("4.00 MB")
+    assert dbs_table["rows"][0][2][0].startswith("400.00 KB")
     assert dbs_table["rows"][0][3] == False
     assert dbs_table["rows"][0][4] == "N/A"
     assert dbs_table["rows"][0][5] == 3
@@ -82,8 +82,8 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][0][8] == 5
 
     assert dbs_table["rows"][1][0] == "config"
-    assert dbs_table["rows"][1][1].startswith("5.00 MB")
-    assert dbs_table["rows"][1][2].startswith("3.80 MB")
+    assert dbs_table["rows"][1][1][0].startswith("5.00 MB")
+    assert dbs_table["rows"][1][2][0].startswith("3.80 MB")
     assert dbs_table["rows"][1][3] == False
     assert dbs_table["rows"][1][4] == "N/A"
     assert dbs_table["rows"][1][5] == 8
@@ -92,8 +92,8 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][1][8] == 10
 
     assert dbs_table["rows"][2][0] == "foo"
-    assert dbs_table["rows"][2][1].startswith("6.00 MB")
-    assert dbs_table["rows"][2][2].startswith("4.13 MB")
+    assert dbs_table["rows"][2][1][0].startswith("6.00 MB")
+    assert dbs_table["rows"][2][2][0].startswith("4.13 MB")
     assert dbs_table["rows"][2][3] == True
     assert dbs_table["rows"][2][4] == "shard02"
     assert dbs_table["rows"][2][5] == 12
@@ -102,8 +102,8 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][2][8] == 15
 
     assert dbs_table["rows"][3][0] == "test"
-    assert dbs_table["rows"][3][1].startswith("7.00 MB")
-    assert dbs_table["rows"][3][2].startswith("136.00 KB")
+    assert dbs_table["rows"][3][1][0].startswith("7.00 MB")
+    assert dbs_table["rows"][3][2][0].startswith("136.00 KB")
     assert dbs_table["rows"][3][3] == False
     assert dbs_table["rows"][3][4] == "shard01"
     assert dbs_table["rows"][3][5] == 2
@@ -112,8 +112,8 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][3][8] == 3
 
     assert dbs_table["rows"][4][0] == "test1"
-    assert dbs_table["rows"][4][1].startswith("8.00 MB")
-    assert dbs_table["rows"][4][2].startswith("80.00 KB")
+    assert dbs_table["rows"][4][1][0].startswith("8.00 MB")
+    assert dbs_table["rows"][4][2][0].startswith("80.00 KB")
     assert dbs_table["rows"][4][3] == False
     assert dbs_table["rows"][4][4] == "shard01"
     assert dbs_table["rows"][4][5] == 1
@@ -123,8 +123,8 @@ def test_db_parser_sharded():
 
     # SUM row
     assert dbs_table["rows"][5][0] == "**(SUM)**"
-    assert dbs_table["rows"][5][1].startswith("30.00 MB")
-    assert dbs_table["rows"][5][2].startswith("8.53 MB")
+    assert dbs_table["rows"][5][1][0].startswith("30.00 MB")
+    assert dbs_table["rows"][5][2][0].startswith("8.53 MB")
     assert dbs_table["rows"][5][3] == "N/A"
     assert dbs_table["rows"][5][4] == "N/A"
     assert dbs_table["rows"][5][5] == 26
@@ -166,8 +166,8 @@ def test_db_parser_non_sharded():
         {"text": "# Indexes", "width": "100px"},
     ]
     assert dbs_table["rows"][0][0] == "admin"
-    assert dbs_table["rows"][0][1].startswith("4.00 MB")
-    assert dbs_table["rows"][0][2].startswith("400.00 KB")
+    assert dbs_table["rows"][0][1][0].startswith("4.00 MB")
+    assert dbs_table["rows"][0][2][0].startswith("400.00 KB")
     assert dbs_table["rows"][0][3] == "N/A"
     assert dbs_table["rows"][0][4] == "N/A"
     assert dbs_table["rows"][0][5] == 3
@@ -176,8 +176,8 @@ def test_db_parser_non_sharded():
     assert dbs_table["rows"][0][8] == 5
 
     assert dbs_table["rows"][1][0] == "config"
-    assert dbs_table["rows"][1][1].startswith("5.00 MB")
-    assert dbs_table["rows"][1][2].startswith("3.80 MB")
+    assert dbs_table["rows"][1][1][0].startswith("5.00 MB")
+    assert dbs_table["rows"][1][2][0].startswith("3.80 MB")
     assert dbs_table["rows"][1][3] == "N/A"
     assert dbs_table["rows"][1][4] == "N/A"
     assert dbs_table["rows"][1][5] == 8
@@ -186,8 +186,8 @@ def test_db_parser_non_sharded():
     assert dbs_table["rows"][1][8] == 10
 
     assert dbs_table["rows"][2][0] == "foo"
-    assert dbs_table["rows"][2][1].startswith("6.00 MB")
-    assert dbs_table["rows"][2][2].startswith("4.13 MB")
+    assert dbs_table["rows"][2][1][0].startswith("6.00 MB")
+    assert dbs_table["rows"][2][2][0].startswith("4.13 MB")
     assert dbs_table["rows"][2][3] == "N/A"
     assert dbs_table["rows"][2][4] == "N/A"
     assert dbs_table["rows"][2][5] == 12
@@ -196,8 +196,8 @@ def test_db_parser_non_sharded():
     assert dbs_table["rows"][2][8] == 15
 
     assert dbs_table["rows"][3][0] == "test"
-    assert dbs_table["rows"][3][1].startswith("7.00 MB")
-    assert dbs_table["rows"][3][2].startswith("136.00 KB")
+    assert dbs_table["rows"][3][1][0].startswith("7.00 MB")
+    assert dbs_table["rows"][3][2][0].startswith("136.00 KB")
     assert dbs_table["rows"][3][3] == "N/A"
     assert dbs_table["rows"][3][4] == "N/A"
     assert dbs_table["rows"][3][5] == 2
@@ -206,8 +206,8 @@ def test_db_parser_non_sharded():
     assert dbs_table["rows"][3][8] == 3
 
     assert dbs_table["rows"][4][0] == "test1"
-    assert dbs_table["rows"][4][1].startswith("8.00 MB")
-    assert dbs_table["rows"][4][2].startswith("80.00 KB")
+    assert dbs_table["rows"][4][1][0].startswith("8.00 MB")
+    assert dbs_table["rows"][4][2][0].startswith("80.00 KB")
     assert dbs_table["rows"][4][3] == "N/A"
     assert dbs_table["rows"][4][4] == "N/A"
     assert dbs_table["rows"][4][5] == 1
@@ -217,8 +217,8 @@ def test_db_parser_non_sharded():
 
     # SUM row
     assert dbs_table["rows"][5][0] == "**(SUM)**"
-    assert dbs_table["rows"][5][1].startswith("30.00 MB")
-    assert dbs_table["rows"][5][2].startswith("8.53 MB")
+    assert dbs_table["rows"][5][1][0].startswith("30.00 MB")
+    assert dbs_table["rows"][5][2][0].startswith("8.53 MB")
     assert dbs_table["rows"][5][3] == "N/A"
     assert dbs_table["rows"][5][4] == "N/A"
     assert dbs_table["rows"][5][5] == 26

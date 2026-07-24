@@ -38,10 +38,10 @@ class CollOverviewParser(BaseParser):
             rows.append(
                 [
                     escape_markdown(ns),
-                    format_size(size),
-                    format_size(storage_size),
-                    format_size(avg_obj_size),
-                    format_size(total_index_size),
+                    (format_size(size), size),
+                    (format_size(storage_size), storage_size),
+                    (format_size(avg_obj_size), avg_obj_size),
+                    (format_size(total_index_size), total_index_size),
                     f"{index_data_ratio:.2%}",
                 ]
             )

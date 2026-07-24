@@ -51,12 +51,13 @@ class HostInfoParser(BaseParser):
             if "extra" in extra:
                 # Compatibility for MongoDB 6.0
                 extra = extra["extra"]
+            mem_bytes = system["memLimitMB"] * 1024**2
             rows.append(
                 [
                     system["hostname"],
                     f"{extra.get('cpuString', '(Unknown CPU)')} ({system['cpuArch']}) {extra.get('cpuFrequencyMHz', 'n/a')} MHz",
                     f"{system['numCores']}c",
-                    format_size(system["memLimitMB"] * 1024**2),
+                    (format_size(mem_bytes), mem_bytes),
                     f"{os['name']} {os['version']}",
                     system["numaEnabled"],
                 ]

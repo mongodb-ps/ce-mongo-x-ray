@@ -42,11 +42,13 @@ class CacheParser(BaseParser):
                 [
                     escape_markdown(set_name),
                     escape_markdown(host),
-                    format_size(cache.get("cacheSize", 0)),
-                    format_size(cache.get("inCacheSize", 0)),
-                    format_size(cache.get("dirty", 0)),
-                    f"{format_size(cache.get('readInto', 0))}/s" if cache.get("readInto", 0) != "N/A" else "N/A",
-                    f"{format_size(cache.get('writtenFrom', 0))}/s" if cache.get("writtenFrom", 0) != "N/A" else "N/A",
+                    (format_size(cache.get("cacheSize", 0)), cache.get("cacheSize", 0)),
+                    (format_size(cache.get("inCacheSize", 0)), cache.get("inCacheSize", 0)),
+                    (format_size(cache.get("dirty", 0)), cache.get("dirty", 0)),
+                    (f"{format_size(cache.get('readInto', 0))}/s" if cache.get("readInto", 0) != "N/A" else "N/A",
+                     cache.get("readInto", 0) if cache.get("readInto", 0) != "N/A" else 0),
+                    (f"{format_size(cache.get('writtenFrom', 0))}/s" if cache.get("writtenFrom", 0) != "N/A" else "N/A",
+                     cache.get("writtenFrom", 0) if cache.get("writtenFrom", 0) != "N/A" else 0),
                 ]
             )
             cache_data[f"{set_name}/{host}"] = {

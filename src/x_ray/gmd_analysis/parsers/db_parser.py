@@ -48,12 +48,14 @@ class DBParser(BaseParser):
         for db in dbs:
             db_name: str = db["name"]
             stats: dict = db_stats.get(db_name, {})
-            data_size: str = format_size(stats.get("dataSize", 0) * 1024 * 1024)
+            data_size_raw: int = stats.get("dataSize", 0) * 1024 * 1024
+            data_size: str = format_size(data_size_raw)
             num_collections: int = stats.get("collections", 0)
             num_views: int = stats.get("views", 0)
             num_objects: int = stats.get("objects", 0)
             num_indexes: int = stats.get("indexes", 0)
-            storage_size: str = format_size(db.get("sizeOnDisk", 0))
+            storage_size_raw: int = db.get("sizeOnDisk", 0)
+            storage_size: str = format_size(storage_size_raw)
             sharded_sizes: list = []
             for shard, size in db.get("shards", {}).items():
                 sharded_sizes.append(f"{shard}: {format_size(size)}")
@@ -69,8 +71,8 @@ class DBParser(BaseParser):
             rows.append(
                 [
                     db_name,
-                    data_size,
-                    storage_size,
+                    (data_size, data_size_raw),
+                    (storage_size, storage_size_raw),
                     partitioned,
                     primary_db,
                     num_collections,
@@ -96,11 +98,12 @@ class DBParser(BaseParser):
             totals["views"] += num_views
             totals["objects"] += num_objects
             totals["indexes"] += num_indexes
+        totals_data_size_raw = totals["dataSize"] * 1024 * 1024
         rows.append(
             [
                 "**(SUM)**",
-                format_size(totals["dataSize"] * 1024 * 1024),
-                format_size(totals["storageSize"]),
+                (format_size(totals_data_size_raw), totals_data_size_raw),
+                (format_size(totals["storageSize"]), totals["storageSize"]),
                 "N/A",
                 "N/A",
                 totals["collections"],

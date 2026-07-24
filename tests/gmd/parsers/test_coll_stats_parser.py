@@ -88,22 +88,23 @@ def test_coll_stats_parser() -> None:
     assert len(table_item["rows"]) == 2
     assert table_item["rows"][0][0] == "foo.unsharded\\_collection"
     assert table_item["rows"][0][1] == "100000"
-    assert table_item["rows"][0][2] == "1.00 GB"
-    assert table_item["rows"][0][3] == "512.00 MB"
-    assert table_item["rows"][0][4] == "64.00 B"
-    assert table_item["rows"][0][5] == "1.00 MB"
-    assert table_item["rows"][0][6] == "50.00%"
-    assert table_item["rows"][0][7] == "100.00 MB / 9.77%"
+    assert table_item["rows"][0][2] == ("1.00 GB", 1024**3)
+    assert table_item["rows"][0][3] == ("512.00 MB", 512 * 1024**2)
+    assert table_item["rows"][0][4] == ("64.00 B", 64)
+    assert table_item["rows"][0][5] == ("1.00 MB", 1 * 1024**2)
+    assert table_item["rows"][0][6] == ("50.00%", 0.5)
+    assert table_item["rows"][0][7] == ("100.00 MB / 9.77%", 100 * 1024**2)
     assert table_item["rows"][1][0] == r'foo.sharded\_collection <pre>{<br>&nbsp;&nbsp;"_id":&nbsp;"hashed"<br>}</pre>'
     assert table_item["rows"][1][1] == "100000<pre>shard1: 49000<br>shard2: 51000</pre>"
-    assert table_item["rows"][1][2] == "1.00 GB<pre>shard1: 512.00 MB<br>shard2: 512.00 MB</pre>"
-    assert table_item["rows"][1][3] == "512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>"
-    assert table_item["rows"][1][4] == "64.00 B<pre>shard1: 60.00 B<br>shard2: 68.00 B</pre>"
-    assert table_item["rows"][1][5] == "512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>"
-    assert table_item["rows"][1][6] == "50.00%<pre>shard1: 51.20%<br>shard2: 48.85%</pre>"
+    assert table_item["rows"][1][2] == ("1.00 GB<pre>shard1: 512.00 MB<br>shard2: 512.00 MB</pre>", 1024**3)
+    assert table_item["rows"][1][3] == ("512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>", 512 * 1024**2)
+    assert table_item["rows"][1][4] == ("64.00 B<pre>shard1: 60.00 B<br>shard2: 68.00 B</pre>", 64)
+    assert table_item["rows"][1][5] == ("512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>", 512 * 1024**2)
+    assert table_item["rows"][1][6] == ("50.00%<pre>shard1: 51.20%<br>shard2: 48.85%</pre>", 0.5)
     assert (
         table_item["rows"][1][7]
-        == "200.00 MB / 19.53%<pre>shard1: 100.00 MB / 19.53%<br>shard2: 100.00 MB / 19.53%</pre>"
+        == ("200.00 MB / 19.53%<pre>shard1: 100.00 MB / 19.53%<br>shard2: 100.00 MB / 19.53%</pre>",
+            200 * 1024**2)
     )
     chart_item = result[1]
     assert chart_item["type"] == "chart"
