@@ -181,7 +181,7 @@ class Framework:
         """Write the FTDC analysis report."""
         batch_folder = self._get_output_folder(output_folder)
         markdown_file = batch_folder / "report.md"
-        self._logger.info("Saving results to: %s", green(str(markdown_file)))
+        self._logger.info("Report saved to: %s", green(str(batch_folder)))
 
         with markdown_file.open("w", encoding="utf-8") as output:
             output.write("# FTDC Analysis Report\n\n")

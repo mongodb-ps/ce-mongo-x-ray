@@ -79,7 +79,7 @@ class Framework:
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
         template_file = get_script_path(f"templates/{self._config.get('template', 'healthcheck/full.html')}")
-        self._logger.info("Saving results to: %s", green(output_file))
+        self._logger.info("Report saved to: %s", green(str(batch_folder)))
 
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("# Deployment Health Check\n\n")
