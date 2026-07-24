@@ -149,21 +149,29 @@ Refer to the wiki for more details.
 ```bash
 # Full analysis
 ./x-ray log mongodb.log
+# Time range filter
+./x-ray log /var/log/mongodb/ 2026-07-20T08:00:00Z 2026-07-20T10:00:00Z
 # For large logs, analyze a random 10% logs
 ./x-ray log -r 0.1 mongodb.log
+# Discover log folders recursively
+./x-ray log --discover /var/log/
 ```
 
 #### 3.2.2 Full Arguments
 ```bash
-x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [log_file]
+x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] [--top TOP] [--discover] log_file [start_time] [end_time]
 ```
-| Argument           | Description                                                                       |  Default  |
-| ------------------ | --------------------------------------------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
-| `-o`, `--output`   | Output folder path.                                                               | `output/` |
-| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
-| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.                                       |    `1`    |
-| `--top`            | When analyzing the slow queries, only list top N.                                 |   `10`    |
+| Argument           | Description                                                                       |        Default         |
+| ------------------ | --------------------------------------------------------------------------------- | :--------------------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  |       `default`        |
+| `-o`, `--output`   | Output folder path.                                                               |       `output/`        |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |         `html`         |
+| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.                                       |          `1`           |
+| `--top`            | When analyzing the slow queries, only list top N.                                 |          `10`          |
+| `--discover`       | Recursively search the given path for folders containing log files.               |        `false`         |
+| `log_file`         | Path to the MongoDB log file or a folder of log files to analyze.                 |          n/a           |
+| `start_time`       | Inclusive UTC start time in ISO-8601 format. Defaults to the first log line.      |          n/a           |
+| `end_time`         | Inclusive UTC end time in ISO-8601 format. Defaults to the last log line.         |          n/a           |
 
 ### 3.3 getMongoData Analysis Component
 #### 3.3.1 Examples
@@ -199,18 +207,22 @@ and last data points in the archive are used.
 ```bash
 x-ray ftdc /var/lib/mongo/diagnostic.data
 x-ray ftdc /var/lib/mongo/diagnostic.data 2026-06-17T08:00:00Z 2026-06-17T10:00:00Z
+# Discover FTDC folders recursively
+x-ray ftdc --discover /data/
 ```
 
 ```bash
-x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] ftdc_path [start_time] [end_time]
+x-ray ftdc [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] [--svg] [--discover] ftdc_path [start_time] [end_time]
 ```
 | Argument           | Description                                                          |        Default         |
 | ------------------ | -------------------------------------------------------------------- | :--------------------: |
 | `-s`, `--checkset` | Checkset to run.                                                     |       `default`        |
 | `-o`, `--output`   | Output folder path.                                                  |       `output/`        |
-| `-r`, `--rate`     | controls FTDC sampling and accepts a value between `0` and `1`.      |  `1 / ingested files`  |
-| `-f`, `--format`   | Output format (`html` or `pdf`). PDF also retains Markdown and HTML. |         `html`         |
-| `ftdc_path`        | Point to a folder of ftdc files or a single ftdc file                |          n/a           |
+| `-r`, `--rate`     | Controls FTDC sampling and accepts a value between `0` and `1`.      |  `1 / ingested files`  |
+| `-f`, `--format`   | Output format (`markdown`, `html` or `pdf`). PDF also retains HTML.  |         `html`         |
+| `--svg`            | Reference SVG charts instead of converting to PNG.                   |        `false`         |
+| `--discover`       | Recursively search the given path for folders containing FTDC files. |        `false`         |
+| `ftdc_path`        | Path to a directory containing FTDC files.                           |          n/a           |
 | `start_time`       | FTDC time filter start.                                              | beginning of all files |
 | `end_time`         | FTDC time filter end.                                                |    end of all files    |
 
