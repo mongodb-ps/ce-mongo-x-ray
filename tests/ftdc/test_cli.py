@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from x_ray.__main__ import _discover_path, setup_parser
+from x_ray.__main__ import _discover_paths, setup_parser
 
 
 def test_ftdc_accepts_optional_utc_range():
@@ -54,7 +54,7 @@ def test_discover_defaults_to_false():
     assert args.discover is False
 
 
-def test_discover_path_finds_log_files():
+def test_discover_paths_finds_log_files():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         nested = root / "deep" / "logs"
@@ -62,11 +62,11 @@ def test_discover_path_finds_log_files():
         (nested / "mongod.log").touch()
         (root / "other" / "empty").mkdir(parents=True)
 
-        result = _discover_path(root, "*.log*")
-        assert result == nested
+        result = _discover_paths(root, "*.log*")
+        assert result == [nested]
 
 
-def test_discover_path_finds_ftdc_files():
+def test_discover_paths_finds_ftdc_files():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         nested = root / "a" / "b" / "diagnostic.data"
@@ -74,28 +74,36 @@ def test_discover_path_finds_ftdc_files():
         (nested / "metrics.2024-01-01T00-00-00Z").touch()
         (root / "other").mkdir()
 
-        result = _discover_path(root, "metrics.*")
-        assert result == nested
+        result = _discover_paths(root, "metrics.*")
+        assert result == [nested]
 
 
-def test_discover_path_returns_none_when_not_found():
+def test_discover_paths_returns_empty_when_not_found():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         (root / "empty").mkdir()
 
-        result = _discover_path(root, "*.log*")
-        assert result is None
+        result = _discover_paths(root, "*.log*")
+        assert result == []
 
 
-def test_discover_path_returns_match():
+def test_discover_paths_returns_all_matches():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
-        target = root / "target"
-        target.mkdir(parents=True)
-        (target / "mongod.log").touch()
+        dir_a = root / "dir_a"
+        dir_b = root / "deep" / "dir_b"
+        dir_a.mkdir(parents=True)
+        dir_b.mkdir(parents=True)
+        (dir_a / "mongod.log").touch()
+        (dir_b / "mongod.log").touch()
 
-        result = _discover_path(root, "*.log*")
-        assert result == target
+        result = _discover_paths(root, "*.log*")
+        assert len(result) == 2
+        assert dir_a in result
+        assert dir_b in result
+        # shallowest first
+        assert result[0] == dir_a
+        assert result[1] == dir_b
 
 
 @pytest.mark.parametrize(

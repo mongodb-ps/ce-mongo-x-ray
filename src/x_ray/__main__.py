@@ -11,6 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 import argparse
 import logging
 import os
+from copy import deepcopy
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
@@ -26,16 +27,18 @@ from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
 logger = logging.getLogger(__name__)
 
 
-def _discover_path(root: Path, glob_pattern: str) -> Path | None:
-    """Recursively search *root* for the first directory containing files matching *glob_pattern*.
+def _discover_paths(root: Path, glob_pattern: str) -> list[Path]:
+    """Recursively search *root* for all directories containing files matching *glob_pattern*.
 
-    Returns the directory path, or ``None`` if no match is found.
+    Returns a list of directory paths, sorted by depth (shallowest first).
     """
+    found: dict[str, Path] = {}
     for dirpath, _dirnames, filenames in os.walk(root):
         for f in filenames:
             if Path(f).match(glob_pattern):
-                return Path(dirpath)
-    return None
+                found[str(dirpath)] = Path(dirpath)
+                break  # one match per directory is enough
+    return sorted(found.values(), key=lambda p: (len(p.relative_to(root).parts), str(p)))
 
 
 def utc_iso_datetime(value: str) -> datetime:
@@ -370,19 +373,19 @@ def log_analysis_command(args):
     """Log analysis command"""
     log_path = Path(args.log_file)
     if args.discover:
-        discovered = _discover_path(log_path, "*.log*")
-        if discovered is None:
+        discovered = _discover_paths(log_path, "*.log*")
+        if not discovered:
             logger.error("No folder containing log files (*.log*) found under: %s", args.log_file)
             return 1
-        logger.info("Discovered log folder: %s", discovered)
-        log_path = discovered
-    if not log_path.exists():
-        logger.error("Log path not found: %s", args.log_file)
-        return 1
+        logger.info("Discovered %d log folder(s): %s", len(discovered),
+                     ", ".join(str(d) for d in discovered))
+    else:
+        discovered = [log_path]
+
     if args.start_time and args.end_time and args.start_time > args.end_time:
         logger.error("Log start time must be before or equal to end time.")
         return 1
-    logger.info("Analyzing log: %s", str(log_path))
+
     try:
         config = load_config(args.config)["log"]
         config["sample_rate"] = args.rate
@@ -392,16 +395,24 @@ def log_analysis_command(args):
         logger.info("Please provide a valid path to config.json.")
         return 1
 
-    checkset = args.checkset
-    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
-    framework = LogAnalysisFramework(
-        str(log_path),
-        config,
-        start_time=args.start_time,
-        end_time=args.end_time,
-    )
-    framework.run_logs_analysis(checkset, output_folder=output_folder)
-    framework.output_results(output_folder=output_folder, fmt=args.format)
+    for log_path_item in discovered:
+        if not log_path_item.exists():
+            logger.error("Log path not found: %s", log_path_item)
+            return 1
+        logger.info("Analyzing log: %s", str(log_path_item))
+        base_output = args.output if args.output.endswith("/") else f"{args.output}/"
+        if len(discovered) > 1:
+            output_folder = f"{base_output}{log_path_item.name}/"
+        else:
+            output_folder = base_output
+        framework = LogAnalysisFramework(
+            str(log_path_item),
+            deepcopy(config),
+            start_time=args.start_time,
+            end_time=args.end_time,
+        )
+        framework.run_logs_analysis(args.checkset, output_folder=output_folder)
+        framework.output_results(output_folder=output_folder, fmt=args.format)
     return 0
 
 
@@ -430,19 +441,19 @@ def ftdc_analysis_command(args):
     """FTDC analysis command."""
     ftdc_path = Path(args.ftdc_path)
     if args.discover:
-        discovered = _discover_path(ftdc_path, "metrics.*")
-        if discovered is None:
+        discovered = _discover_paths(ftdc_path, "metrics.*")
+        if not discovered:
             logger.error("No folder containing FTDC files (metrics.*) found under: %s", args.ftdc_path)
             return 1
-        logger.info("Discovered FTDC folder: %s", discovered)
-        ftdc_path = discovered
-    if not ftdc_path.is_dir():
-        logger.error("FTDC folder not found: %s", args.ftdc_path)
-        return 1
+        logger.info("Discovered %d FTDC folder(s): %s", len(discovered),
+                     ", ".join(str(d) for d in discovered))
+    else:
+        discovered = [ftdc_path]
+
     if args.start_time and args.end_time and args.start_time > args.end_time:
         logger.error("FTDC start time must be before or equal to end time.")
         return 1
-    logger.info("Analyzing FTDC data: %s", args.ftdc_path)
+
     try:
         config = load_config(args.config)["ftdc"]
         if args.rate is not None:
@@ -455,16 +466,25 @@ def ftdc_analysis_command(args):
         logger.error("FTDC configuration is missing from the config file.")
         return 1
 
-    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
-    framework = FTDCAnalysisFramework(
-        str(ftdc_path),
-        config,
-        start_time=args.start_time,
-        end_time=args.end_time,
-        image_format="svg" if args.svg else "png",
-    )
-    framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
-    framework.output_results(output_folder=output_folder, fmt=args.format)
+    for ftdc_path_item in discovered:
+        if not ftdc_path_item.is_dir():
+            logger.error("FTDC folder not found: %s", ftdc_path_item)
+            return 1
+        logger.info("Analyzing FTDC data: %s", str(ftdc_path_item))
+        base_output = args.output if args.output.endswith("/") else f"{args.output}/"
+        if len(discovered) > 1:
+            output_folder = f"{base_output}{ftdc_path_item.name}/"
+        else:
+            output_folder = base_output
+        framework = FTDCAnalysisFramework(
+            str(ftdc_path_item),
+            deepcopy(config),
+            start_time=args.start_time,
+            end_time=args.end_time,
+            image_format="svg" if args.svg else "png",
+        )
+        framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
+        framework.output_results(output_folder=output_folder, fmt=args.format)
     return 0
 
 
