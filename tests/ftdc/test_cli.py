@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+from pathlib import Path
+import tempfile
 
 import pytest
 
-from x_ray.__main__ import setup_parser
+from x_ray.__main__ import _discover_path, setup_parser
 
 
 def test_ftdc_accepts_optional_utc_range():
@@ -30,6 +32,70 @@ def test_ftdc_accepts_pdf_format():
     args = setup_parser().parse_args(["ftdc", "/diagnostic.data", "-f", "pdf"])
 
     assert args.format == "pdf"
+
+
+def test_log_accepts_discover_flag():
+    args = setup_parser().parse_args(["log", "/tmp/logs", "--discover"])
+
+    assert args.discover is True
+
+
+def test_ftdc_accepts_discover_flag():
+    args = setup_parser().parse_args(["ftdc", "/tmp/data", "--discover"])
+
+    assert args.discover is True
+
+
+def test_discover_defaults_to_false():
+    args = setup_parser().parse_args(["log", "/tmp/logs"])
+    assert args.discover is False
+
+    args = setup_parser().parse_args(["ftdc", "/tmp/data"])
+    assert args.discover is False
+
+
+def test_discover_path_finds_log_files():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        nested = root / "deep" / "logs"
+        nested.mkdir(parents=True)
+        (nested / "mongod.log").touch()
+        (root / "other" / "empty").mkdir(parents=True)
+
+        result = _discover_path(root, "*.log*")
+        assert result == nested
+
+
+def test_discover_path_finds_ftdc_files():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        nested = root / "a" / "b" / "diagnostic.data"
+        nested.mkdir(parents=True)
+        (nested / "metrics.2024-01-01T00-00-00Z").touch()
+        (root / "other").mkdir()
+
+        result = _discover_path(root, "metrics.*")
+        assert result == nested
+
+
+def test_discover_path_returns_none_when_not_found():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "empty").mkdir()
+
+        result = _discover_path(root, "*.log*")
+        assert result is None
+
+
+def test_discover_path_returns_match():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        target = root / "target"
+        target.mkdir(parents=True)
+        (target / "mongod.log").touch()
+
+        result = _discover_path(root, "*.log*")
+        assert result == target
 
 
 @pytest.mark.parametrize(

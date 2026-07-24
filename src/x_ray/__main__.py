@@ -10,6 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 import argparse
 import logging
+import os
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
@@ -23,6 +24,18 @@ from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
 from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
 
 logger = logging.getLogger(__name__)
+
+
+def _discover_path(root: Path, glob_pattern: str) -> Path | None:
+    """Recursively search *root* for the first directory containing files matching *glob_pattern*.
+
+    Returns the directory path, or ``None`` if no match is found.
+    """
+    for dirpath, _dirnames, filenames in os.walk(root):
+        for f in filenames:
+            if Path(f).match(glob_pattern):
+                return Path(dirpath)
+    return None
 
 
 def utc_iso_datetime(value: str) -> datetime:
@@ -212,6 +225,12 @@ For more information on specific commands, use:
         default=1.0,
     )
     log_parser.add_argument("--top", help="Top N slow queries. Defaults to 10.", type=int, default=10)
+    log_parser.add_argument(
+        "--discover",
+        help="Recursively search the given path for a folder containing log files.",
+        action="store_true",
+        default=False,
+    )
 
     gmd_epilog = """
     Examples:
@@ -308,6 +327,12 @@ For more information on specific commands, use:
         type=sample_rate,
         default=None,
     )
+    ftdc_parser.add_argument(
+        "--discover",
+        help="Recursively search the given path for a folder containing FTDC files.",
+        action="store_true",
+        default=False,
+    )
 
     return parser
 
@@ -344,13 +369,20 @@ def health_check_command(args):
 def log_analysis_command(args):
     """Log analysis command"""
     log_path = Path(args.log_file)
+    if args.discover:
+        discovered = _discover_path(log_path, "*.log*")
+        if discovered is None:
+            logger.error("No folder containing log files (*.log*) found under: %s", args.log_file)
+            return 1
+        logger.info("Discovered log folder: %s", discovered)
+        log_path = discovered
     if not log_path.exists():
         logger.error("Log path not found: %s", args.log_file)
         return 1
     if args.start_time and args.end_time and args.start_time > args.end_time:
         logger.error("Log start time must be before or equal to end time.")
         return 1
-    logger.info("Analyzing log: %s", args.log_file)
+    logger.info("Analyzing log: %s", str(log_path))
     try:
         config = load_config(args.config)["log"]
         config["sample_rate"] = args.rate
@@ -363,7 +395,7 @@ def log_analysis_command(args):
     checkset = args.checkset
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
     framework = LogAnalysisFramework(
-        args.log_file,
+        str(log_path),
         config,
         start_time=args.start_time,
         end_time=args.end_time,
@@ -396,7 +428,15 @@ def gmd_alalysis_command(args):
 
 def ftdc_analysis_command(args):
     """FTDC analysis command."""
-    if not Path(args.ftdc_path).is_dir():
+    ftdc_path = Path(args.ftdc_path)
+    if args.discover:
+        discovered = _discover_path(ftdc_path, "metrics.*")
+        if discovered is None:
+            logger.error("No folder containing FTDC files (metrics.*) found under: %s", args.ftdc_path)
+            return 1
+        logger.info("Discovered FTDC folder: %s", discovered)
+        ftdc_path = discovered
+    if not ftdc_path.is_dir():
         logger.error("FTDC folder not found: %s", args.ftdc_path)
         return 1
     if args.start_time and args.end_time and args.start_time > args.end_time:
@@ -417,7 +457,7 @@ def ftdc_analysis_command(args):
 
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
     framework = FTDCAnalysisFramework(
-        args.ftdc_path,
+        str(ftdc_path),
         config,
         start_time=args.start_time,
         end_time=args.end_time,
