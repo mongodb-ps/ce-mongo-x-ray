@@ -20,6 +20,7 @@ from bson import json_util
 from x_ray.table_width_extension import TableWidthExtension
 from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.log_analysis.log_items.info_item import InfoItem
+from x_ray.log_analysis.log_items.state_trace_item import StateTraceItem
 from x_ray.healthcheck.shared import to_json
 from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, html_to_pdf, inject_assets, env
 
@@ -164,6 +165,20 @@ class Framework:
             return False
         return True
 
+    def _any_file_fully_covered(self, files: list[Path]) -> bool:
+        """Return True if at least one file is fully within [start_time, end_time]."""
+        if self._start_time is None and self._end_time is None:
+            return True
+        for fp in files:
+            first_ts, last_ts = self._file_time_range(fp)
+            if first_ts is None or last_ts is None:
+                continue
+            if (self._start_time is None or first_ts >= self._start_time) and (
+                self._end_time is None or last_ts <= self._end_time
+            ):
+                return True
+        return False
+
     def run_logs_analysis(self, logset_name: str, *args, **kwargs):
         self._logset_name = logset_name
         # Create output folder if it doesn't exist
@@ -171,7 +186,7 @@ class Framework:
         batch_folder = self._get_output_folder(output_folder)
         # Dynamically load the log checkset based on the name
         logsets = self._config.get("logsets", {})
-        if not logset_name in logsets:
+        if logset_name not in logsets:
             self._logger.warning(
                 yellow(f"Log checkset '{logset_name}' not found in configuration. Using default logset.")
             )
@@ -192,6 +207,14 @@ class Framework:
 
         rate = self._config.get("sample_rate", 1.0)
         log_files = self._log_files()
+        partial_only = (self._start_time is not None or self._end_time is not None) and not self._any_file_fully_covered(
+            log_files
+        )
+        if partial_only:
+            self._logger.info(
+                "No log file is fully covered by the requested time range. "
+                "InfoItem and StateTraceItem will receive all lines."
+            )
         log_line: dict = {}
         global_counter: int = 0
 
@@ -217,40 +240,50 @@ class Framework:
                         continue
                     try:
                         if counter == 101 and line.startswith(SKIP_LINE_MSG):
-                            self._logger.debug(
-                                "Some lines are skipped due to the size limit. This is expected."
-                            )
+                            self._logger.debug("Some lines are skipped due to the size limit. This is expected.")
                             continue
                         log_line = _safe_json_loads(line)
                         if not log_line:
-                            self._logger.warning(
-                                yellow(f"Failed to parse log line as JSON: {line.strip()}")
-                            )
+                            self._logger.warning(yellow(f"Failed to parse log line as JSON: {line.strip()}"))
                             continue
                         if self._hostname is None:
                             hostname = log_line.get("hostname")
                             if isinstance(hostname, str) and hostname.strip():
                                 self._hostname = hostname.strip()
                         line_ts = log_line.get("t")
+                        out_of_range = False
                         if line_ts is not None:
                             if self._start_time is not None and line_ts < self._start_time:
-                                continue
-                            if self._end_time is not None and line_ts > self._end_time:
-                                continue
+                                out_of_range = True
+                            elif self._end_time is not None and line_ts > self._end_time:
+                                out_of_range = True
+
+                        if out_of_range and not partial_only:
+                            continue
+
                         if self._log_start is None:
                             self._log_start = line_ts
+
+                        if out_of_range:
+                            # partial_only: dispatch only to InfoItem and StateTraceItem
+                            for item in self._items:
+                                if isinstance(item, (InfoItem, StateTraceItem)):
+                                    try:
+                                        item.analyze(log_line)
+                                    except Exception as e:
+                                        self._logger.warning(
+                                            yellow(f"Log analysis item '{item.name}' failed: {e}")
+                                        )
+                            continue
+
                         for item in self._items:
                             try:
                                 item.analyze(log_line)
                             except Exception as e:
-                                self._logger.warning(
-                                    yellow(f"Log analysis item '{item.name}' failed: {e}")
-                                )
+                                self._logger.warning(yellow(f"Log analysis item '{item.name}' failed: {e}"))
                                 continue
                     except Exception as exc:
-                        self._logger.warning(
-                            yellow(f"Unexpected error processing log line: {exc}")
-                        )
+                        self._logger.warning(yellow(f"Unexpected error processing log line: {exc}"))
                         continue
 
         self._log_end = log_line.get("t", None) if log_line else None
