@@ -43,10 +43,12 @@ class TopSlowItem(BaseItem):
         docs_examined = attr.get("docsExamined", 0)
         plan_summary = attr.get("planSummary", "")
         query_pattern = analyze_query_pattern(log_line)
+        if query_pattern is None:
+            return
         if query_hash == "":
             # Some command doesn't have queryHash, e.g., getMore
             # If so, we generate one based on the query shape and sort
-            query_hash = json_hash(query_pattern if query_pattern else {}, 4)
+            query_hash = json_hash(query_pattern, 4)
             # query_hash = query_pattern.get("hash", "N/A") if query_pattern else "N/A"
         slow_query = self._cache.get(query_hash, None)
         if slow_query is None:
@@ -85,7 +87,7 @@ class TopSlowItem(BaseItem):
                 line_json = json_util.loads(line)
                 query_hash = line_json.get("query_hash", "N/A")
                 ns = line_json.get("ns", "N/A")
-                query_pattern = line_json.get("query_pattern", {})
+                query_pattern = line_json.get("query_pattern") or {}
                 op = query_pattern.get("type", "UNKNOWN")
                 pattern = query_pattern.get("pattern", {})
                 # query_hash = query_hash if query_hash != "" else "N/A"
