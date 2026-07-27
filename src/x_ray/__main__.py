@@ -21,7 +21,7 @@ from getpass import getpass
 from pathlib import Path
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
-from x_ray.utils import bold, green, load_config
+from x_ray.utils import bold, env, green, load_config
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
 from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
@@ -57,6 +57,8 @@ def _rename_with_hostname(batch_folder: str, framework) -> str:
 
     Returns the final folder path (renamed or original).
     """
+    if env == "development":
+        return batch_folder
     hostname = framework.hostname
     if hostname is None:
         return batch_folder
