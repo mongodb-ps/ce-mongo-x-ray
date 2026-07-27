@@ -91,10 +91,10 @@ class BaselineAnalysisParser(BaseParser):
             rows.append(row)
         header = [
             {"text": "Metric", "sortable": False, "width": "*"},
-            {"text": "Peak / Average", "sortable": False, "width": "200px"},
+            {"text": "Peak / Average", "sortable": False, "width": "150px"},
         ]
         if show_thresholds:
-            header.append({"text": "Warning / Critical Threshold", "sortable": False, "width": "200px"})
+            header.append({"text": "Warning / Critical Threshold", "sortable": False, "width": "150px"})
         header.append({"text": "Chart", "sortable": False, "width": "500px"})
         return [
             {
