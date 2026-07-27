@@ -121,6 +121,8 @@ def analyze_query_pattern(log_line):
     attr = log_line.get("attr", {})
     op_type = attr.get("type", "")
     command = attr.get("command", {})
+    if not isinstance(command, dict):
+        return None
     if op_type == "update":
         # The real update command
         query_type = "update"
