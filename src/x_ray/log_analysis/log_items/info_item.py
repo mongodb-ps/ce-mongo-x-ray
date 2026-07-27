@@ -145,6 +145,10 @@ class InfoItem(BaseItem):
                     f"|{member.get('_id', 'Unknown')}|{member.get('host', 'Unknown')}|{member.get('arbiterOnly', False)}|{member.get('priority', 0)}|{member.get('votes', 0)}|{member.get('hidden', False)}|{member.get('secondaryDelaySecs', 0)}|\n"
                 )
             f.write("\n")
+            if rs_config is not None:
+                f.write("```json\n")
+                f.write(to_json(rs_config, indent=4))
+                f.write("\n```\n\n")
         command_line_options = self._cache.get("command_line_options", None)
         if command_line_options:
             f.write("### Command Line Options\n\n")
