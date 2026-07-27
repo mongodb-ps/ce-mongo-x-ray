@@ -223,8 +223,15 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     def finalize_analysis(self) -> None:
         local_members = self._local_rs_members()
-        workload_metrics = (*OPCOUNTER_METRICS.values(), *OPCOUNTER_REPL_METRICS.values())
-        workload = [self._summary(metric.name, self._counter_rate(metric.key), "ops/s") for metric in workload_metrics]
+        workload = []
+        for metric in (*OPCOUNTER_METRICS.values(), *OPCOUNTER_REPL_METRICS.values()):
+            points = self._counter_rate(metric.key)
+            if not points:
+                continue
+            peak = max(v for _, v in points)
+            if peak <= 0:
+                continue
+            workload.append(self._summary(metric.name, points, "ops/s"))
 
         read_write = []
         for operation in ("reads", "writes"):

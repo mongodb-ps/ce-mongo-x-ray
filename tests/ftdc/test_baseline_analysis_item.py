@@ -128,8 +128,8 @@ def test_baseline_analysis_passes_metric_specific_thresholds_to_charts(tmp_path,
     assert chart_thresholds[f'{DERIVED_METRIC_NAMES["disk_utilization"]} (/data)'] == (80, 90)
     assert chart_thresholds[f'{MOUNT_METRICS["free"].name} (/data)'] is None
     assert chart_thresholds[f'{MOUNT_METRICS["capacity"].name} (/data)'] is None
-    assert chart_thresholds[OPCOUNTER_METRICS["query"].name] is None
-    assert chart_types[OPCOUNTER_METRICS["query"].name] == "line"
+    assert OPCOUNTER_METRICS["query"].name not in chart_thresholds
+    assert OPCOUNTER_METRICS["query"].name not in chart_types
     assert chart_types[DERIVED_METRIC_NAMES["system_memory_utilization"]] == "line"
     assert chart_types[f'{MOUNT_METRICS["capacity"].name} (/data)'] == "line"
 
@@ -324,12 +324,12 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     ]
     workload = item._results["Workload"]
     assert [result["metric"] for result in workload] == [
-        *(metric.name for metric in OPCOUNTER_METRICS.values()),
-        *(metric.name for metric in OPCOUNTER_REPL_METRICS.values()),
+        metric.name
+        for metric in (*OPCOUNTER_METRICS.values(), *OPCOUNTER_REPL_METRICS.values())
+        if item._series.get(metric.key)
     ]
     assert workload[0]["peak"] == 20
     assert workload[0]["average"] == 15
-    assert workload[len(OPCOUNTER_METRICS)]["peak"] == 0
     assert all(result["chart_type"] == "line" for result in workload)
 
     reads, read_latency, writes, write_latency = item._results["Ops and Latencies"]
@@ -426,11 +426,12 @@ def test_secondary_workload_includes_regular_and_replication_opcounters(tmp_path
 
     workload = item._results["Workload"]
     assert [result["metric"] for result in workload] == [
-        *(metric.name for metric in OPCOUNTER_METRICS.values()),
-        *(metric.name for metric in OPCOUNTER_REPL_METRICS.values()),
+        metric.name
+        for metric in (*OPCOUNTER_METRICS.values(), *OPCOUNTER_REPL_METRICS.values())
+        if item._series.get(metric.key)
     ]
     assert workload[0]["peak"] == 100
-    assert workload[len(OPCOUNTER_METRICS)]["peak"] == 7
+    assert workload[1]["peak"] == 7
 
 
 def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
@@ -475,7 +476,8 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
         '<span data-sortable="false">Peak / Average</span>{200px}|'
         '<span data-sortable="false">Chart</span>{500px}|'
     )
-    assert baseline_header_base in workload
+    assert baseline_header_base not in workload
+    assert "_No data available._" in workload
     assert baseline_header_base in ops_and_latencies
     assert "Warning / Critical Threshold" not in workload
     assert "Warning / Critical Threshold" not in ops_and_latencies
@@ -499,7 +501,7 @@ def test_baseline_analysis_ignores_counter_resets_and_large_gaps(tmp_path):
 
     item.finalize_analysis()
 
-    assert item._results["Workload"][0]["peak"] == 0
+    assert len(item._results["Workload"]) == 0
     assert item._results["Performance"][2]["peak"] == 0
 
 
