@@ -440,6 +440,10 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     item._series = {
         "replSetGetStatus.members.0.state": {timestamp: 3},
         "replSetGetStatus.members.0.self": {timestamp: 1},
+        OP_LATENCY_METRICS["reads"]["ops"].key: {timestamp: 100, timestamp + timedelta(seconds=1): 200},
+        OP_LATENCY_METRICS["reads"]["latency"].key: {timestamp: 1000, timestamp + timedelta(seconds=1): 2000},
+        OP_LATENCY_METRICS["writes"]["ops"].key: {timestamp: 50, timestamp + timedelta(seconds=1): 100},
+        OP_LATENCY_METRICS["writes"]["latency"].key: {timestamp: 500, timestamp + timedelta(seconds=1): 1000},
     }
     item._rs_member_metrics = {
         "0": {
@@ -530,6 +534,9 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
         "security": {"authorization": "enabled"},
     }
     item._hostname = "mongo.example.test:27017"
+    item._series = {
+        OP_LATENCY_METRICS["reads"]["ops"].key: {datetime(2026, 1, 1, tzinfo=timezone.utc): 100},
+    }
     item.finalize_analysis()
     output = StringIO()
 

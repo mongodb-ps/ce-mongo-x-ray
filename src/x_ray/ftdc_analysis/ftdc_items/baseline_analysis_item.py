@@ -3,6 +3,7 @@
 import re
 from collections.abc import Iterable
 from datetime import datetime
+from functools import cached_property
 from math import ceil, isfinite
 from posixpath import normpath
 from pathlib import Path
@@ -250,6 +251,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     ),
                 ]
             )
+        read_write = [item for item in read_write if item["peak"] > 0]
 
         performance = [
             self._performance_summary(
@@ -566,6 +568,15 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             chart_type="line",
         )
 
+    @cached_property
+    def _is_mongos(self) -> bool:
+        """Mongos does not have opLatencies in serverStatus."""
+        return all(
+            OP_LATENCY_METRICS[op][kind].key not in self._series
+            for op in ("reads", "writes")
+            for kind in ("ops", "latency")
+        )
+
     def review_results_markdown(self, output, section_number: int = 1) -> None:
         output.write(f"## {section_number} Baseline Analysis\n\n")
         if self._capture_start is not None and self._capture_end is not None:
@@ -581,15 +592,16 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             output.write("- Hostname: _No data available._\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
-        output.write("Member State:\n\n")
-        output.write(
-            parser.markdown(
-                self._results["Member State"],
-                caption=None,
-                member_state=True,
-                output_folder=str(self.output_folder),
+        if not self._is_mongos:
+            output.write("Member State:\n\n")
+            output.write(
+                parser.markdown(
+                    self._results["Member State"],
+                    caption=None,
+                    member_state=True,
+                    output_folder=str(self.output_folder),
+                )
             )
-        )
         subsection_numbers = {
             "Workload": 1,
             "Ops and Latencies": 2,
@@ -597,6 +609,8 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         }
         for section in ("Workload", "Ops and Latencies", "Performance"):
             results = self._results[section]
+            if section == "Ops and Latencies" and self._is_mongos:
+                continue
             subsection_number = subsection_numbers[section]
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
             output.write(
