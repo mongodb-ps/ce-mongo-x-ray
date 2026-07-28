@@ -670,6 +670,62 @@ def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
     assert CPU_METRICS["iowait"].name in performance_metrics
 
 
+def test_csrs_excludes_cache_and_disk_metrics_from_performance(tmp_path):
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {
+            "max_sample_gap_seconds": 5,
+            "chart_width": 640,
+            "chart_height": 250,
+        },
+        image_format="svg",
+    )
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    middle = start + timedelta(seconds=1)
+    end = middle + timedelta(seconds=1)
+    gib = 1024**3
+    item._series = {
+        CPU_METRICS["available_cores"].key: {start: 2, middle: 2, end: 2},
+        CPU_METRICS["user"].key: {start: 1000, middle: 1200, end: 1600},
+        MEMORY_METRICS["total"].key: {start: 1000, middle: 1000, end: 1000},
+        MEMORY_METRICS["free"].key: {start: 300, middle: 250, end: 200},
+        MEMORY_METRICS["buffers"].key: {start: 50, middle: 50, end: 50},
+        MEMORY_METRICS["cached"].key: {start: 50, middle: 50, end: 50},
+        TCMALLOC_METRICS["pageheap_free_bytes"].key: {start: 1000, middle: 1500, end: 2000},
+        WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
+        WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
+        WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
+        WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key: {start: 5, middle: 10, end: 15},
+        "systemMetrics.disks.sda.io_queued_ms": {start: 1000, middle: 3000, end: 7000},
+        "systemMetrics.mounts./data/db.free": {start: 4 * gib, middle: 3 * gib, end: 2 * gib},
+        "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
+    }
+    item._mongodb_config = {"sharding": {"clusterRole": "configsvr"}}
+    item._disk_queue_metrics = {"systemMetrics.disks.sda.io_queued_ms": "sda"}
+    item._mount_metrics = {
+        "/data/db": {
+            "free": "systemMetrics.mounts./data/db.free",
+            "capacity": "systemMetrics.mounts./data/db.capacity",
+        },
+    }
+
+    assert item._member_role == MemberRole.CSRS
+    item.finalize_analysis()
+
+    performance_results = item._results["Performance"]
+    performance_metrics = {result["metric"] for result in performance_results}
+
+    assert DERIVED_METRIC_NAMES["cache_fill"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_dirty"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_update_ratio"] not in performance_metrics
+    assert f'{DISK_METRICS["io_in_progress"].name} (sda)' not in performance_metrics
+    assert f'{MOUNT_METRICS["free"].name} (/data/db)' not in performance_metrics
+    assert f'{MOUNT_METRICS["capacity"].name} (/data/db)' not in performance_metrics
+
+    assert DERIVED_METRIC_NAMES["system_memory_utilization"] in performance_metrics
+    assert CPU_METRICS["user"].name in performance_metrics
+
+
 def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
     item._mongodb_config = {"sharding": {"configDB": "configReplSet/config1:27019"}}

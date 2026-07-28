@@ -443,7 +443,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
 
-        if self._member_role == MemberRole.MONGOS:
+        if self._member_role in (MemberRole.MONGOS, MemberRole.CSRS):
             performance = [
                 item
                 for item in performance
