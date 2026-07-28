@@ -185,22 +185,29 @@ def _draw_png(
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
 
-    for offset in _grid_offsets(plot_height, _Y_GRID_SPACING * scale):
-        ratio = offset / plot_height
-        y = top + plot_height - offset
-        draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
-        label_value = scale_max * ratio
-        if value_labels:
-            label_text = value_labels.get(round(label_value), str(round(label_value, 2)))
-        else:
-            label_text = str(round(label_value, 2))
-        draw.text(
-            (left - 6 * scale, y),
-            label_text,
-            fill=_TEXT_COLOR,
-            font=font,
-            anchor="rm",
-        )
+    if value_labels:
+        for value, label in sorted(value_labels.items()):
+            y = top + plot_height - (value / scale_max) * plot_height
+            draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
+            draw.text(
+                (left - 6 * scale, y),
+                label,
+                fill=_TEXT_COLOR,
+                font=font,
+                anchor="rm",
+            )
+    else:
+        for offset in _grid_offsets(plot_height, _Y_GRID_SPACING * scale):
+            ratio = offset / plot_height
+            y = top + plot_height - offset
+            draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
+            draw.text(
+                (left - 6 * scale, y),
+                str(round(scale_max * ratio, 2)),
+                fill=_TEXT_COLOR,
+                font=font,
+                anchor="rm",
+            )
 
     if start_time is not None:
         for offset in _grid_offsets(plot_width, _X_GRID_SPACING * scale):
@@ -405,19 +412,24 @@ def write_bar_chart(
     start_time = points[0][0] if points else None
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
-    for offset in _grid_offsets(plot_height, _Y_GRID_SPACING):
-        ratio = offset / plot_height
-        y = top + plot_height - offset
-        grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
-        label_value = scale_max * ratio
-        if parsed_value_labels:
-            label_text = parsed_value_labels.get(round(label_value), str(round(label_value, 2)))
-        else:
-            label_text = str(round(label_value, 2))
-        grid += (
-            f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
-            f'text-anchor="end">{label_text}</text>'
-        )
+    if parsed_value_labels:
+        for value, label in sorted(parsed_value_labels.items()):
+            y = top + plot_height - (value / scale_max) * plot_height
+            grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
+            grid += (
+                f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
+                f'text-anchor="end">{label}</text>'
+            )
+    else:
+        for offset in _grid_offsets(plot_height, _Y_GRID_SPACING):
+            ratio = offset / plot_height
+            y = top + plot_height - offset
+            grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
+            label_text = str(round(scale_max * ratio, 2))
+            grid += (
+                f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
+                f'text-anchor="end">{label_text}</text>'
+            )
 
     if start_time is not None:
         for offset in _grid_offsets(plot_width, _X_GRID_SPACING):
