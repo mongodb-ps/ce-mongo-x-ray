@@ -2,7 +2,7 @@ var charts = [];
 
 if (typeof Chart !== "undefined") {
     if (typeof ChartDataLabels !== "undefined") {
-        try { Chart.register(ChartDataLabels); } catch (e) {}
+        try { Chart.register(ChartDataLabels); } catch (e) { }
     }
     Chart.defaults.plugins.datalabels = { display: false };
 
@@ -10,8 +10,8 @@ if (typeof Chart !== "undefined") {
         id: "pieLabelPlugin",
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
-            // Pie occupies the center 1/3 of the chart width
-            var sidePad = Math.round(chart.width / 3);
+            // Pie occupies the center 1/2 of the chart width
+            var sidePad = Math.round(chart.width / 4);
             var padding = 20;
 
             // Estimate left/right item count based on slice angles
@@ -106,8 +106,14 @@ if (typeof Chart !== "undefined") {
                 ctx.fillText(item.text, labelX, y);
                 var textW = ctx.measureText(item.text).width;
                 var outer = item.arc.outerRadius;
-                var sx = item.arc.x + Math.cos(item.angle) * outer;
-                var sy = item.arc.y + Math.sin(item.angle) * outer;
+                var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
+                // Normalize labelAngle to the same revolution as the slice
+                var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
+                var twoPI = 2 * Math.PI;
+                labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
+                var clampedAngle = Math.max(item.arc.startAngle, Math.min(item.arc.endAngle, labelAngle));
+                var sx = item.arc.x + Math.cos(clampedAngle) * outer;
+                var sy = item.arc.y + Math.sin(clampedAngle) * outer;
                 var dx = 6;
                 var dotR = 2;
                 ctx.beginPath();
@@ -135,8 +141,14 @@ if (typeof Chart !== "undefined") {
                 ctx.fillText(item.text, labelX, y);
                 var textW = ctx.measureText(item.text).width;
                 var outer = item.arc.outerRadius;
-                var sx = item.arc.x + Math.cos(item.angle) * outer;
-                var sy = item.arc.y + Math.sin(item.angle) * outer;
+                var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
+                // Normalize labelAngle to the same revolution as the slice
+                var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
+                var twoPI = 2 * Math.PI;
+                labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
+                var clampedAngle = Math.max(item.arc.startAngle, Math.min(item.arc.endAngle, labelAngle));
+                var sx = item.arc.x + Math.cos(clampedAngle) * outer;
+                var sy = item.arc.y + Math.sin(clampedAngle) * outer;
                 var dx = 6;
                 var dotR = 2;
                 ctx.beginPath();
