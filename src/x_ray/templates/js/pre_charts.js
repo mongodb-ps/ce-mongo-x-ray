@@ -6,9 +6,45 @@ if (typeof Chart !== "undefined") {
     }
     Chart.defaults.plugins.datalabels = { display: false };
 
+    // Use an offscreen canvas for reliable text measurement during beforeLayout
+    var _measureCanvas = document.createElement("canvas");
+    var _measureCtx = _measureCanvas.getContext("2d");
+
+    function _measurePieLabels(chart) {
+        var threshold = window.PIE_LABEL_THRESHOLD || 0;
+        var total = chart.data.datasets[0].data.reduce(function (a, b) { return a + b; }, 0);
+        if (total <= 0) return { maxLeft: 0, maxRight: 0 };
+        _measureCtx.font = "bold 11px sans-serif";
+        var maxLeft = 0, maxRight = 0;
+        // Assume roughly half go to each side; measure all and take max for both
+        for (var i = 0; i < chart.data.labels.length; i++) {
+            var value = chart.data.datasets[0].data[i];
+            var pct = (value / total) * 100;
+            if (pct < threshold) continue;
+            var text = chart.data.labels[i] + "  " + pct.toFixed(1) + "%";
+            var w = _measureCtx.measureText(text).width;
+            if (w > maxLeft) maxLeft = w;
+            if (w > maxRight) maxRight = w;
+        }
+        return { maxLeft: maxLeft, maxRight: maxRight };
+    }
+
     var PieLabelPlugin = {
         id: "pieLabelPlugin",
-        // Use beforeDraw to set up font, afterDraw to render labels + lines
+        beforeLayout: function (chart) {
+            if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
+            var measured = _measurePieLabels(chart);
+            var labelPad = 10; // gap between pie edge and label text
+            // Set padding so the pie shrinks to make room for labels
+            chart.options.layout = {
+                padding: {
+                    left: Math.ceil(measured.maxLeft) + labelPad,
+                    right: Math.ceil(measured.maxRight) + labelPad,
+                    top: 5,
+                    bottom: 5,
+                }
+            };
+        },
         afterDraw: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
             var meta = chart.getDatasetMeta(0);
@@ -21,7 +57,6 @@ if (typeof Chart !== "undefined") {
             var fontSize = 11;
             var fontStr = "bold " + fontSize + "px sans-serif";
 
-            // Collect visible items, split left/right by slice midpoint angle
             var leftItems = [];
             var rightItems = [];
 
@@ -32,9 +67,7 @@ if (typeof Chart !== "undefined") {
                 var angle = (arc.startAngle + arc.endAngle) / 2;
                 var label = chart.data.labels[i];
                 var text = label + "  " + pct.toFixed(1) + "%";
-                ctx.font = fontStr;
-                var textW = ctx.measureText(text).width;
-                var item = { angle: angle, arc: arc, text: text, textW: textW, pct: pct };
+                var item = { angle: angle, arc: arc, text: text, pct: pct };
                 if (Math.cos(angle) >= 0) {
                     rightItems.push(item);
                 } else {
@@ -98,11 +131,9 @@ if (typeof Chart !== "undefined") {
     };
     Chart.register(PieLabelPlugin);
 
-    // For pie/doughnut: reserve space for labels via layout padding, hide legend
+    // Hide legend for pie/doughnut — labels rendered by custom plugin
     Chart.overrides.pie.plugins = Chart.overrides.pie.plugins || {};
     Chart.overrides.pie.plugins.legend = { display: false };
-    Chart.overrides.pie.layout = { padding: { left: 60, right: 60, top: 10, bottom: 10 } };
     Chart.overrides.doughnut.plugins = Chart.overrides.doughnut.plugins || {};
     Chart.overrides.doughnut.plugins.legend = { display: false };
-    Chart.overrides.doughnut.layout = { padding: { left: 60, right: 60, top: 10, bottom: 10 } };
 }
