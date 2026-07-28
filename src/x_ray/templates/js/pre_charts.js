@@ -5,11 +5,7 @@ if (typeof Chart !== "undefined") {
         try { Chart.register(ChartDataLabels); } catch (e) {}
     }
     Chart.defaults.plugins.datalabels = {
-        display: function (ctx) {
-            return ctx.chart.config.type !== "pie";
-        },
-        color: "#333",
-        font: { weight: "bold", size: 11 },
+        display: false,
     };
     Chart.defaults.plugins.labels = {
         render: function (args) {
