@@ -104,10 +104,13 @@ def inject_assets(template: str, module: str) -> str:
     pre_parts = sorted(p for p in js_dir.glob("pre_*.js") if ".raw." not in p.name)
     if pre_parts:
         pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
-        template = template.replace(
-            "{{ pre_script }}",
-            f"<script type=\"text/javascript\">\n{pre_content}\n</script>",
+        config = load_config(None)
+        threshold = config.get("pie_label_threshold", 0)
+        pre_tag = (
+            f"<script>var PIE_LABEL_THRESHOLD = {threshold};</script>\n"
+            f"<script type=\"text/javascript\">\n{pre_content}\n</script>"
         )
+        template = template.replace("{{ pre_script }}", pre_tag)
 
     # --- JS (post-body) ---
     post_parts = sorted(p for p in js_dir.glob("post_*.js") if ".raw." not in p.name)

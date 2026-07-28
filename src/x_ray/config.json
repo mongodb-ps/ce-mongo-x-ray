@@ -1,4 +1,5 @@
 {
+    "pie_label_threshold": 0,
     "healthcheck": {
         "checksets": {
             "default": {
