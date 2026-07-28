@@ -87,8 +87,9 @@ if (typeof Chart !== "undefined") {
             });
 
             var sortByAngle = function (a, b) { return a.angle - b.angle; };
-            leftItems.sort(sortByAngle);
+            var sortByAngleDesc = function (a, b) { return b.angle - a.angle; };
             rightItems.sort(sortByAngle);
+            leftItems.sort(sortByAngleDesc);
 
             var lineGap = 6;
             var spacing = fontSize + 5;
