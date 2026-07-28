@@ -15,7 +15,7 @@ def _assert_all_report_formats(output_folder):
     assert (output_folder / "report.md").is_file()
     html_text = (output_folder / "report.html").read_text(encoding="utf-8")
     assert "@page" in html_text
-    assert "size: landscape" in html_text
+    assert "size: landscape" in html_text or "size:landscape" in html_text
     assert (output_folder / "report.pdf").read_bytes().startswith(b"%PDF")
 
 

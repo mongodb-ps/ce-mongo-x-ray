@@ -6,44 +6,55 @@ if (typeof Chart !== "undefined") {
     }
     Chart.defaults.plugins.datalabels = { display: false };
 
-    // Use an offscreen canvas for reliable text measurement during beforeLayout
-    var _measureCanvas = document.createElement("canvas");
-    var _measureCtx = _measureCanvas.getContext("2d");
-
-    function _measurePieLabels(chart) {
-        var threshold = window.PIE_LABEL_THRESHOLD || 0;
-        var total = chart.data.datasets[0].data.reduce(function (a, b) { return a + b; }, 0);
-        if (total <= 0) return { maxLeft: 0, maxRight: 0 };
-        _measureCtx.font = "bold 11px sans-serif";
-        var maxLeft = 0, maxRight = 0;
-        // Assume roughly half go to each side; measure all and take max for both
-        for (var i = 0; i < chart.data.labels.length; i++) {
-            var value = chart.data.datasets[0].data[i];
-            var pct = (value / total) * 100;
-            if (pct < threshold) continue;
-            var text = chart.data.labels[i] + "  " + pct.toFixed(1) + "%";
-            var w = _measureCtx.measureText(text).width;
-            if (w > maxLeft) maxLeft = w;
-            if (w > maxRight) maxRight = w;
-        }
-        return { maxLeft: maxLeft, maxRight: maxRight };
-    }
-
     var PieLabelPlugin = {
         id: "pieLabelPlugin",
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
-            var measured = _measurePieLabels(chart);
-            var labelPad = 10; // gap between pie edge and label text
-            // Set padding so the pie shrinks to make room for labels
+            // Pie occupies the center 1/3 of the chart width
+            var sidePad = Math.round(chart.width / 3);
+            var padding = 20;
+
+            // Estimate left/right item count based on slice angles
+            var threshold = window.PIE_LABEL_THRESHOLD || 0;
+            var data = chart.data.datasets[0].data;
+            var total = data.reduce(function (a, b) { return a + b; }, 0);
+            var leftCount = 0, rightCount = 0;
+            if (total > 0) {
+                var currentAngle = -Math.PI / 2; // start from 12 o'clock
+                for (var i = 0; i < data.length; i++) {
+                    var value = data[i];
+                    var sliceAngle = (value / total) * 2 * Math.PI;
+                    var midAngle = currentAngle + sliceAngle / 2;
+                    var pct = (value / total) * 100;
+                    if (pct >= threshold) {
+                        if (Math.cos(midAngle) >= 0) rightCount++; else leftCount++;
+                    }
+                    currentAngle += sliceAngle;
+                }
+            }
+
+            var fontSize = 11;
+            var spacing = fontSize + 5;
+            var maxLabelCount = Math.max(leftCount, rightCount);
+
+            // Height needed for labels (first label has spacing offset, then each adds spacing)
+            var labelHeight = (maxLabelCount + 1) * spacing;
+
+            // Height for a circular pie: pie occupies center 1/3 of width, so pie side = chart.width / 3
+            var pieWidth = chart.width - sidePad * 2;
+            var pieHeight = pieWidth; // circular
+
+            var chartHeight = Math.max(pieHeight, labelHeight);
+
             chart.options.layout = {
                 padding: {
-                    left: Math.ceil(measured.maxLeft) + labelPad,
-                    right: Math.ceil(measured.maxRight) + labelPad,
-                    top: 5,
-                    bottom: 5,
+                    left: sidePad,
+                    right: sidePad,
+                    top: padding,
+                    bottom: padding,
                 }
             };
+            chart.options.aspectRatio = chart.width / (chartHeight + padding * 2);
         },
         afterDraw: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
@@ -86,43 +97,61 @@ if (typeof Chart !== "undefined") {
             ctx.font = fontStr;
             ctx.textBaseline = "middle";
 
-            // Right-side labels
-            var labelX = area.right + lineGap;
+            // Right-side labels — right-aligned to the edge
+            var labelX = chart.width - lineGap;
             var y = area.top + spacing;
-            ctx.textAlign = "left";
+            ctx.textAlign = "right";
             rightItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
                 ctx.fillText(item.text, labelX, y);
+                var textW = ctx.measureText(item.text).width;
                 var outer = item.arc.outerRadius;
                 var sx = item.arc.x + Math.cos(item.angle) * outer;
                 var sy = item.arc.y + Math.sin(item.angle) * outer;
+                var dx = 6;
+                var dotR = 2;
                 ctx.beginPath();
-                ctx.moveTo(sx, sy);
-                ctx.lineTo(area.right, sy);
-                ctx.lineTo(labelX - 2, y);
+                ctx.moveTo(sx - dx, sy);
+                ctx.lineTo(sx + dx, sy);
+                ctx.lineTo(labelX - textW - dx - 2, y);
+                ctx.lineTo(labelX - textW - 2, y);
                 ctx.strokeStyle = "#999";
                 ctx.lineWidth = 1;
                 ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(sx - dx, sy, dotR, 0, 2 * Math.PI);
+                ctx.arc(labelX - textW - 2, y, dotR, 0, 2 * Math.PI);
+                ctx.fillStyle = "#999";
+                ctx.fill();
                 y += spacing;
             });
 
-            // Left-side labels
-            labelX = area.left - lineGap;
+            // Left-side labels — left-aligned to the edge
+            labelX = lineGap;
             y = area.top + spacing;
-            ctx.textAlign = "right";
+            ctx.textAlign = "left";
             leftItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
                 ctx.fillText(item.text, labelX, y);
+                var textW = ctx.measureText(item.text).width;
                 var outer = item.arc.outerRadius;
                 var sx = item.arc.x + Math.cos(item.angle) * outer;
                 var sy = item.arc.y + Math.sin(item.angle) * outer;
+                var dx = 6;
+                var dotR = 2;
                 ctx.beginPath();
-                ctx.moveTo(sx, sy);
-                ctx.lineTo(area.left, sy);
-                ctx.lineTo(labelX + 2, y);
+                ctx.moveTo(sx + dx, sy);
+                ctx.lineTo(sx - dx, sy);
+                ctx.lineTo(labelX + textW + dx + 2, y);
+                ctx.lineTo(labelX + textW + 2, y);
                 ctx.strokeStyle = "#999";
                 ctx.lineWidth = 1;
                 ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(sx + dx, sy, dotR, 0, 2 * Math.PI);
+                ctx.arc(labelX + textW + 2, y, dotR, 0, 2 * Math.PI);
+                ctx.fillStyle = "#999";
+                ctx.fill();
                 y += spacing;
             });
 
