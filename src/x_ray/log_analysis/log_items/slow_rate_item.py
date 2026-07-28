@@ -49,7 +49,7 @@ class SlowRateItem(BaseItem):
 
     def review_results_markdown(self, f):
         super().review_results_markdown(f)
-        f.write(f'<canvas id="canvas_{self.__class__.__name__}" width="400" height="200"></canvas>\n')
+        f.write(f'<canvas id="canvas_{self.__class__.__name__}" class="bar"></canvas>\n')
         f.write(f'<div class="pie100"><canvas id="canvas_{self.__class__.__name__}_byns" height="200"></canvas></div>\n')
         f.write(
             f'<div class="pie100"><canvas id="canvas_{self.__class__.__name__}_byns_ms" height="200"></canvas></div>\n'

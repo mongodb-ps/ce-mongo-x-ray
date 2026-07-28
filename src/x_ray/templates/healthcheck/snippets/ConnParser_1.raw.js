@@ -8,7 +8,6 @@ const totalCreatedData = labels.map(key => data[key].totalCreated);
 let wrapper = document.createElement('div');
 let canvas = document.createElement('canvas');
 wrapper.className = "bar";
-canvas.className = 'bar';
 container.appendChild(wrapper);
 wrapper.appendChild(canvas);
 const ctx = canvas.getContext('2d');
