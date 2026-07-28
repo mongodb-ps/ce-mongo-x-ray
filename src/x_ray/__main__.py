@@ -569,9 +569,13 @@ def main():
 
 if __name__ == "__main__":
     import multiprocessing
+    import signal
+    import sys as _sys
 
     multiprocessing.freeze_support()
-    try:
-        raise SystemExit(main())
-    except KeyboardInterrupt:
-        raise SystemExit(130)
+
+    def _handle_sigint(_signum, _frame):
+        _sys.exit(130)
+
+    signal.signal(signal.SIGINT, _handle_sigint)
+    raise SystemExit(main())
