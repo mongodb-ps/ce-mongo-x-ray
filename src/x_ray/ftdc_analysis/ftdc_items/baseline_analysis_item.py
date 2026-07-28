@@ -414,6 +414,23 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
 
+        if self._is_mongos:
+            performance = [
+                item
+                for item in performance
+                if not any(
+                    item["metric"].startswith(prefix)
+                    for prefix in (
+                        DERIVED_METRIC_NAMES["cache_fill"],
+                        DERIVED_METRIC_NAMES["cache_dirty"],
+                        DERIVED_METRIC_NAMES["cache_update_ratio"],
+                        DISK_METRICS["io_in_progress"].name,
+                        MOUNT_METRICS["free"].name,
+                        MOUNT_METRICS["capacity"].name,
+                    )
+                )
+            ]
+
         self._results = {
             "Workload": workload,
             "Ops and Latencies": read_write,

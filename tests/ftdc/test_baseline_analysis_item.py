@@ -560,3 +560,111 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
         < report.index("### 1.1 Workload")
     )
     assert "#### Baseline Analysis" not in report
+
+
+def test_is_mongos_detection_without_op_latencies(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._series = {
+        OPCOUNTER_METRICS["query"].key: {timestamp: 100},
+        CPU_METRICS["user"].key: {timestamp: 1000},
+    }
+
+    assert item._is_mongos is True
+
+
+def test_is_mongos_detection_with_op_latencies(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._series = {
+        OPCOUNTER_METRICS["query"].key: {timestamp: 100},
+        OP_LATENCY_METRICS["reads"]["ops"].key: {timestamp: 100},
+        OP_LATENCY_METRICS["reads"]["latency"].key: {timestamp: 1000},
+    }
+
+    assert item._is_mongos is False
+
+
+def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {
+            "max_sample_gap_seconds": 5,
+            "chart_width": 640,
+            "chart_height": 250,
+        },
+        image_format="svg",
+    )
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    middle = start + timedelta(seconds=1)
+    end = middle + timedelta(seconds=1)
+    gib = 1024**3
+    item._series = {
+        CPU_METRICS["available_cores"].key: {start: 2, middle: 2, end: 2},
+        CPU_METRICS["user"].key: {start: 1000, middle: 1200, end: 1600},
+        CPU_METRICS["system"].key: {start: 500, middle: 600, end: 800},
+        CPU_METRICS["iowait"].key: {start: 100, middle: 140, end: 200},
+        MEMORY_METRICS["total"].key: {start: 1000, middle: 1000, end: 1000},
+        MEMORY_METRICS["free"].key: {start: 300, middle: 250, end: 200},
+        MEMORY_METRICS["buffers"].key: {start: 50, middle: 50, end: 50},
+        MEMORY_METRICS["cached"].key: {start: 50, middle: 50, end: 50},
+        TCMALLOC_METRICS["pageheap_free_bytes"].key: {start: 1000, middle: 1500, end: 2000},
+        WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
+        WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
+        WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
+        WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key: {start: 5, middle: 10, end: 15},
+        "systemMetrics.disks.sda.io_queued_ms": {start: 1000, middle: 3000, end: 7000},
+        "systemMetrics.disks.sdb.io_queued_ms": {start: 1000, middle: 2000, end: 5000},
+        "systemMetrics.mounts./data/db.free": {start: 4 * gib, middle: 3 * gib, end: 2 * gib},
+        "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
+    }
+    # No opLatencies metrics — simulates mongos
+    item._disk_queue_metrics = {
+        "systemMetrics.disks.sda.io_queued_ms": "sda",
+        "systemMetrics.disks.sdb.io_queued_ms": "sdb",
+    }
+    item._mount_metrics = {
+        "/data/db": {
+            "free": "systemMetrics.mounts./data/db.free",
+            "capacity": "systemMetrics.mounts./data/db.capacity",
+        },
+    }
+
+    assert item._is_mongos is True
+    item.finalize_analysis()
+
+    performance_results = item._results["Performance"]
+    performance_metrics = {result["metric"] for result in performance_results}
+
+    # Excluded for mongos
+    assert DERIVED_METRIC_NAMES["cache_fill"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_dirty"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_update_ratio"] not in performance_metrics
+    assert f'{DISK_METRICS["io_in_progress"].name} (sda)' not in performance_metrics
+    assert f'{DISK_METRICS["io_in_progress"].name} (sdb)' not in performance_metrics
+    assert f'{MOUNT_METRICS["free"].name} (/data/db)' not in performance_metrics
+    assert f'{MOUNT_METRICS["capacity"].name} (/data/db)' not in performance_metrics
+
+    # Still included for mongos
+    assert DERIVED_METRIC_NAMES["system_memory_utilization"] in performance_metrics
+    assert DERIVED_METRIC_NAMES["memory_fragmentation_ratio"] in performance_metrics
+    assert CPU_METRICS["user"].name in performance_metrics
+    assert CPU_METRICS["system"].name in performance_metrics
+    assert CPU_METRICS["iowait"].name in performance_metrics
+
+
+def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._series = {
+        OPCOUNTER_METRICS["query"].key: {timestamp: 100},
+        CPU_METRICS["user"].key: {timestamp: 1000},
+    }
+    item.finalize_analysis()
+    output = StringIO()
+
+    item.review_results_markdown(output)
+
+    report = output.getvalue()
+    assert "### 1.2 Ops and Latencies" not in report
+    assert "Member State" not in report
