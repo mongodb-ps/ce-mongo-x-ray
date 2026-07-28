@@ -667,4 +667,5 @@ def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
 
     report = output.getvalue()
     assert "### 1.2 Ops and Latencies" not in report
+    assert "### 1.2 Performance" in report
     assert "Member State" not in report

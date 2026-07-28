@@ -619,16 +619,12 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     output_folder=str(self.output_folder),
                 )
             )
-        subsection_numbers = {
-            "Workload": 1,
-            "Ops and Latencies": 2,
-            "Performance": 3,
-        }
+        subsection_number = 0
         for section in ("Workload", "Ops and Latencies", "Performance"):
             results = self._results[section]
             if section == "Ops and Latencies" and self._is_mongos:
                 continue
-            subsection_number = subsection_numbers[section]
+            subsection_number += 1
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")
             output.write(
                 parser.markdown(
