@@ -569,13 +569,7 @@ def main():
 
 if __name__ == "__main__":
     import multiprocessing
-    import signal
-    import sys as _sys
 
     multiprocessing.freeze_support()
 
-    def _handle_sigint(_signum, _frame):
-        _sys.exit(130)
-
-    signal.signal(signal.SIGINT, _handle_sigint)
     raise SystemExit(main())
