@@ -758,6 +758,95 @@ def test_get_member_role_csrs():
     assert get_member_role({"sharding": {"clusterRole": "configsvr"}}) == MemberRole.CSRS
 
 
+def test_downsample_points_returns_every_60th():
+    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
+
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i))
+              for i in range(300)]
+    result = _downsample_points(points)
+    assert len(result) == 5  # 300 // 60
+    assert result[0] == points[0]
+    assert result[1] == points[60]
+    assert result[4] == points[240]
+
+
+def test_downsample_points_returns_all_when_fewer_than_60():
+    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
+
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc), float(i)) for i in range(30)]
+    result = _downsample_points(points)
+    assert len(result) == 30
+    assert result == points
+
+
+def test_summary_includes_downsampled_values(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    points = [
+        (datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i * 10))
+        for i in range(120)
+    ]
+    result = item._summary("test-metric", points, "ops/s", chart_type="bar")
+    assert "downsampled_values" in result
+    values = result["downsampled_values"]
+    assert len(values) == 2  # 120 // 60
+    assert values[0] == 0.0
+    assert values[1] == 600.0
+
+
+def test_collect_section_data_filters_entries_without_downsampled_values():
+    item = BaselineAnalysisItem("/tmp", {})
+    item._results = {
+        "Workload": [
+            {"metric": "a", "unit": "ops/s", "peak": 10, "average": 5, "downsampled_values": [1, 2, 3]},
+            {"metric": "b", "unit": "ops/s", "peak": 20, "average": 10},  # no downsampled_values
+            {"metric": "c", "unit": "ops/s", "peak": 0, "average": 0, "downsampled_values": [0, 0, 0]},  # peak=0
+        ],
+    }
+    data = item._collect_section_data("Workload")
+    assert len(data) == 1
+    assert data[0]["metric"] == "a"
+    assert data[0]["values"] == [1, 2, 3]
+
+
+def test_ai_results_rendered_in_markdown(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=1)
+    item._ai_results = {"Workload": "The workload shows a diurnal pattern."}
+    item._results = {
+        "Workload": [],
+        "Ops and Latencies": [],
+        "Performance": [],
+        "Member State": [],
+    }
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    output = StringIO()
+    item.review_results_markdown(output, section_number=1)
+    text = output.getvalue()
+
+    assert "🤖 AI Analysis" in text
+    assert "The workload shows a diurnal pattern." in text
+
+
+def test_no_ai_section_when_ai_results_empty(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=1)
+    item._ai_results = {}
+    item._results = {
+        "Workload": [],
+        "Ops and Latencies": [],
+        "Performance": [],
+        "Member State": [],
+    }
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    output = StringIO()
+    item.review_results_markdown(output, section_number=1)
+    text = output.getvalue()
+
+    assert "🤖 AI Analysis" not in text
+
+
 def test_get_member_role_replicaset():
     assert get_member_role({"replication": {"replSetName": "rs0"}}) == MemberRole.RS
 

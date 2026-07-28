@@ -40,6 +40,7 @@ from x_ray.ftdc_analysis.shared import (
     MemberRole,
     get_member_role,
 )
+from x_ray.utils import yellow
 
 MEMBER_STATE_COLORS: dict[float, str] = {
     0: "gray",  # STARTUP
@@ -72,6 +73,13 @@ MEMBER_STATE_NAMES: dict[float, str] = {
 DEFAULT_DB_PATH = "/data/db"
 
 
+def _downsample_points(points: list[tuple]) -> list[tuple]:
+    """Keep every 60th point (systematic sampling) for AI consumption."""
+    if len(points) <= 60:
+        return list(points)
+    return points[::60]
+
+
 class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
     """Summarize the workload and performance represented by an FTDC capture."""
 
@@ -91,6 +99,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._mount_metrics: dict[str, dict[str, str]] = {}
         self._rs_member_metrics: dict[str, dict[str, str]] = {}
         self._results: dict[str, list[dict]] = {}
+        self._ai_results: dict[str, str] = {}
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
@@ -467,6 +476,54 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "Member State": member_states,
         }
 
+        self._run_ai_analysis()
+
+    def _run_ai_analysis(self) -> None:
+        """Run AI analysis for each section, storing results in ``self._ai_results``."""
+        try:
+            from x_ray.ai_client import _get_client, analyze_ftdc_section
+        except ImportError:
+            return
+
+        client, _ = _get_client()
+        if client is None:
+            return
+
+        self._logger.info(yellow("Starting AI analysis — this may take a while..."))
+
+        member_role = self._member_role
+        section_map = {
+            "1.1 Workload": "Workload",
+            "1.2 Ops and Latencies": "Ops and Latencies",
+            "1.3 Performance": "Performance",
+        }
+        for section_title, category in section_map.items():
+            if category == "Ops and Latencies" and member_role == MemberRole.MONGOS:
+                continue
+            metrics_data = self._collect_section_data(category)
+            if not metrics_data:
+                continue
+            result = analyze_ftdc_section(section_title, metrics_data)
+            if result:
+                self._ai_results[category] = result
+
+    def _collect_section_data(self, category: str) -> list[dict]:
+        """Collect downsampled data for a single section."""
+        entries = self._results.get(category, [])
+        data = []
+        for entry in entries:
+            values = entry.get("downsampled_values")
+            peak = entry.get("peak", 0)
+            if values and peak > 0:
+                data.append({
+                    "metric": entry.get("metric", ""),
+                    "unit": entry.get("unit", ""),
+                    "peak": peak,
+                    "average": entry.get("average", ""),
+                    "values": values,
+                })
+        return data
+
     @staticmethod
     def _mount_slug(mount_point: str) -> str:
         if mount_point == "/":
@@ -594,6 +651,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "chart_type": chart_type,
             "chart_width": self._chart_width,
             "chart_height": self._chart_height,
+            "downsampled_values": [round(v, 4) for _, v in _downsample_points(points)],
         }
 
     def _performance_summary(
@@ -666,3 +724,9 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     show_thresholds=section == "Performance",
                 )
             )
+            ai_text = self._ai_results.get(section)
+            if ai_text:
+                output.write("\n> **🤖 AI Analysis**\n>\n")
+                for line in ai_text.strip().split("\n"):
+                    output.write(f"> {line}\n")
+                output.write("\n")

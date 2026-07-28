@@ -25,6 +25,15 @@ from typing import Union
 from bson import json_util
 from x_ray.version import Version
 
+# Load .env file before reading any environment variables
+try:
+    from dotenv import find_dotenv, load_dotenv
+    env_path = find_dotenv(usecwd=True)
+    if env_path:
+        load_dotenv(env_path)
+except ImportError:
+    pass
+
 levels = logging._nameToLevel
 level = os.getenv("LOG_LEVEL", "INFO")
 env = os.getenv("ENV", "production")
