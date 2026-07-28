@@ -8,7 +8,7 @@ from math import ceil, isfinite
 from posixpath import normpath
 from pathlib import Path
 from statistics import fmean
-from typing import Literal, Optional
+from typing import Literal, Optional, TypedDict
 
 from pyftdc import FTDCError, FTDCReader
 
@@ -73,11 +73,25 @@ MEMBER_STATE_NAMES: dict[float, str] = {
 DEFAULT_DB_PATH = "/data/db"
 
 
-def _downsample_points(points: list[tuple]) -> list[tuple]:
+def _downsample_points(points: list[tuple[datetime, float]]) -> list[tuple[datetime, float]]:
     """Keep every 60th point (systematic sampling) for AI consumption."""
     if len(points) <= 60:
         return list(points)
     return points[::60]
+
+
+class _ChartResult(TypedDict):
+    metric: str
+    peak: float
+    average: float
+    warning_threshold: Optional[float]
+    critical_threshold: Optional[float]
+    unit: str
+    chart: str
+    chart_type: str
+    chart_width: int
+    chart_height: int
+    downsampled_values: list[float]
 
 
 class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
@@ -507,7 +521,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             if result:
                 self._ai_results[category] = result
 
-    def _collect_section_data(self, category: str) -> list[dict]:
+    def _collect_section_data(self, category: str) -> list[dict[str, object]]:
         """Collect downsampled data for a single section."""
         entries = self._results.get(category, [])
         data = []
@@ -519,7 +533,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     "metric": entry.get("metric", ""),
                     "unit": entry.get("unit", ""),
                     "peak": peak,
-                    "average": entry.get("average", ""),
+                    "average": entry.get("average", 0.0),
                     "values": values,
                 })
         return data
@@ -628,7 +642,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         slug: Optional[str] = None,
         thresholds: Optional[tuple[float, float]] = None,
         chart_type: Literal["bar", "line"] = "line",
-    ) -> dict:
+    ) -> _ChartResult:
         values = [value for _, value in points]
         return {
             "metric": metric,
@@ -662,7 +676,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         *,
         slug: Optional[str] = None,
         thresholds: Optional[tuple[float, float]] = None,
-    ) -> dict:
+    ) -> _ChartResult:
         return self._summary(
             metric,
             points,
