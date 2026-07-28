@@ -57,4 +57,8 @@ if (typeof Chart !== "undefined") {
         }
     };
     Chart.register(PieLeaderLines);
+
+    // Hide legend for pie/doughnut charts — datalabels handle labeling
+    Chart.overrides.pie.plugins.legend = { display: false };
+    Chart.overrides.doughnut.plugins.legend = { display: false };
 }
