@@ -545,6 +545,7 @@ def main():
 
     def _quiet_excepthook(exc_type, exc_value, exc_tb):
         if issubclass(exc_type, KeyboardInterrupt):
+            logger.info("KeyboardInterrupt received.")
             sys.exit(130)
         _original_excepthook(exc_type, exc_value, exc_tb)
 
