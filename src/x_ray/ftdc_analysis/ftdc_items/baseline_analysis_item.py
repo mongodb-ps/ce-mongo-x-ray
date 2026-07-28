@@ -635,10 +635,10 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         role = self._member_role.value.upper()
         if self._member_role != MemberRole.MONGOS:
             state = self._current_member_state()
-            role_display = f"{role} ({state})" if state else role
+            role_display = f"`{role}` (**{state}**)" if state else f"`{role}`"
         else:
-            role_display = role
-        output.write(f"- Member Role: `{role_display}`\n")
+            role_display = f"`{role}`"
+        output.write(f"- Member Role: {role_display}\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
         if self._member_role != MemberRole.MONGOS:

@@ -571,4 +571,7 @@ if __name__ == "__main__":
     import multiprocessing
 
     multiprocessing.freeze_support()
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except KeyboardInterrupt:
+        raise SystemExit(130)

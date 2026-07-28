@@ -469,7 +469,7 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
-    assert "- Member Role: `STANDALONE (RECOVERING)`" in report
+    assert "- Member Role: `STANDALONE` (**RECOVERING**)" in report
     assert report.index("Member State:\n\n") < report.index(
         '|<span data-sortable="false">Member</span>{100px}|'
         '<span data-sortable="false">Me</span>{100px}|'
