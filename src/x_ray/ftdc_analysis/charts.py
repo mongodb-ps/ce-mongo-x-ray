@@ -338,8 +338,17 @@ def write_bar_chart(
     relative_path = Path("charts") / f"{filename_prefix}-{slug}.{image_format}"
     output_path = output_folder / relative_path
 
+    values = [value for _, value in points]
+    unique_values = set(values)
+    if parsed_value_labels:
+        used_labels = {
+            v: label for v, label in sorted(parsed_value_labels.items()) if v in unique_values
+        }
+    else:
+        used_labels = None
+
     if image_format == "png":
-        _draw_png(output_path, points, width, height, parsed_thresholds, parsed_value_colors, parsed_value_labels, chart_type)
+        _draw_png(output_path, points, width, height, parsed_thresholds, parsed_value_colors, used_labels, chart_type)
         return relative_path.as_posix()
 
     left, right, top, bottom = _LEFT, _RIGHT, _TOP, _BOTTOM
@@ -412,8 +421,8 @@ def write_bar_chart(
     start_time = points[0][0] if points else None
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
-    if parsed_value_labels:
-        for value, label in sorted(parsed_value_labels.items()):
+    if used_labels:
+        for value, label in used_labels.items():
             y = top + plot_height - (value / scale_max) * plot_height
             grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
             grid += (
