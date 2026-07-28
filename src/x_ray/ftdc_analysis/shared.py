@@ -1,6 +1,7 @@
 """Shared FTDC metric names and mappings."""
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Final
 
 
@@ -223,3 +224,30 @@ BASELINE_ANALYSIS_STATIC_METRICS: Final = {
 # Compatibility for installations that still contain the pre-rename OverviewItem
 # module. The dynamic class loader imports every discovered item module.
 OVERVIEW_STATIC_METRICS: Final = BASELINE_ANALYSIS_STATIC_METRICS
+
+
+class MemberRole(Enum):
+    """Node role determined from MongoDB server configuration."""
+
+    MONGOS = "mongos"
+    SHARD = "shard"
+    CSRS = "csrs"
+    RS = "rs"
+    STANDALONE = "standalone"
+
+
+def get_member_role(config: dict) -> MemberRole:
+    """Determine the node role from a MongoDB server configuration."""
+    sharding = config.get("sharding", {})
+    if sharding:
+        if "configDB" in sharding:
+            return MemberRole.MONGOS
+        cluster_role = sharding.get("clusterRole")
+        if cluster_role == "shardsvr":
+            return MemberRole.SHARD
+        if cluster_role == "configsvr":
+            return MemberRole.CSRS
+    replication = config.get("replication", {})
+    if "replSetName" in replication:
+        return MemberRole.RS
+    return MemberRole.STANDALONE

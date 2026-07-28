@@ -23,6 +23,8 @@ from x_ray.ftdc_analysis.shared import (
     REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
     WIREDTIGER_CACHE_METRICS,
+    MemberRole,
+    get_member_role,
 )
 
 
@@ -477,7 +479,7 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     performance = report.split("### 1.3 Performance", 1)[1]
     baseline_header_base = (
         '|<span data-sortable="false">Metric</span>{*}|'
-        '<span data-sortable="false">Peak / Average</span>{200px}|'
+        '<span data-sortable="false">Peak / Average</span>{150px}|'
         '<span data-sortable="false">Chart</span>{500px}|'
     )
     assert baseline_header_base not in workload
@@ -487,8 +489,8 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "Warning / Critical Threshold" not in ops_and_latencies
     assert (
         '|<span data-sortable="false">Metric</span>{*}|'
-        '<span data-sortable="false">Peak / Average</span>{200px}|'
-        '<span data-sortable="false">Warning / Critical Threshold</span>{200px}|'
+        '<span data-sortable="false">Peak / Average</span>{150px}|'
+        '<span data-sortable="false">Warning / Critical Threshold</span>{150px}|'
         '<span data-sortable="false">Chart</span>{500px}|'
     ) in performance
 
@@ -562,27 +564,39 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "#### Baseline Analysis" not in report
 
 
-def test_is_mongos_detection_without_op_latencies(tmp_path):
+def test_member_role_mongos(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
-    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    item._series = {
-        OPCOUNTER_METRICS["query"].key: {timestamp: 100},
-        CPU_METRICS["user"].key: {timestamp: 1000},
-    }
+    item._mongodb_config = {"sharding": {"configDB": "configReplSet/config1:27019"}}
 
-    assert item._is_mongos is True
+    assert item._member_role == MemberRole.MONGOS
 
 
-def test_is_mongos_detection_with_op_latencies(tmp_path):
+def test_member_role_shard(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
-    timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    item._series = {
-        OPCOUNTER_METRICS["query"].key: {timestamp: 100},
-        OP_LATENCY_METRICS["reads"]["ops"].key: {timestamp: 100},
-        OP_LATENCY_METRICS["reads"]["latency"].key: {timestamp: 1000},
-    }
+    item._mongodb_config = {"sharding": {"clusterRole": "shardsvr"}}
 
-    assert item._is_mongos is False
+    assert item._member_role == MemberRole.SHARD
+
+
+def test_member_role_csrs(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    item._mongodb_config = {"sharding": {"clusterRole": "configsvr"}}
+
+    assert item._member_role == MemberRole.CSRS
+
+
+def test_member_role_standalone(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    item._mongodb_config = {}
+
+    assert item._member_role == MemberRole.STANDALONE
+
+
+def test_member_role_rs(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    item._mongodb_config = {"replication": {"replSetName": "rs0"}}
+
+    assert item._member_role == MemberRole.RS
 
 
 def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
@@ -619,6 +633,7 @@ def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
         "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
     }
     # No opLatencies metrics — simulates mongos
+    item._mongodb_config = {"sharding": {"configDB": "configReplSet/config1:27019"}}
     item._disk_queue_metrics = {
         "systemMetrics.disks.sda.io_queued_ms": "sda",
         "systemMetrics.disks.sdb.io_queued_ms": "sdb",
@@ -630,7 +645,7 @@ def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
         },
     }
 
-    assert item._is_mongos is True
+    assert item._member_role == MemberRole.MONGOS
     item.finalize_analysis()
 
     performance_results = item._results["Performance"]
@@ -655,6 +670,7 @@ def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
 
 def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
+    item._mongodb_config = {"sharding": {"configDB": "configReplSet/config1:27019"}}
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
     item._series = {
         OPCOUNTER_METRICS["query"].key: {timestamp: 100},
@@ -669,3 +685,23 @@ def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     assert "### 1.2 Ops and Latencies" not in report
     assert "### 1.2 Performance" in report
     assert "Member State" not in report
+
+
+def test_get_member_role_mongos():
+    assert get_member_role({"sharding": {"configDB": "cfg/cfg1:27019"}}) == MemberRole.MONGOS
+
+
+def test_get_member_role_shard():
+    assert get_member_role({"sharding": {"clusterRole": "shardsvr"}}) == MemberRole.SHARD
+
+
+def test_get_member_role_csrs():
+    assert get_member_role({"sharding": {"clusterRole": "configsvr"}}) == MemberRole.CSRS
+
+
+def test_get_member_role_replicaset():
+    assert get_member_role({"replication": {"replSetName": "rs0"}}) == MemberRole.RS
+
+
+def test_get_member_role_standalone():
+    assert get_member_role({}) == MemberRole.STANDALONE

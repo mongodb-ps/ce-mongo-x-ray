@@ -37,6 +37,8 @@ from x_ray.ftdc_analysis.shared import (
     REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,
     WIREDTIGER_CACHE_METRICS,
+    MemberRole,
+    get_member_role,
 )
 
 MEMBER_STATE_COLORS: dict[float, str] = {
@@ -414,7 +416,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
 
-        if self._is_mongos:
+        if self._member_role == MemberRole.MONGOS:
             performance = [
                 item
                 for item in performance
@@ -586,13 +588,9 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         )
 
     @cached_property
-    def _is_mongos(self) -> bool:
-        """Mongos does not have opLatencies in serverStatus."""
-        return all(
-            OP_LATENCY_METRICS[op][kind].key not in self._series
-            for op in ("reads", "writes")
-            for kind in ("ops", "latency")
-        )
+    def _member_role(self) -> MemberRole:
+        """Determine the node role from the MongoDB server configuration."""
+        return get_member_role(self._mongodb_config or {})
 
     def review_results_markdown(self, output, section_number: int = 1) -> None:
         output.write(f"## {section_number} Baseline Analysis\n\n")
@@ -609,7 +607,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             output.write("- Hostname: _No data available._\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
-        if not self._is_mongos:
+        if self._member_role != MemberRole.MONGOS:
             output.write("Member State:\n\n")
             output.write(
                 parser.markdown(
@@ -622,7 +620,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         subsection_number = 0
         for section in ("Workload", "Ops and Latencies", "Performance"):
             results = self._results[section]
-            if section == "Ops and Latencies" and self._is_mongos:
+            if section == "Ops and Latencies" and self._member_role == MemberRole.MONGOS:
                 continue
             subsection_number += 1
             output.write(f"### {section_number}.{subsection_number} {section}\n\n")

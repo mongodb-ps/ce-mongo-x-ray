@@ -22,8 +22,8 @@ def test_parse_baseline_analysis_table():
             "caption": "Baseline Analysis",
             "header": [
                 {"text": "Metric", "sortable": False, "width": "*"},
-                {"text": "Peak / Average", "sortable": False, "width": "200px"},
-                {"text": "Warning / Critical Threshold", "sortable": False, "width": "200px"},
+                {"text": "Peak / Average", "sortable": False, "width": "150px"},
+                {"text": "Warning / Critical Threshold", "sortable": False, "width": "150px"},
                 {"text": "Chart", "sortable": False, "width": "500px"},
             ],
             "rows": [
@@ -74,7 +74,7 @@ def test_parse_can_omit_threshold_column():
 
     assert parsed[0]["header"] == [
         {"text": "Metric", "sortable": False, "width": "*"},
-        {"text": "Peak / Average", "sortable": False, "width": "200px"},
+        {"text": "Peak / Average", "sortable": False, "width": "150px"},
         {"text": "Chart", "sortable": False, "width": "500px"},
     ]
     assert parsed[0]["rows"][0] == [
