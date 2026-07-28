@@ -90,13 +90,6 @@ var chart2 = new Chart(ctx_byns, {
             title: {
                 display: true,
                 text: 'Slow Count by Namespace'
-            },
-            legend: {
-                position: 'right',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'rect'
-                }
             }
         }
     }
@@ -129,13 +122,6 @@ var chart3 = new Chart(ctx_byns_ms, {
             title: {
                 display: true,
                 text: 'Slow MS by Namespace'
-            },
-            legend: {
-                position: 'right',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'rect'
-                }
             }
         }
     }

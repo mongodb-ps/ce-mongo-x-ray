@@ -85,9 +85,11 @@ window.onload = function () {
             margins = ["0 auto", '0 auto 0 ' + outlineWidth + 'px'];
         }
         body.style.margin = margins[state];
-        for (var i = 0; i < charts.length; i++) {
-            charts[i].resize();
-        }
+        requestAnimationFrame(function () {
+            for (var i = 0; i < charts.length; i++) {
+                charts[i].resize();
+            }
+        });
     };
     var click = function () {
         state = state == 0 ? 1 : 0;

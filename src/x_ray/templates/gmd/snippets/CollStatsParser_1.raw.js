@@ -30,14 +30,6 @@ const sizeChart = new Chart(sizeCtx, {
                 display: true,
                 text: "Collection Size Distribution",
             },
-            legend: {
-                display: true,
-                position: smallSizeChart ? "top" : "right",
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: "rect",
-                },
-            },
             tooltip: {
                 callbacks: {
                     label: function (context) {
@@ -80,14 +72,6 @@ const indexChart = new Chart(indexCtx, {
             title: {
                 display: true,
                 text: "Collection Index Size Distribution",
-            },
-            legend: {
-                display: true,
-                position: smallIndexChart ? "top" : "right",
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: "rect",
-                },
             },
             tooltip: {
                 callbacks: {

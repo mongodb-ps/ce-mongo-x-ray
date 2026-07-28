@@ -28,9 +28,6 @@ const chart = new Chart(ctx, {
     options: {
         responsive: true,
         plugins: {
-            legend: {
-                position: smallSizeChart ? 'top' : 'right',
-            },
             title: {
                 display: true,
                 text: 'Data Size Distribution'
@@ -69,9 +66,6 @@ const chart2 = new Chart(ctx2, {
     options: {
         responsive: true,
         plugins: {
-            legend: {
-                position: smallIndexChart ? 'top' : 'right',
-            },
             title: {
                 display: true,
                 text: 'Index Size Distribution'

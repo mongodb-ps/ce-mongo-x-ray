@@ -27,13 +27,6 @@ const chart = new Chart(ctx, {
     options: {
         responsive: true,
         plugins: {
-            legend: {
-                position: "right",
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: "rect",
-                },
-            },
             title: {
                 display: true,
                 text: "Database Storage Size Distribution",
