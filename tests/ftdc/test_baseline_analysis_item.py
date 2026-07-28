@@ -469,6 +469,7 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
+    assert "- Member Role: `STANDALONE (RECOVERING)`" in report
     assert report.index("Member State:\n\n") < report.index(
         '|<span data-sortable="false">Member</span>{100px}|'
         '<span data-sortable="false">Me</span>{100px}|'
@@ -548,6 +549,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "- Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "- Sample rate: `25%`" in report
     assert "- Hostname: `mongo.example.test:27017`" in report
+    assert "- Member Role: `STANDALONE`" in report
     assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
@@ -682,6 +684,7 @@ def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     item.review_results_markdown(output)
 
     report = output.getvalue()
+    assert "- Member Role: `MONGOS`" in report
     assert "### 1.2 Ops and Latencies" not in report
     assert "### 1.2 Performance" in report
     assert "Member State" not in report

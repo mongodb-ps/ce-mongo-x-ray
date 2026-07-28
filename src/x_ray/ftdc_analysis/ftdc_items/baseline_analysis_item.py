@@ -55,6 +55,20 @@ MEMBER_STATE_COLORS: dict[float, str] = {
     10: "gray",  # REMOVED
 }
 
+MEMBER_STATE_NAMES: dict[float, str] = {
+    0: "STARTUP",
+    1: "PRIMARY",
+    2: "SECONDARY",
+    3: "RECOVERING",
+    4: "FATAL",
+    5: "STARTUP2",
+    6: "UNKNOWN",
+    7: "ARBITER",
+    8: "DOWN",
+    9: "ROLLBACK",
+    10: "REMOVED",
+}
+
 DEFAULT_DB_PATH = "/data/db"
 
 
@@ -224,6 +238,18 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             if any(isfinite(value) and value != 0 for value in self._series.get(metrics.get("self", ""), {}).values())
         }
 
+    def _current_member_state(self) -> Optional[str]:
+        """Return the state name of the local replica set member, if any."""
+        local_members = self._local_rs_members()
+        for member in sorted(self._rs_member_metrics):
+            if member in local_members:
+                state_metric = self._rs_member_metrics[member].get("state")
+                if state_metric:
+                    values = [v for v in self._series.get(state_metric, {}).values() if isfinite(v)]
+                    if values:
+                        return MEMBER_STATE_NAMES.get(values[-1], str(values[-1]))
+        return None
+
     def finalize_analysis(self) -> None:
         local_members = self._local_rs_members()
         workload = []
@@ -352,6 +378,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                         points,
                         slug=f"rs-member-state-{self._mount_slug(member)}",
                         value_colors=MEMBER_STATE_COLORS,
+                        value_labels=MEMBER_STATE_NAMES,
                         image_format=self._image_format,
                         chart_type="bar",
                         width=MEMBER_STATE_CHART_WIDTH,
@@ -605,6 +632,13 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             output.write(f"- Hostname: `{self._hostname}`\n")
         else:
             output.write("- Hostname: _No data available._\n")
+        role = self._member_role.value.upper()
+        if self._member_role != MemberRole.MONGOS:
+            state = self._current_member_state()
+            role_display = f"{role} ({state})" if state else role
+        else:
+            role_display = role
+        output.write(f"- Member Role: `{role_display}`\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
         if self._member_role != MemberRole.MONGOS:
