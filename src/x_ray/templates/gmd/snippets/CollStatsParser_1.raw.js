@@ -2,12 +2,11 @@ const labels = Object.keys(data);
 const sizes = labels.map((key) => data[key]?.size || 0);
 const indexSizes = labels.map((key) => data[key]?.index_size || 0);
 const colors = labels.map((_, index) => `hsl(${(index * 360) / Math.max(labels.length, 1)}, 70%, 60%)`);
-const smallSizeChart = sizes.length <= 10;
 
 let wrapper = document.createElement("div");
 let canvas = document.createElement("canvas");
-wrapper.className = smallSizeChart ? "pie50" : "pie100";
-canvas.className = smallSizeChart ? "pie50" : "pie100";
+wrapper.className = "pie100";
+canvas.className = "pie100";
 container.appendChild(wrapper);
 wrapper.appendChild(canvas);
 
@@ -57,8 +56,8 @@ const sizeChart = new Chart(sizeCtx, {
 const smallIndexChart = indexSizes.length <= 10;
 wrapper = document.createElement("div");
 canvas = document.createElement("canvas");
-wrapper.className = smallIndexChart ? "pie50" : "pie100";
-canvas.className = smallIndexChart ? "pie50" : "pie100";
+wrapper.className = "pie100";
+canvas.className = "pie100";
 container.appendChild(wrapper);
 wrapper.appendChild(canvas);
 

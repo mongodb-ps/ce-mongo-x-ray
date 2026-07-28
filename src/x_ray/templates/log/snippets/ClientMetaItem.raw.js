@@ -11,10 +11,6 @@ var driverLabels = Object.keys(driverCount);
 var driverValues = Object.values(driverCount);
 var driverColors = driverLabels.map((_, i) => `hsl(${i * 360 / driverLabels.length}, 70%, 60%)`);
 
-var driverSmall = driverLabels.length <= 10;
-var driverWrapper = document.getElementById('canvas_{name}').parentElement;
-driverWrapper.className = driverSmall ? 'pie50' : 'pie100';
-
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
 var chart = new Chart(ctx, {
     type: 'pie',
@@ -55,10 +51,6 @@ data.forEach(doc => {
 var ipLabels = Object.keys(ipCount);
 var ipValues = Object.values(ipCount);
 var ipColors = ipLabels.map((_, i) => `hsl(${i * 360 / ipLabels.length}, 70%, 60%)`);
-
-var ipSmall = ipLabels.length <= 10;
-var ipWrapper = document.getElementById('canvas_{name}_ip').parentElement;
-ipWrapper.className = ipSmall ? 'pie50' : 'pie100';
 
 const ctx_ip = document.getElementById('canvas_{name}_ip').getContext('2d');
 var chart = new Chart(ctx_ip, {

@@ -1,7 +1,7 @@
 let wrapper = document.createElement('div');
 let canvas = document.createElement('canvas');
-wrapper.className = "pie";
-canvas.className = 'pie';
+wrapper.className = "pie100";
+canvas.className = 'pie100';
 container.appendChild(wrapper);
 wrapper.appendChild(canvas);
 const ctx = canvas.getContext('2d');

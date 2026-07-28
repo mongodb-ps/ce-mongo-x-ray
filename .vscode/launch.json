@@ -48,7 +48,7 @@
                 "-c",
                 "src/x_ray/config.json",
                 "log",
-                "misc/example.log"
+                "misc/mongodb.lo"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",

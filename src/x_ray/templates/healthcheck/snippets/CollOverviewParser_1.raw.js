@@ -7,8 +7,8 @@ const sizes = Object.values(data).map(item => item.size);
 const indexSizes = Object.values(data).map(item => item.index_size);
 const smallSizeChart = sizes.length <= 10;
 const smallIndexChart = indexSizes.length <= 10;
-wrapper.className = smallSizeChart ? "pie50" : "pie100";
-canvas.className = smallSizeChart ? "pie50" : "pie100";
+wrapper.className = "pie100";
+canvas.className = "pie100";
 
 const colors = labels.map(() =>
     `hsl(${Math.random() * 360}, 70%, 60%)`
@@ -51,8 +51,8 @@ const chart = new Chart(ctx, {
 });
 let wrapper2 = document.createElement('div');
 let canvas2 = document.createElement('canvas');
-wrapper2.className = smallIndexChart ? "pie50" : "pie100";
-canvas2.className = smallIndexChart ? "pie50" : "pie100";
+wrapper2.className = "pie100";
+canvas2.className = "pie100";
 container.appendChild(wrapper2);
 wrapper2.appendChild(canvas2);
 const ctx2 = canvas2.getContext('2d');

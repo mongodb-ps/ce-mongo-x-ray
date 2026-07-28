@@ -75,10 +75,6 @@ var nsLabels = Object.keys(nsCount);
 var dataSlow = Object.values(nsCount);
 var nsColors = nsLabels.map((_, i) => `hsl(${i * 360 / nsLabels.length}, 70%, 60%)`);
 
-var nsSmall = nsLabels.length <= 10;
-var nsWrapper = document.getElementById('canvas_{name}_byns').parentElement;
-nsWrapper.className = nsSmall ? 'pie50' : 'pie100';
-
 const ctx_byns = document.getElementById('canvas_{name}_byns').getContext('2d');
 var chart2 = new Chart(ctx_byns, {
     type: 'pie',
@@ -117,10 +113,6 @@ data.forEach(d => {
 var msLabels = Object.keys(nsSlowMs);
 var msValues = Object.values(nsSlowMs);
 var msColors = msLabels.map((_, i) => `hsl(${i * 360 / msLabels.length}, 70%, 60%)`);
-
-var msSmall = msLabels.length <= 10;
-var msWrapper = document.getElementById('canvas_{name}_byns_ms').parentElement;
-msWrapper.className = msSmall ? 'pie50' : 'pie100';
 
 const ctx_byns_ms = document.getElementById('canvas_{name}_byns_ms').getContext('2d');
 var chart3 = new Chart(ctx_byns_ms, {
