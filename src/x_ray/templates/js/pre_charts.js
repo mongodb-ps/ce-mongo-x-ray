@@ -60,5 +60,7 @@ if (typeof Chart !== "undefined") {
 
     // Hide legend for pie/doughnut charts — datalabels handle labeling
     Chart.overrides.pie.plugins.legend = { display: false };
+    Chart.overrides.pie.layout = { padding: 40 };
     Chart.overrides.doughnut.plugins.legend = { display: false };
+    Chart.overrides.doughnut.layout = { padding: 40 };
 }
