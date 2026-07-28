@@ -71,18 +71,18 @@ data.forEach(d => {
     });
 });
 
-var labels = Object.keys(nsCount);
+var nsLabels = Object.keys(nsCount);
 var dataSlow = Object.values(nsCount);
-var colors = labels.map((_, i) => `hsl(${i * 360 / labels.length}, 70%, 60%)`);
+var nsColors = nsLabels.map((_, i) => `hsl(${i * 360 / nsLabels.length}, 70%, 60%)`);
 
 const ctx_byns = document.getElementById('canvas_{name}_byns').getContext('2d');
 var chart2 = new Chart(ctx_byns, {
     type: 'pie',
     data: {
-        labels: labels,
+        labels: nsLabels,
         datasets: [{
             data: dataSlow,
-            backgroundColor: colors
+            backgroundColor: nsColors
         }]
     },
     options: {
@@ -90,13 +90,6 @@ var chart2 = new Chart(ctx_byns, {
             title: {
                 display: true,
                 text: 'Slow Count by Namespace'
-            },
-            legend: {
-                position: 'right',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'rect'
-                }
             }
         }
     }
@@ -110,15 +103,18 @@ data.forEach(d => {
     });
 });
 
-var dataSlow = Object.values(nsSlowMs);
+var msLabels = Object.keys(nsSlowMs);
+var msValues = Object.values(nsSlowMs);
+var msColors = msLabels.map((_, i) => `hsl(${i * 360 / msLabels.length}, 70%, 60%)`);
+
 const ctx_byns_ms = document.getElementById('canvas_{name}_byns_ms').getContext('2d');
 var chart3 = new Chart(ctx_byns_ms, {
     type: 'pie',
     data: {
-        labels: labels,
+        labels: msLabels,
         datasets: [{
-            data: dataSlow,
-            backgroundColor: colors
+            data: msValues,
+            backgroundColor: msColors
         }]
     },
     options: {
@@ -126,13 +122,6 @@ var chart3 = new Chart(ctx_byns_ms, {
             title: {
                 display: true,
                 text: 'Slow MS by Namespace'
-            },
-            legend: {
-                position: 'right',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'rect'
-                }
             }
         }
     }

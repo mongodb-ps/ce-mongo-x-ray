@@ -21,7 +21,7 @@
     border-right: 1px solid var(--borderColor-default, #d0d7de);
 }
 
-#outline > ul {
+#outline>ul {
     padding-left: 20px;
 }
 
@@ -68,7 +68,11 @@
     width: 48%;
 }
 
-.bar,
+.bar {
+    display: block;
+    width: 100%;
+}
+
 .pie100 {
     display: inline-block;
     width: 100%;
@@ -99,14 +103,17 @@
 .table-copy-wrapper {
     margin: 16px 0;
 }
-.table-copy-wrapper > table {
+
+.table-copy-wrapper>table {
     margin: 0;
 }
+
 .table-copy-toolbar {
     display: flex;
     justify-content: flex-start;
     margin-bottom: 4px;
 }
+
 .table-copy-button {
     padding: 4px 10px;
     color: var(--fgColor-default, #1f2328);
@@ -115,6 +122,7 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
 .table-copy-button:hover {
     background: var(--button-default-bgColor-hover, #f3f4f6);
 }
@@ -143,6 +151,7 @@
     white-space: pre-wrap;
     word-break: break-word;
 }
+
 .markdown-body th[data-sortable="true"] {
     cursor: pointer;
 }

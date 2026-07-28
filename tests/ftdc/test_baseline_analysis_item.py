@@ -469,6 +469,7 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.2 Ops and Latencies" in report
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
+    assert "- Member Role: `STANDALONE` (**RECOVERING**)" in report
     assert report.index("Member State:\n\n") < report.index(
         '|<span data-sortable="false">Member</span>{100px}|'
         '<span data-sortable="false">Me</span>{100px}|'
@@ -548,6 +549,7 @@ def test_baseline_analysis_displays_capture_metadata_config_and_sections(tmp_pat
     assert "- Capture timespan: `2026-01-01T00:00:00+00:00` to `2026-01-02T00:00:00+00:00`" in report
     assert "- Sample rate: `25%`" in report
     assert "- Hostname: `mongo.example.test:27017`" in report
+    assert "- Member Role: `STANDALONE`" in report
     assert "## 1 Baseline Analysis" in report
     assert "### 1.1 Workload" in report
     assert "### 1.2 Ops and Latencies" in report
@@ -668,6 +670,62 @@ def test_mongos_excludes_cache_and_disk_metrics_from_performance(tmp_path):
     assert CPU_METRICS["iowait"].name in performance_metrics
 
 
+def test_csrs_excludes_cache_and_disk_metrics_from_performance(tmp_path):
+    item = BaselineAnalysisItem(
+        str(tmp_path),
+        {
+            "max_sample_gap_seconds": 5,
+            "chart_width": 640,
+            "chart_height": 250,
+        },
+        image_format="svg",
+    )
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    middle = start + timedelta(seconds=1)
+    end = middle + timedelta(seconds=1)
+    gib = 1024**3
+    item._series = {
+        CPU_METRICS["available_cores"].key: {start: 2, middle: 2, end: 2},
+        CPU_METRICS["user"].key: {start: 1000, middle: 1200, end: 1600},
+        MEMORY_METRICS["total"].key: {start: 1000, middle: 1000, end: 1000},
+        MEMORY_METRICS["free"].key: {start: 300, middle: 250, end: 200},
+        MEMORY_METRICS["buffers"].key: {start: 50, middle: 50, end: 50},
+        MEMORY_METRICS["cached"].key: {start: 50, middle: 50, end: 50},
+        TCMALLOC_METRICS["pageheap_free_bytes"].key: {start: 1000, middle: 1500, end: 2000},
+        WIREDTIGER_CACHE_METRICS["bytes_maximum"].key: {start: 100, middle: 100, end: 100},
+        WIREDTIGER_CACHE_METRICS["bytes_current"].key: {start: 70, middle: 75, end: 80},
+        WIREDTIGER_CACHE_METRICS["tracked_dirty_bytes"].key: {start: 10, middle: 15, end: 20},
+        WIREDTIGER_CACHE_METRICS["bytes_allocated_for_updates"].key: {start: 5, middle: 10, end: 15},
+        "systemMetrics.disks.sda.io_queued_ms": {start: 1000, middle: 3000, end: 7000},
+        "systemMetrics.mounts./data/db.free": {start: 4 * gib, middle: 3 * gib, end: 2 * gib},
+        "systemMetrics.mounts./data/db.capacity": {start: 8 * gib, middle: 8 * gib, end: 8 * gib},
+    }
+    item._mongodb_config = {"sharding": {"clusterRole": "configsvr"}}
+    item._disk_queue_metrics = {"systemMetrics.disks.sda.io_queued_ms": "sda"}
+    item._mount_metrics = {
+        "/data/db": {
+            "free": "systemMetrics.mounts./data/db.free",
+            "capacity": "systemMetrics.mounts./data/db.capacity",
+        },
+    }
+
+    assert item._member_role == MemberRole.CSRS
+    item.finalize_analysis()
+
+    performance_results = item._results["Performance"]
+    performance_metrics = {result["metric"] for result in performance_results}
+
+    assert DERIVED_METRIC_NAMES["cache_fill"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_dirty"] not in performance_metrics
+    assert DERIVED_METRIC_NAMES["cache_update_ratio"] not in performance_metrics
+    assert f'{DISK_METRICS["io_in_progress"].name} (sda)' not in performance_metrics
+    assert f'{MOUNT_METRICS["free"].name} (/data/db)' not in performance_metrics
+    assert f'{MOUNT_METRICS["capacity"].name} (/data/db)' not in performance_metrics
+
+    assert DERIVED_METRIC_NAMES["system_memory_utilization"] in performance_metrics
+    assert CPU_METRICS["user"].name in performance_metrics
+
+
 def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
     item._mongodb_config = {"sharding": {"configDB": "configReplSet/config1:27019"}}
@@ -682,6 +740,7 @@ def test_mongos_report_excludes_ops_and_latencies_section(tmp_path):
     item.review_results_markdown(output)
 
     report = output.getvalue()
+    assert "- Member Role: `MONGOS`" in report
     assert "### 1.2 Ops and Latencies" not in report
     assert "### 1.2 Performance" in report
     assert "Member State" not in report
@@ -697,6 +756,95 @@ def test_get_member_role_shard():
 
 def test_get_member_role_csrs():
     assert get_member_role({"sharding": {"clusterRole": "configsvr"}}) == MemberRole.CSRS
+
+
+def test_downsample_points_returns_every_60th():
+    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
+
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i))
+              for i in range(300)]
+    result = _downsample_points(points)
+    assert len(result) == 5  # 300 // 60
+    assert result[0] == points[0]
+    assert result[1] == points[60]
+    assert result[4] == points[240]
+
+
+def test_downsample_points_returns_all_when_fewer_than_60():
+    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
+
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc), float(i)) for i in range(30)]
+    result = _downsample_points(points)
+    assert len(result) == 30
+    assert result == points
+
+
+def test_summary_includes_downsampled_values(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {})
+    points = [
+        (datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i * 10))
+        for i in range(120)
+    ]
+    result = item._summary("test-metric", points, "ops/s", chart_type="bar")
+    assert "downsampled_values" in result
+    values = result["downsampled_values"]
+    assert len(values) == 2  # 120 // 60
+    assert values[0] == 0.0
+    assert values[1] == 600.0
+
+
+def test_collect_section_data_filters_entries_without_downsampled_values():
+    item = BaselineAnalysisItem("/tmp", {})
+    item._results = {
+        "Workload": [
+            {"metric": "a", "unit": "ops/s", "peak": 10, "average": 5, "downsampled_values": [1, 2, 3]},
+            {"metric": "b", "unit": "ops/s", "peak": 20, "average": 10},  # no downsampled_values
+            {"metric": "c", "unit": "ops/s", "peak": 0, "average": 0, "downsampled_values": [0, 0, 0]},  # peak=0
+        ],
+    }
+    data = item._collect_section_data("Workload")
+    assert len(data) == 1
+    assert data[0]["metric"] == "a"
+    assert data[0]["values"] == [1, 2, 3]
+
+
+def test_ai_results_rendered_in_markdown(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=1)
+    item._ai_results = {"Workload": "The workload shows a diurnal pattern."}
+    item._results = {
+        "Workload": [],
+        "Ops and Latencies": [],
+        "Performance": [],
+        "Member State": [],
+    }
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    output = StringIO()
+    item.review_results_markdown(output, section_number=1)
+    text = output.getvalue()
+
+    assert "🤖 AI Analysis" in text
+    assert "The workload shows a diurnal pattern." in text
+
+
+def test_no_ai_section_when_ai_results_empty(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=1)
+    item._ai_results = {}
+    item._results = {
+        "Workload": [],
+        "Ops and Latencies": [],
+        "Performance": [],
+        "Member State": [],
+    }
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    output = StringIO()
+    item.review_results_markdown(output, section_number=1)
+    text = output.getvalue()
+
+    assert "🤖 AI Analysis" not in text
 
 
 def test_get_member_role_replicaset():

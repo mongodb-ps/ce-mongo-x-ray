@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import shutil
+import sys
 import webbrowser
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -540,6 +541,16 @@ def version_command(_args):
 
 
 def main():
+    _original_excepthook = sys.excepthook
+
+    def _quiet_excepthook(exc_type, exc_value, exc_tb):
+        if issubclass(exc_type, KeyboardInterrupt):
+            logger.info("KeyboardInterrupt received.")
+            sys.exit(130)
+        _original_excepthook(exc_type, exc_value, exc_tb)
+
+    sys.excepthook = _quiet_excepthook
+
     parser = setup_parser()
     args = parser.parse_args()
 
@@ -568,7 +579,11 @@ def main():
 
 
 if __name__ == "__main__":
+    # freeze_support must be called before any subprocesses are spawned, and
+    # only when running as a frozen executable (PyInstaller) — keeping it here
+    # ensures it runs before main() without executing on import.
     import multiprocessing
 
     multiprocessing.freeze_support()
+
     raise SystemExit(main())

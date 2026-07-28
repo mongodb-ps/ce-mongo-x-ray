@@ -71,6 +71,28 @@ def _parse_value_colors(
     return parsed
 
 
+def _parse_value_labels(
+    value_labels: Optional[Mapping[float, str]],
+) -> Optional[dict[float, str]]:
+    if value_labels is None:
+        return None
+    if not isinstance(value_labels, Mapping):
+        raise ValueError("chart value labels must map finite numbers to strings")
+
+    parsed = {}
+    for value, label in value_labels.items():
+        if isinstance(value, bool):
+            raise ValueError("chart value labels must map finite numbers to strings")
+        try:
+            numeric_value = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("chart value labels must map finite numbers to strings") from exc
+        if not isfinite(numeric_value) or not isinstance(label, str):
+            raise ValueError("chart value labels must map finite numbers to strings")
+        parsed[numeric_value] = label
+    return parsed
+
+
 def _bar_class(
     value: float,
     thresholds: Optional[tuple[float, float]],
@@ -133,6 +155,7 @@ def _draw_png(
     height: int,
     thresholds: Optional[tuple[float, float]],
     value_colors: Optional[Mapping[float, str]],
+    value_labels: Optional[Mapping[float, str]],
     chart_type: Literal["bar", "line"],
     scale: int = 2,
 ) -> None:
@@ -162,17 +185,29 @@ def _draw_png(
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
 
-    for offset in _grid_offsets(plot_height, _Y_GRID_SPACING * scale):
-        ratio = offset / plot_height
-        y = top + plot_height - offset
-        draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
-        draw.text(
-            (left - 6 * scale, y),
-            str(round(scale_max * ratio, 2)),
-            fill=_TEXT_COLOR,
-            font=font,
-            anchor="rm",
-        )
+    if value_labels:
+        for value, label in sorted(value_labels.items()):
+            y = top + plot_height - (value / scale_max) * plot_height
+            draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
+            draw.text(
+                (left - 6 * scale, y),
+                label,
+                fill=_TEXT_COLOR,
+                font=font,
+                anchor="rm",
+            )
+    else:
+        for offset in _grid_offsets(plot_height, _Y_GRID_SPACING * scale):
+            ratio = offset / plot_height
+            y = top + plot_height - offset
+            draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
+            draw.text(
+                (left - 6 * scale, y),
+                str(round(scale_max * ratio, 2)),
+                fill=_TEXT_COLOR,
+                font=font,
+                anchor="rm",
+            )
 
     if start_time is not None:
         for offset in _grid_offsets(plot_width, _X_GRID_SPACING * scale):
@@ -273,6 +308,7 @@ def write_bar_chart(
     slug: Optional[str] = None,
     thresholds: Optional[tuple[float, float]] = None,
     value_colors: Optional[Mapping[float, str]] = None,
+    value_labels: Optional[Mapping[float, str]] = None,
     filename_prefix: str = "ftdc-baseline-analysis",
     width: int = DEFAULT_CHART_WIDTH,
     height: int = DEFAULT_CHART_HEIGHT,
@@ -295,14 +331,24 @@ def write_bar_chart(
         raise ValueError("chart thresholds and value colors cannot be combined")
     parsed_thresholds = _parse_thresholds(thresholds)
     parsed_value_colors = _parse_value_colors(value_colors)
+    parsed_value_labels = _parse_value_labels(value_labels)
     chart_folder = output_folder / "charts"
     chart_folder.mkdir(parents=True, exist_ok=True)
     slug = slug or re.sub(r"[^a-z0-9]+", "-", metric.lower()).strip("-")
     relative_path = Path("charts") / f"{filename_prefix}-{slug}.{image_format}"
     output_path = output_folder / relative_path
 
+    values = [value for _, value in points]
+    unique_values = set(values)
+    if parsed_value_labels:
+        used_labels = {
+            v: label for v, label in sorted(parsed_value_labels.items()) if v in unique_values
+        }
+    else:
+        used_labels = None
+
     if image_format == "png":
-        _draw_png(output_path, points, width, height, parsed_thresholds, parsed_value_colors, chart_type)
+        _draw_png(output_path, points, width, height, parsed_thresholds, parsed_value_colors, used_labels, chart_type)
         return relative_path.as_posix()
 
     left, right, top, bottom = _LEFT, _RIGHT, _TOP, _BOTTOM
@@ -375,14 +421,24 @@ def write_bar_chart(
     start_time = points[0][0] if points else None
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
-    for offset in _grid_offsets(plot_height, _Y_GRID_SPACING):
-        ratio = offset / plot_height
-        y = top + plot_height - offset
-        grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
-        grid += (
-            f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
-            f'text-anchor="end">{round(scale_max * ratio, 2)}</text>'
-        )
+    if used_labels:
+        for value, label in used_labels.items():
+            y = top + plot_height - (value / scale_max) * plot_height
+            grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
+            grid += (
+                f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
+                f'text-anchor="end">{label}</text>'
+            )
+    else:
+        for offset in _grid_offsets(plot_height, _Y_GRID_SPACING):
+            ratio = offset / plot_height
+            y = top + plot_height - offset
+            grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
+            label_text = str(round(scale_max * ratio, 2))
+            grid += (
+                f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
+                f'text-anchor="end">{label_text}</text>'
+            )
 
     if start_time is not None:
         for offset in _grid_offsets(plot_width, _X_GRID_SPACING):

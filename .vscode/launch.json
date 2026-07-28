@@ -29,7 +29,8 @@
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "name": "App: X-Ray-LOG",
@@ -48,13 +49,14 @@
                 "-c",
                 "src/x_ray/config.json",
                 "log",
-                "misc/example.log"
+                "misc/mongodb.log"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "name": "App: X-Ray-GMD",
@@ -79,7 +81,8 @@
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "name": "App: X-Ray-FTDC",
@@ -108,7 +111,8 @@
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "name": "Unit Test",
@@ -131,7 +135,8 @@
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
                 "ENV": "development"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

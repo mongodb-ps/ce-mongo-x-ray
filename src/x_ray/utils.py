@@ -25,6 +25,15 @@ from typing import Union
 from bson import json_util
 from x_ray.version import Version
 
+# Load .env file before reading any environment variables
+try:
+    from dotenv import find_dotenv, load_dotenv
+    env_path = find_dotenv(usecwd=True)
+    if env_path:
+        load_dotenv(env_path)
+except ImportError:
+    pass
+
 levels = logging._nameToLevel
 level = os.getenv("LOG_LEVEL", "INFO")
 env = os.getenv("ENV", "production")
@@ -85,15 +94,23 @@ def inject_assets(template: str, module: str) -> str:
     - ``pre_*.js`` → ``{{ pre_script }}`` (before ``<body>``)
     - ``post_*.js`` → ``{{ script }}`` (after ``<body>``)
 
+    When ``ENV=development``, ``.raw.css`` / ``.raw.js`` source files are
+    embedded instead of the minified ``.css`` / ``.js`` files.
+
     Args:
         template: Raw HTML template with ``{{ style }}`` and ``{{ script }}`` placeholders.
         module: Template module name (``healthcheck``, ``ftdc``, ``log``, ``gmd``).
     """
     template_dir = Path(get_script_path("templates"))
+    is_dev = env == "development"
 
     # --- CSS ---
-    css_parts = [template_dir / "css" / "shared.css"]
-    module_css = template_dir / module / "style.css"
+    if is_dev:
+        css_parts = [template_dir / "css" / "shared.raw.css"]
+        module_css = template_dir / module / "style.raw.css"
+    else:
+        css_parts = [template_dir / "css" / "shared.css"]
+        module_css = template_dir / module / "style.css"
     if module_css.exists():
         css_parts.append(module_css)
     style_content = "\n".join(p.read_text(encoding="utf-8") for p in css_parts)
@@ -101,19 +118,31 @@ def inject_assets(template: str, module: str) -> str:
 
     # --- JS (pre-body) ---
     js_dir = template_dir / "js"
-    pre_parts = sorted(p for p in js_dir.glob("pre_*.js") if ".raw." not in p.name)
+    if is_dev:
+        pre_parts = sorted(js_dir.glob("pre_*.raw.js"))
+    else:
+        pre_parts = sorted(p for p in js_dir.glob("pre_*.js") if ".raw." not in p.name)
     if pre_parts:
         pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
-        template = template.replace(
-            "{{ pre_script }}",
-            f"<script type=\"text/javascript\">\n{pre_content}\n</script>",
+        config = load_config(None)
+        threshold = config.get("pie_label_threshold", 0)
+        pre_tag = (
+            f"<script>var PIE_LABEL_THRESHOLD = {threshold};</script>\n"
+            f"<script type=\"text/javascript\">\n{pre_content}\n</script>"
         )
+        template = template.replace("{{ pre_script }}", pre_tag)
 
     # --- JS (post-body) ---
-    post_parts = sorted(p for p in js_dir.glob("post_*.js") if ".raw." not in p.name)
+    if is_dev:
+        post_parts = sorted(js_dir.glob("post_*.raw.js"))
+    else:
+        post_parts = sorted(p for p in js_dir.glob("post_*.js") if ".raw." not in p.name)
     if module == "gmd":
         post_parts = [p for p in post_parts if "outline" not in p.name]
-    module_js = template_dir / module / "script.js"
+    if is_dev:
+        module_js = template_dir / module / "script.raw.js"
+    else:
+        module_js = template_dir / module / "script.js"
     if module_js.exists():
         post_parts.append(module_js)
     script_content = "\n".join(p.read_text(encoding="utf-8") for p in post_parts)

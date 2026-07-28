@@ -62,4 +62,4 @@ class LogRateItem(BaseItem):
 
     def review_results_markdown(self, f) -> None:
         super().review_results_markdown(f)
-        f.write(f'<canvas id="canvas_{self.__class__.__name__}" width="400" height="200"></canvas>\n')
+        f.write(f'<canvas id="canvas_{self.__class__.__name__}" class="bar"></canvas>\n')

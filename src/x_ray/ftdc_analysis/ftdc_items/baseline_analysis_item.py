@@ -40,6 +40,7 @@ from x_ray.ftdc_analysis.shared import (
     MemberRole,
     get_member_role,
 )
+from x_ray.utils import yellow
 
 MEMBER_STATE_COLORS: dict[float, str] = {
     0: "gray",  # STARTUP
@@ -55,7 +56,28 @@ MEMBER_STATE_COLORS: dict[float, str] = {
     10: "gray",  # REMOVED
 }
 
+MEMBER_STATE_NAMES: dict[float, str] = {
+    0: "STARTUP",
+    1: "PRIMARY",
+    2: "SECONDARY",
+    3: "RECOVERING",
+    4: "FATAL",
+    5: "STARTUP2",
+    6: "UNKNOWN",
+    7: "ARBITER",
+    8: "DOWN",
+    9: "ROLLBACK",
+    10: "REMOVED",
+}
+
 DEFAULT_DB_PATH = "/data/db"
+
+
+def _downsample_points(points: list[tuple]) -> list[tuple]:
+    """Keep every 60th point (systematic sampling) for AI consumption."""
+    if len(points) <= 60:
+        return list(points)
+    return points[::60]
 
 
 class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attributes
@@ -77,6 +99,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
         self._mount_metrics: dict[str, dict[str, str]] = {}
         self._rs_member_metrics: dict[str, dict[str, str]] = {}
         self._results: dict[str, list[dict]] = {}
+        self._ai_results: dict[str, str] = {}
         self._capture_start: Optional[datetime] = None
         self._capture_end: Optional[datetime] = None
         self._mongodb_config: Optional[dict] = None
@@ -224,6 +247,18 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             if any(isfinite(value) and value != 0 for value in self._series.get(metrics.get("self", ""), {}).values())
         }
 
+    def _current_member_state(self) -> Optional[str]:
+        """Return the state name of the local replica set member, if any."""
+        local_members = self._local_rs_members()
+        for member in sorted(self._rs_member_metrics):
+            if member in local_members:
+                state_metric = self._rs_member_metrics[member].get("state")
+                if state_metric:
+                    values = [v for v in self._series.get(state_metric, {}).values() if isfinite(v)]
+                    if values:
+                        return MEMBER_STATE_NAMES.get(values[-1], str(values[-1]))
+        return None
+
     def finalize_analysis(self) -> None:
         local_members = self._local_rs_members()
         workload = []
@@ -352,6 +387,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                         points,
                         slug=f"rs-member-state-{self._mount_slug(member)}",
                         value_colors=MEMBER_STATE_COLORS,
+                        value_labels=MEMBER_STATE_NAMES,
                         image_format=self._image_format,
                         chart_type="bar",
                         width=MEMBER_STATE_CHART_WIDTH,
@@ -416,7 +452,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 )
             )
 
-        if self._member_role == MemberRole.MONGOS:
+        if self._member_role in (MemberRole.MONGOS, MemberRole.CSRS):
             performance = [
                 item
                 for item in performance
@@ -439,6 +475,54 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "Performance": performance,
             "Member State": member_states,
         }
+
+        self._run_ai_analysis()
+
+    def _run_ai_analysis(self) -> None:
+        """Run AI analysis for each section, storing results in ``self._ai_results``."""
+        try:
+            from x_ray.ai_client import _get_client, analyze_ftdc_section
+        except ImportError:
+            return
+
+        client, _ = _get_client()
+        if client is None:
+            return
+
+        self._logger.info(yellow("Starting AI analysis — this may take a while..."))
+
+        member_role = self._member_role
+        section_map = {
+            "1.1 Workload": "Workload",
+            "1.2 Ops and Latencies": "Ops and Latencies",
+            "1.3 Performance": "Performance",
+        }
+        for section_title, category in section_map.items():
+            if category == "Ops and Latencies" and member_role == MemberRole.MONGOS:
+                continue
+            metrics_data = self._collect_section_data(category)
+            if not metrics_data:
+                continue
+            result = analyze_ftdc_section(section_title, metrics_data)
+            if result:
+                self._ai_results[category] = result
+
+    def _collect_section_data(self, category: str) -> list[dict]:
+        """Collect downsampled data for a single section."""
+        entries = self._results.get(category, [])
+        data = []
+        for entry in entries:
+            values = entry.get("downsampled_values")
+            peak = entry.get("peak", 0)
+            if values and peak > 0:
+                data.append({
+                    "metric": entry.get("metric", ""),
+                    "unit": entry.get("unit", ""),
+                    "peak": peak,
+                    "average": entry.get("average", ""),
+                    "values": values,
+                })
+        return data
 
     @staticmethod
     def _mount_slug(mount_point: str) -> str:
@@ -567,6 +651,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             "chart_type": chart_type,
             "chart_width": self._chart_width,
             "chart_height": self._chart_height,
+            "downsampled_values": [round(v, 4) for _, v in _downsample_points(points)],
         }
 
     def _performance_summary(
@@ -605,6 +690,13 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             output.write(f"- Hostname: `{self._hostname}`\n")
         else:
             output.write("- Hostname: _No data available._\n")
+        role = self._member_role.value.upper()
+        if self._member_role != MemberRole.MONGOS:
+            state = self._current_member_state()
+            role_display = f"`{role}` (**{state}**)" if state else f"`{role}`"
+        else:
+            role_display = f"`{role}`"
+        output.write(f"- Member Role: {role_display}\n")
         output.write("\n")
         parser = BaselineAnalysisParser()
         if self._member_role != MemberRole.MONGOS:
@@ -632,3 +724,9 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                     show_thresholds=section == "Performance",
                 )
             )
+            ai_text = self._ai_results.get(section)
+            if ai_text:
+                output.write("\n> **🤖 AI Analysis**\n>\n")
+                for line in ai_text.strip().split("\n"):
+                    output.write(f"> {line}\n")
+                output.write("\n")

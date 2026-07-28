@@ -47,7 +47,7 @@ dependencies = [
   "python-dateutil==2.9.0.post0",
   "types-python-dateutil==2.9.0.20260716",
   "pymongoftdc>=0.1.1",
-  "Pillow>=10.0.0",
+  "python-dotenv==1.2.1",
   "WeasyPrint==69.0",
 ]
 

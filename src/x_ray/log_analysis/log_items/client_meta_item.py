@@ -133,8 +133,8 @@ class ClientMetaItem(BaseItem):
             f.write(
                 '\n**<span style="color: red;">Unable to determine server version to mark incompatible drivers. Log may be truncated by user.</span>**\n'
             )
-        f.write(f"<div class=\"pie\"><canvas id='canvas_{self.__class__.__name__}'></canvas></div>\n")
-        f.write(f"<div class=\"pie\"><canvas id='canvas_{self.__class__.__name__}_ip'></canvas></div>\n")
+        f.write(f"<div class=\"pie100\"><canvas id='canvas_{self.__class__.__name__}'></canvas></div>\n")
+        f.write(f"<div class=\"pie100\"><canvas id='canvas_{self.__class__.__name__}_ip'></canvas></div>\n")
 
 
 def is_driver_compatible(log_driver_name: str, log_driver_version: str, server_version: Version, matrix) -> bool:
