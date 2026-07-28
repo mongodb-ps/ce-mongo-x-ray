@@ -5,13 +5,25 @@ from __future__ import annotations
 import json
 import logging
 import os
+from typing import TYPE_CHECKING, TypedDict
+
+if TYPE_CHECKING:
+    from openai import OpenAI
+
+
+class _MetricData(TypedDict):
+    metric: str
+    unit: str
+    peak: float
+    average: float
+    values: list[float]
 
 _logger = logging.getLogger(__name__)
 
 _AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")
 
 
-def _get_client():
+def _get_client() -> tuple[OpenAI | None, str | None]:
     """Return an OpenAI client if the API key is configured, or None."""
     api_key = os.getenv("OPENAI_API_KEY", "")
     if not api_key:
@@ -31,7 +43,7 @@ def _get_client():
 
 def analyze_ftdc_section(
     section_title: str,
-    metrics_data: list[dict],
+    metrics_data: list[_MetricData],
 ) -> str | None:
     """Send a section's FTDC metrics to the AI for analysis.
 
@@ -69,7 +81,7 @@ def analyze_ftdc_section(
         return None
 
 
-def _build_section_prompt(section_title: str, metrics_data: list[dict]) -> str:
+def _build_section_prompt(section_title: str, metrics_data: list[_MetricData]) -> str:
     """Build the prompt for a single FTDC section."""
     parts = [
         "You are analyzing MongoDB FTDC (Full-Time Diagnostic Data Capture) "
