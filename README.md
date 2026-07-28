@@ -238,3 +238,32 @@ The fallback dimensions are defined in `ftdc_analysis/charts.py`.
 Vertical grid lines are spaced every 100 pixels and horizontal grid lines every 50 pixels.
 Workload and operation/latency charts use lines. Performance charts use bars.
 Member-state charts are always 450×50 pixel bars.
+
+#### 3.4.1 AI Analysis (Optional)
+FTDC reports can include AI-generated summaries for each section (Workload,
+Ops and Latencies, Performance). The analysis appears as a brief 2-3 sentence
+assessment at the end of each section, flagging potential issues or confirming
+normal operation.
+
+**Configuration** — set the following environment variables:
+
+| Variable            | Required | Default                  | Description                              |
+| ------------------- | :------: | ------------------------ | ---------------------------------------- |
+| `OPENAI_API_KEY`    |   Yes    | —                        | API key for the AI service               |
+| `OPENAI_BASE_URL`   |    No    | OpenAI default           | Compatible API endpoint (e.g. DeepSeek)  |
+| `AI_MODEL`          |    No    | `gpt-4o`                 | Model name to use                        |
+
+If `OPENAI_API_KEY` is not set, AI analysis is silently skipped.
+
+**Example** `.env` file:
+```bash
+OPENAI_API_KEY="sk-..."
+OPENAI_BASE_URL="https://api.deepseek.com"
+AI_MODEL="deepseek-v4-pro"
+```
+
+Or export directly in the shell:
+```bash
+export OPENAI_API_KEY="sk-..."
+x-ray ftdc /var/lib/mongo/diagnostic.data
+```
