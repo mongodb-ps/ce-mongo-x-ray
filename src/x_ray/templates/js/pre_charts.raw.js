@@ -10,6 +10,9 @@ if (typeof Chart !== "undefined" && typeof ChartDataLabels !== "undefined") {
             var threshold = window.PIE_LABEL_THRESHOLD || 0;
             return percentage >= threshold ? "auto" : false;
         },
+        anchor: "end",
+        align: "end",
+        offset: 4,
         color: "#333",
         font: { weight: "bold", size: 11 },
         formatter: function (value, ctx) {
