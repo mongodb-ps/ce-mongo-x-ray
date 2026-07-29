@@ -8,6 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+import html as html_mod
 from random import randint
 from bson import json_util
 from x_ray.log_analysis.log_items.base_item import BaseItem
@@ -65,13 +66,28 @@ class WEFItem(BaseItem):
                 self._logger.error("Please install the OpenAI dependency or disable AI support in config.json")
                 self._ai_support = False
 
+        self._match_risks()
         super().finalize_analysis()
+
+    def _match_risks(self) -> None:
+        """Enrich cache entries with matched risk info via vector search."""
+        try:
+            from x_ray.risk_register.db import match_risk
+        except ImportError:
+            return
+        for entry in self._cache:
+            msg = entry.get("msg", "")
+            if not msg:
+                continue
+            risk = match_risk(msg)
+            if risk:
+                entry["matched_risk"] = risk
 
     def review_results_markdown(self, f):
         super().review_results_markdown(f)
         f.write('<div id="wef_positioner"></div>\n\n')
-        f.write("|Code{100px}|Severity{100px}|Message|Count{100px}|\n")
-        f.write("|:---:|:---:|---|:---:|\n")
+        f.write("|Code{100px}|Severity{100px}|Message|Count{100px}|Known Risks{*}|\n")
+        f.write("|:---:|:---:|---|:---:|:---|\n")
         rows = []
         i = 0
         with open(self._output_file, "r", encoding="utf-8") as data:
@@ -81,7 +97,19 @@ class WEFItem(BaseItem):
                 severity = line_json.get("severity", "Unknown").upper()
                 msg = line_json.get("msg", "")
                 count = len(line_json.get("timestamp", []))
-                rows.append(f"|[{log_id}](#{i})|{severity}|{escape_markdown(msg)}|{count}|\n")
+                risk_html = ""
+                mr = line_json.get("matched_risk")
+                if mr:
+                    rid = html_mod.escape(str(mr.get("id", "")))
+                    rname = html_mod.escape(str(mr.get("name", "")))
+                    rdesc = html_mod.escape(str(mr.get("description", "")))
+                    risk_html = (
+                        f'<span class="risk-badge">RISK-{rid}'
+                        f'<span class="risk-tooltip">'
+                        f'<span class="risk-name">{rname}</span>'
+                        f'{rdesc}</span></span>'
+                    )
+                rows.append(f"|[{log_id}](#{i})|{severity}|{escape_markdown(msg)}|{count}|{risk_html}|\n")
                 i += 1
         rows = sorted(rows, key=lambda x: x.lower())
         for row in rows:
