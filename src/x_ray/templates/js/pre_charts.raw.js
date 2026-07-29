@@ -98,17 +98,29 @@ if (typeof Chart !== "undefined") {
             ctx.font = fontStr;
             ctx.textBaseline = "middle";
 
-            // Right-side labels — right-aligned to the edge
+            // Compute max text widths for alignment
+            var maxRightW = 0;
+            rightItems.forEach(function (item) {
+                var w = ctx.measureText(item.text).width;
+                if (w > maxRightW) maxRightW = w;
+            });
+            var maxLeftW = 0;
+            leftItems.forEach(function (item) {
+                var w = ctx.measureText(item.text).width;
+                if (w > maxLeftW) maxLeftW = w;
+            });
+
+            // Right-side labels — left edges aligned, to the right
             var labelX = chart.width - lineGap;
             var y = area.top + spacing;
-            ctx.textAlign = "right";
+            ctx.textAlign = "left";
             rightItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
-                ctx.fillText(item.text, labelX, y);
                 var textW = ctx.measureText(item.text).width;
+                var textX = labelX - maxRightW;
+                ctx.fillText(item.text, textX, y);
                 var outer = item.arc.outerRadius;
-                var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
-                // Normalize labelAngle to the same revolution as the slice
+                var labelAngle = Math.atan2(y - item.arc.y, textX - item.arc.x);
                 var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
                 var twoPI = 2 * Math.PI;
                 labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
@@ -117,33 +129,31 @@ if (typeof Chart !== "undefined") {
                 var sy = item.arc.y + Math.sin(clampedAngle) * outer;
                 var dx = 6;
                 var dotR = 2;
+                var lineEndX = textX - dx - 2;
                 ctx.beginPath();
                 ctx.moveTo(sx - dx, sy);
                 ctx.lineTo(sx + dx, sy);
-                ctx.lineTo(labelX - textW - dx - 2, y);
-                ctx.lineTo(labelX - textW - 2, y);
+                ctx.lineTo(lineEndX, y);
                 ctx.strokeStyle = "#999";
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.arc(sx - dx, sy, dotR, 0, 2 * Math.PI);
-                ctx.arc(labelX - textW - 2, y, dotR, 0, 2 * Math.PI);
+                ctx.arc(lineEndX, y, dotR, 0, 2 * Math.PI);
                 ctx.fillStyle = "#999";
                 ctx.fill();
                 y += spacing;
             });
 
-            // Left-side labels — left-aligned to the edge
-            labelX = lineGap;
+            // Left-side labels — right edges aligned, to the left
+            labelX = lineGap + maxLeftW;
             y = area.top + spacing;
-            ctx.textAlign = "left";
+            ctx.textAlign = "right";
             leftItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
                 ctx.fillText(item.text, labelX, y);
-                var textW = ctx.measureText(item.text).width;
                 var outer = item.arc.outerRadius;
                 var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
-                // Normalize labelAngle to the same revolution as the slice
                 var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
                 var twoPI = 2 * Math.PI;
                 labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
@@ -155,14 +165,13 @@ if (typeof Chart !== "undefined") {
                 ctx.beginPath();
                 ctx.moveTo(sx + dx, sy);
                 ctx.lineTo(sx - dx, sy);
-                ctx.lineTo(labelX + textW + dx + 2, y);
-                ctx.lineTo(labelX + textW + 2, y);
+                ctx.lineTo(labelX + dx + 2, y);
                 ctx.strokeStyle = "#999";
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.arc(sx + dx, sy, dotR, 0, 2 * Math.PI);
-                ctx.arc(labelX + textW + 2, y, dotR, 0, 2 * Math.PI);
+                ctx.arc(labelX + dx + 2, y, dotR, 0, 2 * Math.PI);
                 ctx.fillStyle = "#999";
                 ctx.fill();
                 y += spacing;

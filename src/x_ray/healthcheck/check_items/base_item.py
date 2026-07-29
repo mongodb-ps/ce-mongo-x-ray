@@ -118,13 +118,15 @@ class BaseItem(ABC):
             category_cell = item["title"]
             risk = item.get("matched_risk")
             if risk:
-                risk_id = risk.get("id", "")
-                risk_name = risk.get("name", "")
-                risk_desc = risk.get("description", "").replace('"', "&quot;")
-                tooltip = f"{risk_name}: {risk_desc}" if risk_desc else risk_name
+                risk_id = html_mod.escape(str(risk.get("id", "")))
+                risk_name = html_mod.escape(str(risk.get("name", "")))
+                risk_desc = html_mod.escape(str(risk.get("description", "")))
                 category_cell += (
-                    f' <span class="risk-badge" '
-                    f'title="{tooltip}">RISK-{risk_id}</span>'
+                    f' <span class="risk-badge">RISK-{risk_id}'
+                    f'<span class="risk-tooltip">'
+                    f'<span class="risk-name">{risk_name}</span>'
+                    f'{risk_desc}'
+                    f'</span></span>'
                 )
             result += (
                 f"| **{idx + 1}** "

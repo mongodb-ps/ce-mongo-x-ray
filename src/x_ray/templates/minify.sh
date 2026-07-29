@@ -1,79 +1,51 @@
 #!/bin/bash
+set -euo pipefail
 
-# Resolve paths relative to git root so git diff works correctly
-_git_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+_git_root=$(git rev-parse --show-toplevel)
 
-roots=("$@")
-if [ ${#roots[@]} -eq 0 ]; then
-  roots=(".")
+# Get changed raw files relative to templates dir
+changed=$(git -C "$_git_root" diff --name-only -- src/x_ray/templates/ \
+  | grep -E '\.raw\.(html|js|css)$' \
+  | sed 's|^src/x_ray/templates/||' \
+  || true)
+
+if [ -z "$changed" ]; then
+  echo "No changed .raw.* files to minify."
+  exit 0
 fi
 
-# Process all .raw.html files in the requested directories recursively
-find "${roots[@]}" -name "*.raw.html" -type f | while read -r file; do
+while IFS= read -r file; do
   dir=$(dirname "$file")
-  basename=$(basename "$file" .raw.html)
-  output="$dir/${basename}.html"
+  basename_raw=$(basename "$file")
 
-  if [ -f "$output" ] && [ -n "$_git_root" ] && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$file" 2>/dev/null || echo "$file")" && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$output" 2>/dev/null || echo "$output")"; then
-    echo "No changes in $file, skipping minification."
-    continue
-  fi
-  echo "Minifying $file -> $output"
-  npx html-minifier-terser "$file" -o "$output" \
-    --collapse-whitespace --remove-comments --minify-js true --minify-css true
-done
-
-# Process all .raw.js files in the requested directories recursively
-find "${roots[@]}" -name "*.raw.js" -type f | while read -r file; do
-  dir=$(dirname "$file")
-  basename=$(basename "$file" .raw.js)
-  output="$dir/${basename}.js"
-
-  if [ -f "$output" ] && [ -n "$_git_root" ] && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$file" 2>/dev/null || echo "$file")" && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$output" 2>/dev/null || echo "$output")"; then
-    echo "No changes in $file, skipping minification."
-    continue
-  fi
-  echo "Minifying $file -> $output"
-  npx terser "$file" -o "$output" -c -m
-done
-
-# Process all .raw.css files in the requested directories recursively
-find "${roots[@]}" -name "*.raw.css" -type f | while read -r file; do
-  dir=$(dirname "$file")
-  basename=$(basename "$file" .raw.css)
-  output="$dir/${basename}.css"
-
-  if [ -f "$output" ] && [ -n "$_git_root" ] && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$file" 2>/dev/null || echo "$file")" && \
-     git -C "$_git_root" diff --quiet "$(realpath --relative-to="$_git_root" "$output" 2>/dev/null || echo "$output")"; then
-    echo "No changes in $file, skipping minification."
-    continue
-  fi
-  echo "Minifying $file -> $output"
-  python3 -c "
+  if [[ "$basename_raw" == *.raw.html ]]; then
+    basename="${basename_raw%.raw.html}.html"
+    echo "Minifying $file -> $dir/$basename"
+    npx html-minifier-terser "$file" -o "$dir/$basename" \
+      --collapse-whitespace --remove-comments --minify-js true --minify-css true
+  elif [[ "$basename_raw" == *.raw.js ]]; then
+    basename="${basename_raw%.raw.js}.js"
+    echo "Minifying $file -> $dir/$basename"
+    npx terser "$file" -o "$dir/$basename" -c -m
+  elif [[ "$basename_raw" == *.raw.css ]]; then
+    basename="${basename_raw%.raw.css}.css"
+    echo "Minifying $file -> $dir/$basename"
+    python3 -c "
 import re, sys
 
 with open(sys.argv[1]) as f:
     css = f.read()
 
-# Remove comments
 css = re.sub(r'/\*.*?\*/', '', css, flags=re.DOTALL)
-# Remove whitespace around {};:,
 css = re.sub(r'\s*([{};:,])\s*', r'\1', css)
-# Replace multiple whitespace with single space
 css = re.sub(r'\s+', ' ', css)
-# Remove whitespace before and after () as much as possible
 css = re.sub(r'\(\s+', '(', css)
 css = re.sub(r'\s+\)', ')', css)
-# Remove leading/trailing whitespace per block
 css = re.sub(r';\s+}', '}', css)
 css = css.strip()
 
 with open(sys.argv[2], 'w') as f:
     f.write(css)
-" "$file" "$output"
-done
+" "$file" "$dir/$basename"
+  fi
+done <<< "$changed"

@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import logging
+import html as html_mod
 import os
 from typing import Callable, Optional
 from bson import json_util
@@ -146,13 +147,15 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             category_cell = item["title"]
             risk = item.get("matched_risk")
             if risk:
-                risk_id = risk.get("id", "")
-                risk_name = risk.get("name", "")
-                risk_desc = risk.get("description", "").replace('"', "&quot;")
-                tooltip = f"{risk_name}: {risk_desc}" if risk_desc else risk_name
+                risk_id = html_mod.escape(str(risk.get("id", "")))
+                risk_name = html_mod.escape(str(risk.get("name", "")))
+                risk_desc = html_mod.escape(str(risk.get("description", "")))
                 category_cell += (
-                    f' <span class="risk-badge" '
-                    f'title="{tooltip}">RISK-{risk_id}</span>'
+                    f' <span class="risk-badge">RISK-{risk_id}'
+                    f'<span class="risk-tooltip">'
+                    f'<span class="risk-name">{risk_name}</span>'
+                    f'{risk_desc}'
+                    f'</span></span>'
                 )
             output.write(
                 f"| **{idx + 1}** "
@@ -162,22 +165,6 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
                 f"| {item['message']} |\n"
             )
         output.write("\n")
-
-        # Show matched risks from the risk register
-        matched_items = [it for it in self._test_result if it.get("matched_risk")]
-        if matched_items:
-            output.write("> **📋 Matched Risks**\n>\n")
-            for item in matched_items:
-                risk = item["matched_risk"]
-                output.write(
-                    f"> - **{item['title']}** → "
-                    f"`{risk['risk_level']}` {risk['name']}"
-                )
-                dist = risk.get("distance")
-                if dist is not None:
-                    output.write(f" _(similarity: {1 - dist:.0%})_")
-                output.write("\n")
-            output.write("\n")
 
     def finalize_analysis(self) -> None:
         """

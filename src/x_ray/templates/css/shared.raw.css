@@ -221,17 +221,47 @@
     canvas {
         max-width: 100%;
     }
-    .risk-badge {
-        display: inline-block;
-        padding: 0 4px;
-        font-size: 75%;
-        font-weight: 600;
-        line-height: 1.4;
-        color: #fff;
-        background-color: #0072b2;
-        border-radius: 3px;
-        cursor: help;
-        margin-left: 4px;
-        vertical-align: middle;
-    }
+}
+
+.risk-badge {
+    display: inline-block;
+    padding: 0 4px;
+    font-size: 75%;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #fff;
+    background-color: #0072b2;
+    border-radius: 3px;
+    cursor: help;
+    margin-left: 4px;
+    vertical-align: middle;
+    position: relative;
+}
+.risk-badge .risk-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    padding: 6px 8px;
+    background: #333;
+    color: #fff;
+    font-size: 12px;
+    font-weight: normal;
+    white-space: normal;
+    word-break: break-word;
+    border-radius: 4px;
+    z-index: 1000;
+    pointer-events: none;
+}
+.risk-badge .risk-tooltip .risk-name {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    color: #ffa500;
+    margin-bottom: 4px;
+}
+.risk-badge:hover .risk-tooltip {
+    display: block;
 }

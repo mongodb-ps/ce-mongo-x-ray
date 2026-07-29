@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Optional, Sequence
+
+# Suppress chromadb telemetry (posthog API incompatibility in 0.5.x)
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 import chromadb
 from chromadb.config import Settings
 
 from x_ray.risk_register.shared import CHROMA_COLLECTION, EMBED_FIELDS, Risk, get_db_path
+
+# Mute chromadb telemetry errors (posthog API mismatch)
+logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)
 
 _logger = logging.getLogger(__name__)
 
