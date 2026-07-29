@@ -86,7 +86,7 @@ class WEFItem(BaseItem):
     def review_results_markdown(self, f):
         super().review_results_markdown(f)
         f.write('<div id="wef_positioner"></div>\n\n')
-        f.write("|Code{100px}|Severity{100px}|Message|Count{100px}|Known Risks{*}|\n")
+        f.write("|Code{100px}|Severity{100px}|Message{*}|Count{100px}|Known Risks{150}|\n")
         f.write("|:---:|:---:|---|:---:|:---|\n")
         rows = []
         i = 0
@@ -107,7 +107,7 @@ class WEFItem(BaseItem):
                         f'<span class="risk-badge">RISK-{rid}'
                         f'<span class="risk-tooltip">'
                         f'<span class="risk-name">{rname}</span>'
-                        f'{rdesc}</span></span>'
+                        f"{rdesc}</span></span>"
                     )
                 rows.append(f"|[{log_id}](#{i})|{severity}|{escape_markdown(msg)}|{count}|{risk_html}|\n")
                 i += 1
