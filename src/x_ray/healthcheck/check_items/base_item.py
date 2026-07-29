@@ -115,11 +115,22 @@ class BaseItem(ABC):
                 f"<b style='color: {colorize_severity(severity)}'>"
                 f" {severity.name} </b></span>"
             )
+            category_cell = item["title"]
+            risk = item.get("matched_risk")
+            if risk:
+                risk_id = risk.get("id", "")
+                risk_name = risk.get("name", "")
+                risk_desc = risk.get("description", "").replace('"', "&quot;")
+                tooltip = f"{risk_name}: {risk_desc}" if risk_desc else risk_name
+                category_cell += (
+                    f' <span class="risk-badge" '
+                    f'title="{tooltip}">RISK-{risk_id}</span>'
+                )
             result += (
                 f"| **{idx + 1}** "
                 f"| `{item['host']}` "
                 f"| {severity_cell} "
-                f"| {item['title']} "
+                f"| {category_cell} "
                 f"| {item['message']} |\n"
             )
         result += "\n"

@@ -221,4 +221,17 @@
     canvas {
         max-width: 100%;
     }
+    .risk-badge {
+        display: inline-block;
+        padding: 0 4px;
+        font-size: 75%;
+        font-weight: 600;
+        line-height: 1.4;
+        color: #fff;
+        background-color: #0072b2;
+        border-radius: 3px;
+        cursor: help;
+        margin-left: 4px;
+        vertical-align: middle;
+    }
 }

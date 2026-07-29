@@ -18,6 +18,7 @@ class _MetricData(TypedDict):
     average: float
     values: list[float]
 
+
 _logger = logging.getLogger(__name__)
 
 _AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")
@@ -85,12 +86,12 @@ def _build_section_prompt(section_title: str, metrics_data: list[_MetricData]) -
     """Build the prompt for a single FTDC section."""
     parts = [
         "You are analyzing MongoDB FTDC (Full-Time Diagnostic Data Capture) "
-        "metrics from a 24-hour monitoring period.",
+        + "metrics from a 24-hour monitoring period.",
         "",
         f"## {section_title}",
         "",
         "Each metric below has ~1440 data points, sampled every 60 seconds "
-        "from the raw 1-second FTDC data. Values are provided as a JSON array.",
+        + "from the raw 1-second FTDC data. Values are provided as a JSON array.",
         "",
     ]
 
@@ -108,11 +109,14 @@ def _build_section_prompt(section_title: str, metrics_data: list[_MetricData]) -
         parts.append(f"- Values: {json.dumps(values)}")
         parts.append("")
 
-    parts.extend([
-        "Provide a very brief summary (2-3 sentences) indicating whether "
-        "these metrics show any potential issues that need attention. "
-        "If everything looks normal, simply state that no obvious problems were detected.",
-    ])
+    parts.extend(
+        [
+            "Provide a very brief summary (2-3 sentences) indicating whether "
+            + "these metrics show any potential issues that need attention. "
+            + "If everything looks normal, simply state that no obvious "
+            + "problems were detected.",
+        ]
+    )
 
     return "\n".join(parts)
 
@@ -132,13 +136,12 @@ def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
 
     prompt_parts = [
         "You are analyzing MongoDB FTDC metrics from a 24-hour monitoring "
-        "period. Below are ALL metrics from every section (Workload, "
-        "Ops and Latencies, Performance) combined.",
+        + "period. Below are ALL metrics from every section (Workload, "
+        + "Ops and Latencies, Performance) combined.",
         "",
         "## Cross-Section Overview",
         "",
-        "For each metric, the downsampled values (~1440 points each) and "
-        "summary statistics are provided.",
+        "For each metric, the downsampled values (~1440 points each) and summary statistics are provided.",
         "",
     ]
 

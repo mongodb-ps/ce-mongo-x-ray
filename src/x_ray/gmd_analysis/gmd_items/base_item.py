@@ -143,14 +143,41 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
                 f"<b style='color: {colorize_severity(severity)}'>"
                 f" {severity.name} </b></span>"
             )
+            category_cell = item["title"]
+            risk = item.get("matched_risk")
+            if risk:
+                risk_id = risk.get("id", "")
+                risk_name = risk.get("name", "")
+                risk_desc = risk.get("description", "").replace('"', "&quot;")
+                tooltip = f"{risk_name}: {risk_desc}" if risk_desc else risk_name
+                category_cell += (
+                    f' <span class="risk-badge" '
+                    f'title="{tooltip}">RISK-{risk_id}</span>'
+                )
             output.write(
                 f"| **{idx + 1}** "
                 f"| `{item['host']}` "
                 f"| {severity_cell} "
-                f"| {item['title']} "
+                f"| {category_cell} "
                 f"| {item['message']} |\n"
             )
         output.write("\n")
+
+        # Show matched risks from the risk register
+        matched_items = [it for it in self._test_result if it.get("matched_risk")]
+        if matched_items:
+            output.write("> **📋 Matched Risks**\n>\n")
+            for item in matched_items:
+                risk = item["matched_risk"]
+                output.write(
+                    f"> - **{item['title']}** → "
+                    f"`{risk['risk_level']}` {risk['name']}"
+                )
+                dist = risk.get("distance")
+                if dist is not None:
+                    output.write(f" _(similarity: {1 - dist:.0%})_")
+                output.write("\n")
+            output.write("\n")
 
     def finalize_analysis(self) -> None:
         """

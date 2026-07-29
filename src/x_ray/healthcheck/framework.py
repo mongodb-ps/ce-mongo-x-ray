@@ -23,6 +23,8 @@ from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.utils import load_classes, get_script_path, html_to_pdf, inject_assets, yellow, bold, green, env
 
+logger = logging.getLogger(__name__)
+
 CHECKLIST_CLASSES = load_classes("x_ray.healthcheck.check_items")
 
 
@@ -102,6 +104,16 @@ class Framework:
             f.write("### By Category\n\n")
             all_categories = [result["title"] for result in all_test_result]
             category_counts = {category: all_categories.count(category) for category in set(all_categories)}
+
+            # Enrich test results with matched risks from the risk register
+            try:
+                from x_ray.risk_register.db import enrich_test_results
+                matched = enrich_test_results(all_test_result)
+                if matched:
+                    logger.info(green(f"Matched {matched} issues to known risks"))
+            except Exception:
+                logger.debug("Risk register matching not available", exc_info=True)
+
             f.write("| <span data-sortable=\"true\">Category</span>{300} | <span data-sortable=\"true\">Count</span>{100} |\n")
             f.write("|---:|:---:|\n")
             for category, count in category_counts.items():

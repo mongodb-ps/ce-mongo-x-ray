@@ -372,7 +372,45 @@ For more information on specific commands, use:
         default=False,
     )
 
+    ingest_parser = subparsers.add_parser(
+        "ingest",
+        help="Ingest a risk register CSV into ChromaDB",
+        description="Parse a risk register CSV file and store risks in a local ChromaDB "
+        "database for later vector search matching.",
+        epilog=(
+            "Example:\n"
+            '  x-ray ingest risks.csv\n'
+            "\n"
+            "Expected CSV columns:\n"
+            "  ID, Risk Level, Impact, Name, Risk Description\n"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ingest_parser.add_argument(
+        "csv_path", help="Path to the risk register CSV file."
+    )
+
     return parser
+
+
+def ingest_command(args):
+    """Ingest a risk register CSV into ChromaDB."""
+    csv_path = Path(args.csv_path)
+    if not csv_path.exists():
+        logger.error("CSV file not found: %s", csv_path)
+        return 1
+    from x_ray.risk_register.shared import load_risks_from_csv
+    from x_ray.risk_register.db import ingest_risks
+
+    logger.info("Reading risks from %s ...", csv_path)
+    risks = load_risks_from_csv(csv_path)
+    if not risks:
+        logger.warning("No valid risks found in %s", csv_path)
+        return 0
+    logger.info("Found %d risks", len(risks))
+    count = ingest_risks(risks)
+    logger.info(green(f"Ingested {count} risks into ChromaDB"))
+    return 0
 
 
 def health_check_command(args):
@@ -573,6 +611,8 @@ def main():
         return gmd_alalysis_command(args)
     if args.command == "ftdc":
         return ftdc_analysis_command(args)
+    if args.command == "ingest":
+        return ingest_command(args)
 
     logger.error("Unknown command: %s", args.command)
     return 1

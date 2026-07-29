@@ -123,6 +123,12 @@ class Framework:
                     self._logger.warning(
                         yellow(f"GMD item '{item.name}' is incomplete because of too many databases/collections.")
                     )
+                # Enrich test results with matched risks
+                try:
+                    from x_ray.risk_register.db import enrich_test_results
+                    enrich_test_results(item._test_result)
+                except Exception:
+                    pass
                 try:
                     title = f"1.{i + 1} {item.name}"
                     review_title = f"2.{i + 1} Review {item.name}"
