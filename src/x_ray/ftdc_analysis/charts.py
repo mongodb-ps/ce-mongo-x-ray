@@ -11,7 +11,7 @@ BAR_COLORS = frozenset({"blue", "gray", "green", "red", "yellow"})
 DEFAULT_CHART_WIDTH = 500
 DEFAULT_CHART_HEIGHT = 150
 MEMBER_STATE_CHART_WIDTH = 500
-MEMBER_STATE_CHART_HEIGHT = 50
+MEMBER_STATE_CHART_HEIGHT = 100
 
 _BAR_COLOR_HEX: dict[Optional[str], str] = {
     None: "#0072b2",
@@ -186,16 +186,9 @@ def _draw_png(
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
 
     if value_labels:
-        for value, label in sorted(value_labels.items()):
+        for value, _label in sorted(value_labels.items()):
             y = top + plot_height - (value / scale_max) * plot_height
             draw.line([(left, y), (render_width - right, y)], fill=_GRID_COLOR)
-            draw.text(
-                (left - 6 * scale, y),
-                label,
-                fill=_TEXT_COLOR,
-                font=font,
-                anchor="rm",
-            )
     else:
         for offset in _grid_offsets(plot_height, _Y_GRID_SPACING * scale):
             ratio = offset / plot_height
@@ -286,6 +279,16 @@ def _draw_png(
             [x, y, x + bar_width, y + bar_h],
             fill=hex_color,
         )
+        if value_labels:
+            label = value_labels.get(value)
+            if label:
+                draw.text(
+                    (x + bar_width / 2, y - 2 * scale),
+                    label,
+                    fill=_TEXT_COLOR,
+                    font=font,
+                    anchor="ms",
+                )
     for x, y, value in coordinates:
         if not _exceeds_threshold(value, thresholds):
             continue
@@ -402,6 +405,13 @@ def write_bar_chart(
                     f'<rect class="{bar_class}" x="{x:.2f}" y="{y:.2f}" '
                     f'width="{bar_width:.2f}" height="{bar_h:.2f}"/>'
                 )
+                if used_labels:
+                    label = used_labels.get(value)
+                    if label:
+                        marks += (
+                            f'<text class="metric-y-label" x="{x + bar_width / 2:.2f}" '
+                            f'y="{y - 4:.2f}" text-anchor="middle">{label}</text>'
+                        )
             for x, y, value in coordinates:
                 if not _exceeds_threshold(value, parsed_thresholds):
                     continue
@@ -422,13 +432,9 @@ def write_bar_chart(
     end_time = points[-1][0] if points else None
     duration = (end_time - start_time).total_seconds() if start_time is not None and end_time is not None else 0
     if used_labels:
-        for value, label in used_labels.items():
+        for value, _label in used_labels.items():
             y = top + plot_height - (value / scale_max) * plot_height
             grid += f'<line class="metric-grid" x1="{left}" y1="{y:.2f}" ' f'x2="{width - right}" y2="{y:.2f}"/>'
-            grid += (
-                f'<text class="metric-y-label" x="{left - 6}" y="{y + 3:.2f}" '
-                f'text-anchor="end">{label}</text>'
-            )
     else:
         for offset in _grid_offsets(plot_height, _Y_GRID_SPACING):
             ratio = offset / plot_height
