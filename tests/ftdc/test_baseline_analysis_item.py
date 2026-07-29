@@ -847,9 +847,48 @@ def test_no_ai_section_when_ai_results_empty(tmp_path):
     assert "🤖 AI Analysis" not in text
 
 
+def test_ai_overview_rendered_in_markdown(tmp_path):
+    item = BaselineAnalysisItem(str(tmp_path), {}, total_ingest_files=1)
+    item._ai_results = {"_overview": "No cross-section issues detected."}
+    item._results = {
+        "Workload": [],
+        "Ops and Latencies": [],
+        "Performance": [],
+        "Member State": [],
+    }
+    item._capture_start = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    item._capture_end = datetime(2026, 1, 2, tzinfo=timezone.utc)
+
+    output = StringIO()
+    item.review_results_markdown(output, section_number=1)
+    text = output.getvalue()
+
+    assert "Cross-Section Overview" in text
+    assert "🤖 AI Overview" in text
+    assert "No cross-section issues detected." in text
+
+
 def test_get_member_role_replicaset():
     assert get_member_role({"replication": {"replSetName": "rs0"}}) == MemberRole.RS
 
 
 def test_get_member_role_standalone():
     assert get_member_role({}) == MemberRole.STANDALONE
+
+
+def test_collect_all_section_data_combines_sections():
+    item = BaselineAnalysisItem("/tmp", {})
+    item._results = {
+        "Workload": [
+            {"metric": "a", "unit": "ops/s", "peak": 10, "average": 5, "downsampled_values": [1, 2]},
+        ],
+        "Ops and Latencies": [
+            {"metric": "b", "unit": "ms/op", "peak": 5, "average": 2, "downsampled_values": [3, 4]},
+        ],
+        "Performance": [],
+        "Member State": [],
+    }
+    data = item._collect_all_section_data()
+    assert len(data) == 2
+    assert data[0]["metric"] == "a"
+    assert data[1]["metric"] == "b"

@@ -521,6 +521,24 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
             if result:
                 self._ai_results[category] = result
 
+        all_metrics = self._collect_all_section_data()
+        if all_metrics:
+            try:
+                from x_ray.ai_client import analyze_ftdc_overview
+            except ImportError:
+                pass
+            else:
+                overview = analyze_ftdc_overview(all_metrics)
+                if overview:
+                    self._ai_results["_overview"] = overview
+
+    def _collect_all_section_data(self) -> list[dict[str, object]]:
+        """Collect all downsampled data across all sections for cross-section analysis."""
+        all_data = []
+        for category in ("Workload", "Ops and Latencies", "Performance"):
+            all_data.extend(self._collect_section_data(category))
+        return all_data
+
     def _collect_section_data(self, category: str) -> list[dict[str, object]]:
         """Collect downsampled data for a single section."""
         entries = self._results.get(category, [])
@@ -744,3 +762,11 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
                 for line in ai_text.strip().split("\n"):
                     output.write(f"> {line}\n")
                 output.write("\n")
+
+        overview = self._ai_results.get("_overview")
+        if overview:
+            output.write(f"### {section_number}.{subsection_number + 1} Cross-Section Overview\n\n")
+            output.write("> **🤖 AI Overview**\n>\n")
+            for line in overview.strip().split("\n"):
+                output.write(f"> {line}\n")
+            output.write("\n")
