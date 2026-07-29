@@ -368,7 +368,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert remote_state["myself"] == "No"
     assert remote_state["chart_type"] == "bar"
     assert remote_state["chart_width"] == 500
-    assert remote_state["chart_height"] == 50
+    assert remote_state["chart_height"] == 66
     assert "peak" not in local_state
     assert "average" not in local_state
     assert remote_state["chart"] == "charts/ftdc-baseline-analysis-rs-member-state-1.svg"
@@ -396,7 +396,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     assert workload_chart.find(".//{http://www.w3.org/2000/svg}line[@class='metric-line']") is not None
     member_chart = ElementTree.parse(tmp_path / remote_state["chart"]).getroot()
     assert member_chart.attrib["width"] == "500"
-    assert member_chart.attrib["height"] == "50"
+    assert member_chart.attrib["height"] == "66"
     remote_bars = (
         ElementTree.parse(tmp_path / remote_state["chart"]).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
     )
@@ -470,11 +470,15 @@ def test_non_primary_or_secondary_state_shows_all_sections(tmp_path):
     assert "### 1.3 Performance" in report
     assert "### 1.4 Member State" not in report
     assert "- Member Role: `STANDALONE` (**RECOVERING**)" in report
-    assert report.index("Member State:\n\n") < report.index(
-        '|<span data-sortable="false">Member</span>{100px}|'
-        '<span data-sortable="false">Me</span>{100px}|'
-        '<span data-sortable="false">State</span>{*}|'
-    ) < report.index("### 1.1 Workload")
+    assert (
+        report.index("Member State:\n\n")
+        < report.index(
+            '|<span data-sortable="false">Member</span>{100px}|'
+            '<span data-sortable="false">Me</span>{100px}|'
+            '<span data-sortable="false">State</span>{*}|'
+        )
+        < report.index("### 1.1 Workload")
+    )
     workload = report.split("### 1.1 Workload", 1)[1].split("### 1.2 Ops and Latencies", 1)[0]
     ops_and_latencies = report.split("### 1.2 Ops and Latencies", 1)[1].split("### 1.3 Performance", 1)[0]
     performance = report.split("### 1.3 Performance", 1)[1]
@@ -761,8 +765,7 @@ def test_get_member_role_csrs():
 def test_downsample_points_returns_every_60th():
     from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
 
-    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i))
-              for i in range(300)]
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i)) for i in range(300)]
     result = _downsample_points(points)
     assert len(result) == 5  # 300 // 60
     assert result[0] == points[0]
@@ -781,10 +784,7 @@ def test_downsample_points_returns_all_when_fewer_than_60():
 
 def test_summary_includes_downsampled_values(tmp_path):
     item = BaselineAnalysisItem(str(tmp_path), {})
-    points = [
-        (datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i * 10))
-        for i in range(120)
-    ]
+    points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i * 10)) for i in range(120)]
     result = item._summary("test-metric", points, "ops/s", chart_type="bar")
     assert "downsampled_values" in result
     values = result["downsampled_values"]

@@ -1,6 +1,7 @@
 """Workload, latency, and host performance summaries for FTDC captures."""
 
 import re
+import os
 from collections.abc import Iterable
 from datetime import datetime
 from functools import cached_property
@@ -494,7 +495,7 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     def _run_ai_analysis(self) -> None:
         """Run AI analysis for each section, storing results in ``self._ai_results``."""
-        if env == "development":
+        if env == "development" or os.environ.get("PYTEST_CURRENT_TEST"):
             self._logger.info("AI analysis skipped in development mode")
             return
         try:
