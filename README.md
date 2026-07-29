@@ -106,7 +106,7 @@ x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                         |        `false`         |
 | `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                     |          n/a           |
 | `-c`, `--config` | Path to configuration file.                                                                                                                                                                         | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |          None          |
+| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `ingest`: Ingest a risk register CSV.<br/>- `version`: Show version info. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
@@ -267,3 +267,37 @@ Or export directly in the shell:
 export OPENAI_API_KEY="sk-..."
 x-ray ftdc /var/lib/mongo/diagnostic.data
 ```
+
+### 3.5 Risk Register Ingestion
+
+The `ingest` command loads a CSV risk register into a local [ChromaDB](https://www.trychroma.com/)
+database for later vector-search matching against issues found by the health check,
+GMD, and log modules.
+
+#### 3.5.1 Examples
+
+```bash
+x-ray ingest risks.csv            # Load risks from a CSV file
+```
+
+The CSV must have the following columns:
+
+| Column           | Description                |
+| ---------------- | -------------------------- |
+| `ID`             | Unique risk identifier     |
+| `Risk Level`     | Severity level (e.g. High) |
+| `Impact`         | Business impact            |
+| `Name`           | Short risk name            |
+| `Risk Description` | Full description         |
+
+Risks with the same `ID` are updated (upserted) on re-ingestion.
+The database is stored at `~/.x-ray/chroma/`.
+
+When a health check, GMD, or log report is generated, each found issue is
+automatically matched against the risk register. Matching risks appear as a
+blue `RISK-{ID}` badge in the Category column, with a hover tooltip showing
+the full risk name and description. Only matches with &gt;50% similarity are
+shown.
+
+If the risk database is empty, matching is silently skipped with a yellow
+warning in the logs.
