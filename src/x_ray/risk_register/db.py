@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional
 
 import chromadb
 from chromadb.config import Settings
 
-from x_ray.risk_register.shared import CHROMA_COLLECTION, EMBED_FIELDS, Risk, get_db_path
+from x_ray.risk_register.shared import CHROMA_COLLECTION, Risk, get_db_path
 
 # Mute chromadb telemetry errors (posthog API mismatch)
 logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)

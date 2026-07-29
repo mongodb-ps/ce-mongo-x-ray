@@ -5,7 +5,6 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Sequence
 
 # Embed the Risk Name field for vector search.
 CHROMA_COLLECTION = "risk_register"
@@ -48,6 +47,7 @@ def load_risks_from_csv(csv_path: Path) -> list[Risk]:
 def get_db_path() -> Path:
     """Return the platform-specific database directory path."""
     import platform
+
     system = platform.system()
     if system == "Windows":
         base = Path.home() / "AppData" / "Roaming"

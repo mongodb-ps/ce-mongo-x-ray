@@ -185,3 +185,29 @@ def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
     except Exception:
         _logger.exception("AI overview request failed")
         return None
+
+
+GPT_MODEL = _AI_MODEL
+
+
+def analyze_log_line_gpt(log_line: dict) -> str:
+    """Analyze a MongoDB log line using OpenAI GPT."""
+    client, model = _get_client()
+    if client is None:
+        return ""
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a MongoDB expert. Analyze MongoDB log "
+                    "messages and tell me the reason in max 200 words.",
+                },
+                {"role": "user", "content": str(log_line)},
+            ],
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        _logger.exception("Failed to analyze log line with GPT")
+        return ""
