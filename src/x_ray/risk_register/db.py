@@ -101,7 +101,7 @@ def _collection_count() -> int:
     return col.count()
 
 
-def match_risk(category: str, max_distance: float = 1.0) -> Optional[dict]:
+def match_risk(category: str, max_distance: float = 0.5) -> Optional[dict]:
     """Find the closest matching risk for a given issue category.
 
     Args:
@@ -121,7 +121,7 @@ def match_risk(category: str, max_distance: float = 1.0) -> Optional[dict]:
     return top
 
 
-def enrich_test_results(test_results: list[dict], max_distance: float = 1.0) -> int:
+def enrich_test_results(test_results: list[dict], max_distance: float = 0.5) -> int:
     """Enrich a list of test results with matched risk information.
 
     Each result dict that has a ``title`` key will be matched against the
