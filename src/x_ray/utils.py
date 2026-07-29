@@ -8,9 +8,13 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
+import os
+# Suppress chromadb/tokenizers warnings before any imports
+os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 from importlib import import_module
 from importlib.resources import files
-import os
 import json
 import logging
 import pkgutil

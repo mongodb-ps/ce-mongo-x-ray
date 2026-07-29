@@ -3,14 +3,8 @@
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Optional, Sequence
-
-# Suppress chromadb telemetry (posthog API incompatibility in 0.5.x)
-os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
-# Suppress tokenizers parallelism warning after fork
-os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 import chromadb
 from chromadb.config import Settings
