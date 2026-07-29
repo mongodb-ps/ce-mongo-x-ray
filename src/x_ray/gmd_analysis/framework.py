@@ -115,6 +115,13 @@ class Framework:
             output.write(f"File path: `{self._file_path}`\n\n")
             output.write("## 1 Review Test Results\n\n")
             output.write("### Overview\n\n")
+            # Enrich all test results with matched risks before building summary
+            for item in self._items:
+                try:
+                    from x_ray.risk_register.db import enrich_test_results
+                    enrich_test_results(item._test_result)
+                except Exception:
+                    pass
             summary_item = SummaryItem()
             summary_item.summarize(self._items)
             summary_item.overview(output)
@@ -123,12 +130,6 @@ class Framework:
                     self._logger.warning(
                         yellow(f"GMD item '{item.name}' is incomplete because of too many databases/collections.")
                     )
-                # Enrich test results with matched risks
-                try:
-                    from x_ray.risk_register.db import enrich_test_results
-                    enrich_test_results(item._test_result)
-                except Exception:
-                    pass
                 try:
                     title = f"1.{i + 1} {item.name}"
                     review_title = f"2.{i + 1} Review {item.name}"

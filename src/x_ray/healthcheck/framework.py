@@ -10,6 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from datetime import datetime, timezone
 import re
+import html as html_mod
 import logging
 import webbrowser
 from pathlib import Path
@@ -108,16 +109,38 @@ class Framework:
             # Enrich test results with matched risks from the risk register
             try:
                 from x_ray.risk_register.db import enrich_test_results
+
                 matched = enrich_test_results(all_test_result)
                 if matched:
                     logger.info(green(f"Matched {matched} issues to known risks"))
             except Exception:
                 logger.debug("Risk register matching not available", exc_info=True)
 
-            f.write("| <span data-sortable=\"true\">Category</span>{300} | <span data-sortable=\"true\">Count</span>{100} |\n")
-            f.write("|---:|:---:|\n")
+            # Build category → matched_risk lookup
+            cat_risks = {}
+            for r in all_test_result:
+                mr = r.get("matched_risk")
+                if mr and r.get("title"):
+                    cat_risks[r["title"]] = mr
+
+            f.write(
+                '| <span data-sortable="true">Category</span>{300} | <span data-sortable="true">Count</span>{100} | <span data-sortable="false">Known Risks</span>{150} |\n'
+            )
+            f.write("|---:|:---:|:---|\n")
             for category, count in category_counts.items():
-                f.write(f"|{category}|<span data-sort-value=\"{count}\"><strong>{count}</strong></span>|\n")
+                risk_html = ""
+                mr = cat_risks.get(category)
+                if mr:
+                    rid = html_mod.escape(str(mr.get("id", "")))
+                    rname = html_mod.escape(str(mr.get("name", "")))
+                    rdesc = html_mod.escape(str(mr.get("description", "")))
+                    risk_html = (
+                        f'<span class="risk-badge">RISK-{rid}'
+                        f'<span class="risk-tooltip">'
+                        f'<span class="risk-name">{rname}</span>'
+                        f"{rdesc}</span></span>"
+                    )
+                f.write(f'|{category}|<span data-sort-value="{count}"><strong>{count}</strong></span>|{risk_html}|\n')
             f.write("\n")
             if len(irresponsive_nodes) > 0:
                 f.write("The following nodes have been detected as irresponsive during the checks:\n\n")
