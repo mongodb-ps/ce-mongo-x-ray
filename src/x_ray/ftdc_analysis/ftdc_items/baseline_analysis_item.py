@@ -40,7 +40,7 @@ from x_ray.ftdc_analysis.shared import (
     MemberRole,
     get_member_role,
 )
-from x_ray.utils import yellow
+from x_ray.utils import env, yellow
 
 MEMBER_STATE_COLORS: dict[float, str] = {
     0: "gray",  # STARTUP
@@ -494,6 +494,9 @@ class BaselineAnalysisItem(BaseItem):  # pylint: disable=too-many-instance-attri
 
     def _run_ai_analysis(self) -> None:
         """Run AI analysis for each section, storing results in ``self._ai_results``."""
+        if env == "development":
+            self._logger.info("AI analysis skipped in development mode")
+            return
         try:
             from x_ray.ai_client import _get_client, analyze_ftdc_section
         except ImportError:
