@@ -157,8 +157,8 @@ def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
         prompt_parts.append("")
 
     prompt_parts.extend([
-        "Look across ALL the above metrics and provide a brief overview "
-        "(2-3 sentences) of any correlations or relationships between "
+        "Look across ALL the above metrics and provide a brief overview " +
+        "(2-3 sentences) of any correlations or relationships between " +
         "metrics from different sections. For example:",
         "- Does high workload correlate with increased latency?",
         "- Does CPU or memory pressure coincide with cache changes?",
