@@ -74,7 +74,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][0][0] == "admin"
     assert dbs_table["rows"][0][1][0].startswith("4.00 MB")
     assert dbs_table["rows"][0][2][0].startswith("400.00 KB")
-    assert dbs_table["rows"][0][3] == False
+    assert not dbs_table["rows"][0][3]
     assert dbs_table["rows"][0][4] == "N/A"
     assert dbs_table["rows"][0][5] == 3
     assert dbs_table["rows"][0][6] == 0
@@ -84,7 +84,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][1][0] == "config"
     assert dbs_table["rows"][1][1][0].startswith("5.00 MB")
     assert dbs_table["rows"][1][2][0].startswith("3.80 MB")
-    assert dbs_table["rows"][1][3] == False
+    assert not dbs_table["rows"][1][3]
     assert dbs_table["rows"][1][4] == "N/A"
     assert dbs_table["rows"][1][5] == 8
     assert dbs_table["rows"][1][6] == 0
@@ -94,7 +94,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][2][0] == "foo"
     assert dbs_table["rows"][2][1][0].startswith("6.00 MB")
     assert dbs_table["rows"][2][2][0].startswith("4.13 MB")
-    assert dbs_table["rows"][2][3] == True
+    assert dbs_table["rows"][2][3]
     assert dbs_table["rows"][2][4] == "shard02"
     assert dbs_table["rows"][2][5] == 12
     assert dbs_table["rows"][2][6] == 0
@@ -104,7 +104,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][3][0] == "test"
     assert dbs_table["rows"][3][1][0].startswith("7.00 MB")
     assert dbs_table["rows"][3][2][0].startswith("136.00 KB")
-    assert dbs_table["rows"][3][3] == False
+    assert not dbs_table["rows"][3][3]
     assert dbs_table["rows"][3][4] == "shard01"
     assert dbs_table["rows"][3][5] == 2
     assert dbs_table["rows"][3][6] == 0
@@ -114,7 +114,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][4][0] == "test1"
     assert dbs_table["rows"][4][1][0].startswith("8.00 MB")
     assert dbs_table["rows"][4][2][0].startswith("80.00 KB")
-    assert dbs_table["rows"][4][3] == False
+    assert not dbs_table["rows"][4][3]
     assert dbs_table["rows"][4][4] == "shard01"
     assert dbs_table["rows"][4][5] == 1
     assert dbs_table["rows"][4][6] == 0

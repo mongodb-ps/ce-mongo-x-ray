@@ -131,8 +131,8 @@ def test_security_parser():
     assert rows[1][3] == "disabled"
     assert rows[1][4] == "enabled"
     assert rows[1][5] == "X.509"
-    assert rows[1][6] == True
-    assert rows[1][7] == True
+    assert rows[1][6]
+    assert rows[1][7]
     assert rows[1][8] == "disabled"
 
     assert rows[2][0] == "configRepl"

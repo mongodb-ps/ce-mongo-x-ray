@@ -56,7 +56,7 @@ class Framework:
         batch_folder = self._get_output_folder(output_folder)
         # Dynamically load the gmd checkset based on the name
         gmdsets = self._config.get("gmdsets", {})
-        if not gmd_set_name in gmdsets:
+        if gmd_set_name not in gmdsets:
             self._logger.warning(yellow(f"GMD checkset '{gmd_set_name}' not found in configuration. Using default."))
             gmd_set_name = "default"
         gmdset = gmdsets[gmd_set_name]
@@ -121,7 +121,7 @@ class Framework:
                     from x_ray.risk_register.db import enrich_test_results
                     enrich_test_results(item._test_result)
                 except Exception:
-                    pass
+                    self._logger.debug("Risk register matching not available", exc_info=True)
             summary_item = SummaryItem()
             summary_item.summarize(self._items)
             summary_item.overview(output)

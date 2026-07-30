@@ -9,6 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 import os
+
 # Suppress chromadb/tokenizers warnings before any imports
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
@@ -32,11 +33,12 @@ from x_ray.version import Version
 # Load .env file before reading any environment variables
 try:
     from dotenv import find_dotenv, load_dotenv
+
     env_path = find_dotenv(usecwd=True)
     if env_path:
         load_dotenv(env_path)
 except ImportError:
-    pass
+    pass  # python-dotenv is optional; .env loading is skipped if unavailable
 
 levels = logging._nameToLevel
 level = os.getenv("LOG_LEVEL", "INFO")
@@ -132,7 +134,7 @@ def inject_assets(template: str, module: str) -> str:
         threshold = config.get("pie_label_threshold", 0)
         pre_tag = (
             f"<script>var PIE_LABEL_THRESHOLD = {threshold};</script>\n"
-            f"<script type=\"text/javascript\">\n{pre_content}\n</script>"
+            f'<script type="text/javascript">\n{pre_content}\n</script>'
         )
         template = template.replace("{{ pre_script }}", pre_tag)
 
@@ -150,7 +152,7 @@ def inject_assets(template: str, module: str) -> str:
     if module_js.exists():
         post_parts.append(module_js)
     script_content = "\n".join(p.read_text(encoding="utf-8") for p in post_parts)
-    template = template.replace("{{ script }}", f"<script type=\"text/javascript\">\n{script_content}\n</script>")
+    template = template.replace("{{ script }}", f'<script type="text/javascript">\n{script_content}\n</script>')
 
     return template
 

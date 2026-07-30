@@ -137,13 +137,13 @@ def discover_nodes(client, parsed_uri):
             active_nodes["members"] = []
             for member in members:
                 uri = f"mongodb://{credential}{member['name']}/{database}?{options_str_direct}"
-                l, c = connect_and_test(member["name"], uri)
+                lat, c = connect_and_test(member["name"], uri)
                 active_nodes["members"].append(
                     {
                         "host": member["name"],
                         # "uri": uri,
                         "client": c,
-                        "pingLatencySec": l,
+                        "pingLatencySec": lat,
                     }
                 )
         else:
@@ -160,23 +160,23 @@ def discover_nodes(client, parsed_uri):
                 rs_name = v.split("/")[0]
                 hosts = v.split("/")[1].split(",")
                 uri = f"mongodb://{credential}{','.join(hosts)}/{database}?{options_str}"
-                l, c = connect_and_test(rs_name, uri)
+                lat, c = connect_and_test(rs_name, uri)
                 parsed_map[k] = {
                     "setName": rs_name,
                     # "uri": uri,
                     "client": c,
-                    "pingLatencySec": l,
+                    "pingLatencySec": lat,
                     "members": [],
                 }
                 for host in hosts:
                     uri = f"mongodb://{credential}{host}/{database}?{options_str_direct}"
-                    l, c = connect_and_test(host, uri)
+                    lat, c = connect_and_test(host, uri)
                     parsed_map[k]["members"].append(
                         {
                             "host": host,
                             # "uri": uri,
                             "client": c,
-                            "pingLatencySec": l,
+                            "pingLatencySec": lat,
                         }
                     )
             # mongos nodes
@@ -190,18 +190,18 @@ def discover_nodes(client, parsed_uri):
             for host in all_mongos:
                 ping = host.get("ping", datetime.now()).replace(tzinfo=timezone.utc)
                 uri = f"mongodb://{credential}{host['_id']}/{database}?{options_str_direct}"
-                l = round((datetime.now(timezone.utc) - ping).total_seconds())
-                if l < MAX_MONGOS_PING_LATENCY:
-                    l, c = connect_and_test(host["_id"], uri)
+                lat = round((datetime.now(timezone.utc) - ping).total_seconds())
+                if lat < MAX_MONGOS_PING_LATENCY:
+                    lat, c = connect_and_test(host["_id"], uri)
                 else:
                     c = None
-                    irresponsive_nodes.append({"host": host["_id"], "pingLatencySec": l})
+                    irresponsive_nodes.append({"host": host["_id"], "pingLatencySec": lat})
                 parsed_map["mongos"]["members"].append(
                     {
                         "host": host["_id"],
                         # "uri": uri,
                         "client": c,
-                        "pingLatencySec": l,
+                        "pingLatencySec": lat,
                         "lastPing": ping,
                     }
                 )

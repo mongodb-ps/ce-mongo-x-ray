@@ -54,7 +54,7 @@ class Framework:
         batch_folder = self._get_output_folder(output_folder)
         # Dynamically load the checkset based on the name
         checksets = self._config.get("checksets", {})
-        if not checkset_name in checksets:
+        if checkset_name not in checksets:
             self._logger.warning(
                 yellow(f"Checkset '{checkset_name}' not found in configuration. Using default checkset.")
             )

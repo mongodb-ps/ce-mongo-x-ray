@@ -4,7 +4,8 @@ This hook collects all dynamically imported modules from:
 - x_ray.healthcheck.check_items (which imports x_ray.healthcheck.rules)
 - x_ray.log_analysis.log_items
 - x_ray.ftdc_analysis.ftdc_items
-- x_ray.ai (used for OpenAI API analysis)
+- x_ray.risk_register (ChromaDB vector search)
+- x_ray.ai_client (OpenAI API analysis)
 """
 
 from PyInstaller.utils.hooks import collect_submodules
@@ -15,4 +16,6 @@ hiddenimports += collect_submodules("x_ray.healthcheck.check_items")
 hiddenimports += collect_submodules("x_ray.log_analysis.log_items")
 hiddenimports += collect_submodules("x_ray.ftdc_analysis.ftdc_items")
 hiddenimports += collect_submodules("pyftdc")
-hiddenimports.append("x_ray.ai")
+hiddenimports.append("x_ray.ai_client")
+hiddenimports.append("x_ray.risk_register.db")
+hiddenimports.append("x_ray.risk_register.shared")
