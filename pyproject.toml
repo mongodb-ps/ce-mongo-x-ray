@@ -28,7 +28,7 @@ classifiers = [
 dependencies = [
   "pymongo==4.17.0",
   "Jinja2==3.1.6",
-  "Markdown==3.10.2",
+  "Markdown==3.10.3",
   "types-Markdown==3.10.2.20260712",
   "MarkupSafe==3.0.3",
   "packaging==26.2",
