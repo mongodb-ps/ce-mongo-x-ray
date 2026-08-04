@@ -6,9 +6,12 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 
-# Embed the Risk Name field for vector search.
+# Embed the Risk Name and Risk Description fields for vector search.
+# Each field lives in its own collection so matching can fall back from
+# Name to Risk Description.
 CHROMA_COLLECTION = "risk_register"
-EMBED_FIELDS = ("Name",)
+CHROMA_COLLECTION_DESCRIPTION = "risk_register_description"
+EMBED_FIELDS = ("Name", "Risk Description")
 
 
 @dataclass
