@@ -78,7 +78,7 @@ def test_coll_stats_parser() -> None:
     assert table_item["notes"] == "- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
     assert table_item["header"] == [
         {"text": "NS", "align": "left", "width": "*"},
-        {"text": "Count", "align": "left", "width": "80px"},
+        {"text": "Count", "align": "left", "width": "120px"},
         {"text": "Data Size", "align": "left", "width": "100px"},
         {"text": "Storage Size", "align": "left", "width": "100px"},
         {"text": "Avg Object Size", "align": "left", "width": "120px"},
@@ -102,10 +102,9 @@ def test_coll_stats_parser() -> None:
     assert table_item["rows"][1][4] == ("64.00 B<pre>s1: 60.00 B<br>s0: 68.00 B</pre>", 64)
     assert table_item["rows"][1][5] == ("512.00 MB<pre>s1: 250.00 MB<br>s0: 262.00 MB</pre>", 512 * 1024**2)
     assert table_item["rows"][1][6] == ("50.00%<pre>s1: 51.20%<br>s0: 48.85%</pre>", 0.5)
-    assert (
-        table_item["rows"][1][7]
-        == ("200.00 MB / 19.53%<pre>s1: 100.00 MB / 19.53%<br>s0: 100.00 MB / 19.53%</pre>",
-            200 * 1024**2)
+    assert table_item["rows"][1][7] == (
+        "200.00 MB / 19.53%<pre>s1: 100.00 MB / 19.53%<br>s0: 100.00 MB / 19.53%</pre>",
+        200 * 1024**2,
     )
     chart_item = result[1]
     assert chart_item["type"] == "chart"
