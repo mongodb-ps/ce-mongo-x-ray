@@ -8,21 +8,20 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime, timezone
-import re
 import html as html_mod
 import logging
+import re
 import webbrowser
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 import markdown
 
-from x_ray.table_width_extension import TableWidthExtension
-
-from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.utils import load_classes, get_script_path, html_to_pdf, inject_assets, yellow, bold, green, env
+from x_ray.healthcheck.shared import irresponsive_nodes, str_to_md_id
+from x_ray.table_width_extension import TableWidthExtension
+from x_ray.utils import bold, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 
 logger = logging.getLogger(__name__)
 

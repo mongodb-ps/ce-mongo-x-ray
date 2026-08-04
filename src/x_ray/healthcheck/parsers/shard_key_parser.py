@@ -1,8 +1,7 @@
 from typing import Any
 
-from x_ray.utils import format_json_md, format_size
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.utils import escape_markdown
+from x_ray.utils import escape_markdown, format_json_md, format_size
 
 
 class ShardKeyParser(BaseParser):

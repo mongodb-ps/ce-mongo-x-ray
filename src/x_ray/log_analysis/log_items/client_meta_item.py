@@ -8,20 +8,22 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Optional
-from re import search, split
-from importlib.resources import files
 import json
+from importlib.resources import files
+from re import search, split
+from typing import Optional
+
 from bson import json_util
+
 from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.utils import (
-    get_script_path,
-    logger,
-    yellow,
-    tooltip_html,
     escape_markdown,
-    truncate_content,
+    get_script_path,
     json_hash,
+    logger,
+    tooltip_html,
+    truncate_content,
+    yellow,
 )
 from x_ray.version import Version
 

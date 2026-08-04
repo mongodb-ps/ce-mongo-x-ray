@@ -9,9 +9,10 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from typing import Optional
+
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
 from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
+from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from x_ray.utils import yellow
 from x_ray.version import Version

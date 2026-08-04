@@ -8,21 +8,23 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime, timezone
+import logging
 import random
 import re
 import webbrowser
+from datetime import datetime, timezone
 from pathlib import Path
-import logging
 from typing import Optional
+
 import markdown
 from bson import json_util
-from x_ray.table_width_extension import TableWidthExtension
+
+from x_ray.healthcheck.shared import to_json
 from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.log_analysis.log_items.info_item import InfoItem
 from x_ray.log_analysis.log_items.state_trace_item import StateTraceItem
-from x_ray.healthcheck.shared import to_json
-from x_ray.utils import load_classes, bold, green, yellow, cyan, get_script_path, html_to_pdf, inject_assets, env
+from x_ray.table_width_extension import TableWidthExtension
+from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 
 logger = logging.getLogger(__name__)
 LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")

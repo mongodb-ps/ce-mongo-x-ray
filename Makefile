@@ -47,11 +47,11 @@ test:
 	$(PYTHON) -m pytest
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
-# Run pylint and show only errors
+# Run ruff lint
 check-lint:
-	@echo "Running pylint (errors only)..."
-	$(PYTHON) -m pylint src/x_ray/ --rcfile=.pylintrc --errors-only
-	@echo "\033[32m✓ No errors found!\033[0m"
+	@echo "Running ruff check..."
+	$(PYTHON) -m ruff check src tests
+	@echo "\033[32m✓ No lint errors found!\033[0m"
 
 # Minify templates
 minify:
@@ -87,6 +87,6 @@ help:
 	@echo "  make build        - Build executable"
 	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run all tests"
-	@echo "  make check-lint   - Run pylint (errors only)"
+	@echo "  make check-lint   - Run ruff check (lint)"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make help         - Display this help information"

@@ -1,7 +1,7 @@
 """Base class for FTDC analysis items."""
 
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 

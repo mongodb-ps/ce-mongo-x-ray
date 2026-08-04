@@ -1,13 +1,13 @@
 """Workload, latency, and host performance summaries for FTDC captures."""
 
-import re
 import os
+import re
 from collections.abc import Iterable
 from datetime import datetime
 from functools import cached_property
 from math import ceil, isfinite
-from posixpath import normpath
 from pathlib import Path
+from posixpath import normpath
 from statistics import fmean
 from typing import Literal, Optional, TypedDict
 
@@ -23,6 +23,7 @@ from x_ray.ftdc_analysis.charts import (
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
 from x_ray.ftdc_analysis.parsers.baseline_analysis_parser import BaselineAnalysisParser
 from x_ray.ftdc_analysis.shared import (
+    BASELINE_ANALYSIS_STATIC_METRICS,
     CPU_METRICS,
     DERIVED_METRIC_NAMES,
     DISK_METRIC_PREFIX,
@@ -30,10 +31,9 @@ from x_ray.ftdc_analysis.shared import (
     MEMORY_METRICS,
     MOUNT_METRIC_PREFIX,
     MOUNT_METRICS,
+    OP_LATENCY_METRICS,
     OPCOUNTER_METRICS,
     OPCOUNTER_REPL_METRICS,
-    OP_LATENCY_METRICS,
-    BASELINE_ANALYSIS_STATIC_METRICS,
     REPL_SET_MEMBER_METRIC_PREFIX,
     REPL_SET_MEMBER_METRICS,
     TCMALLOC_METRICS,

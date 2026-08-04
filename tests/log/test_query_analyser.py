@@ -8,6 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from bson import json_util
+
 from x_ray.log_analysis.query_analyzer import analyze_query_pattern, query_to_pattern
 
 slow_insert = json_util.loads(

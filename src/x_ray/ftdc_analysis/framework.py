@@ -1,19 +1,18 @@
 """Framework for MongoDB FTDC analysis."""
 
-from datetime import datetime, timezone
 import logging
-import webbrowser
-from pathlib import Path
 import re
+import webbrowser
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import markdown
 from bson import decode_file_iter
 from bson.errors import InvalidBSON
 
-from x_ray.table_width_extension import TableWidthExtension
-
 from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
+from x_ray.table_width_extension import TableWidthExtension
 from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 
 FTDC_CLASSES = load_classes("x_ray.ftdc_analysis.ftdc_items")

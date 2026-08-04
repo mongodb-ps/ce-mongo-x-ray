@@ -8,8 +8,9 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from bson import json_util
-from x_ray.log_analysis.log_items.slow_chart_item import SlowChartItem
+
 from tests.log.mocking import gen_mock_write_output
+from x_ray.log_analysis.log_items.slow_chart_item import SlowChartItem
 
 LOGS = [
     json_util.loads(

@@ -9,17 +9,17 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from x_ray.healthcheck.check_items.base_item import BaseItem
+from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
+from x_ray.healthcheck.parsers.rs_overview_parser import RSOverviewParser
+from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
 from x_ray.healthcheck.rules.rs_config_rule import RSConfigRule
 from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
-from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
-from x_ray.healthcheck.parsers.rs_overview_parser import RSOverviewParser
-from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
 from x_ray.healthcheck.shared import (
     MAX_MONGOS_PING_LATENCY,
-    enum_all_nodes,
     discover_nodes,
+    enum_all_nodes,
     enum_result_items,
 )
 from x_ray.utils import yellow

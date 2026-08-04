@@ -1,9 +1,11 @@
-from datetime import datetime
 import enum
 import json
+from datetime import datetime
 from typing import Iterable
+
 from bson.json_util import object_hook
 from bson.timestamp import Timestamp
+
 from x_ray.utils import to_ejson
 
 

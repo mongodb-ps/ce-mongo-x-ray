@@ -10,9 +10,9 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from typing import Any, Optional
 
+from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.db_parser import DBParser
 from x_ray.gmd_analysis.shared import GMD_EVENTS
-from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 
 

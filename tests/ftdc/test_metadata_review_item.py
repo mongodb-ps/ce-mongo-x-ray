@@ -2,10 +2,11 @@ from html import unescape
 from io import StringIO
 
 from pyftdc import FTDCError
+
 from x_ray.ftdc_analysis.ftdc_items.metadata_review_item import (
     _METADATA_TABS,
-    _resolve_path,
     MetadataReviewItem,
+    _resolve_path,
 )
 from x_ray.utils import load_classes
 

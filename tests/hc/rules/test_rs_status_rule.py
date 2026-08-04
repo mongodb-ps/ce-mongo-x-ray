@@ -7,10 +7,11 @@ THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLIN
 YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+from bson import Timestamp
+
 from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
 from x_ray.healthcheck.shared import SEVERITY
-from bson import Timestamp
 
 RS_STATUS_NO_PRIMARY = {
     "set": "shard01",

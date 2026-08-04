@@ -2,9 +2,9 @@ from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
+from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
 from x_ray.healthcheck.rules.host_info_rule import HostInfoRule
 from x_ray.healthcheck.rules.numa_rule import NumaRule
-from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
 
 
 class HostInfoItem(BaseItem):

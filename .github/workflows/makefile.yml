@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: make deps
 
-      - name: Pylint
+      - name: Lint
         run: make check-lint
 
       - name: Run tests

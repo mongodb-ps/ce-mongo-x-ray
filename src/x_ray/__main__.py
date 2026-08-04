@@ -17,16 +17,19 @@ import sys
 import webbrowser
 from copy import deepcopy
 from datetime import datetime, timezone
-from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from pathlib import Path
+
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
-from x_ray.utils import bold, env, green, load_config
+
+from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
+from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
-from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
-from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
+from x_ray.utils import bold, env, green, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -399,8 +402,8 @@ def ingest_command(args):
     if not csv_path.exists():
         logger.error("CSV file not found: %s", csv_path)
         return 1
-    from x_ray.risk_register.shared import load_risks_from_csv
     from x_ray.risk_register.db import ingest_risks
+    from x_ray.risk_register.shared import load_risks_from_csv
 
     logger.info("Reading risks from %s ...", csv_path)
     risks = load_risks_from_csv(csv_path)

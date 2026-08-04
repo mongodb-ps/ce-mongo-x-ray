@@ -54,10 +54,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "black==26.5.1",
-  "pylint==4.0.6",
+  "ruff==0.16.1",
   "pyright==1.1.411",
-  "flake8==7.3.0",
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
   "pluggy==1.6.0",
@@ -96,26 +94,18 @@ exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
   "templates/js/*[!w].js",
 ]
 
-[tool.black]
+[tool.ruff]
 line-length = 120
-target-version = ['py39']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.venv
-  | build
-  | dist
-)/
-'''
+target-version = "py310"
+exclude = [".venv", "build", "dist"]
+
+[tool.ruff.lint]
+# Mirror the previous toolchain: pylint --errors-only + flake8 (E, F) + isort (I).
+# E501 (line-too-long) was never enforced (pylint disabled C0301).
+select = ["E", "F", "I"]
+ignore = ["E501"]
 
 [tool.pyright]
 pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
-
-[tool.isort]
-profile = "black"
-line_length = 120

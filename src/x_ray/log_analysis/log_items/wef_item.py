@@ -10,9 +10,11 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 import html as html_mod
 from random import randint
+
 from bson import json_util
+
 from x_ray.log_analysis.log_items.base_item import BaseItem
-from x_ray.utils import green, bold, yellow, escape_markdown, env
+from x_ray.utils import bold, env, escape_markdown, green, yellow
 
 
 class WEFItem(BaseItem):

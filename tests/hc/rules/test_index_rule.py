@@ -9,6 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from datetime import datetime, timezone
+
 from x_ray.healthcheck.issues import ISSUE  # type: ignore
 from x_ray.healthcheck.rules.index_rule import IndexRule  # type: ignore
 
