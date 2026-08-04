@@ -112,7 +112,8 @@ if (typeof Chart !== "undefined") {
 
             // Right-side labels — left edges aligned, to the right
             var labelX = chart.width - lineGap;
-            var y = area.top + spacing;
+            // Vertically center the label block against the pie
+            var y = area.top + Math.max(spacing, (area.height - spacing * rightItems.length) / 2);
             ctx.textAlign = "left";
             rightItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
@@ -147,7 +148,8 @@ if (typeof Chart !== "undefined") {
 
             // Left-side labels — right edges aligned, to the left
             labelX = lineGap + maxLeftW;
-            y = area.top + spacing;
+            // Vertically center the label block against the pie
+            y = area.top + Math.max(spacing, (area.height - spacing * leftItems.length) / 2);
             ctx.textAlign = "right";
             leftItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
