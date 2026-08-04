@@ -1,4 +1,37 @@
-from x_ray.gmd_analysis.shared import load_json  # type: ignore
+from x_ray.gmd_analysis.shared import ShardNameMapper, load_json  # type: ignore
+
+
+def test_shard_name_mapper():
+    mapper = ShardNameMapper(["UK-xxx-shard-01", "HK-xxx-shard-02", "UK-xxx-shard-01"])
+    assert mapper.map("UK-xxx-shard-01") == "s1"
+    assert mapper.map("HK-xxx-shard-02") == "s0"
+    assert mapper.notes() == "- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
+
+
+def test_shard_name_mapper_empty():
+    mapper = ShardNameMapper()
+    assert mapper.notes() == ""
+    assert mapper.map("shard01") == "shard01"
+
+
+def test_shard_name_mapper_config_alias():
+    mapper = ShardNameMapper(["config", "UK-xxx-shard-01", "HK-xxx-shard-02"])
+    assert mapper.map("config") == "c"
+    assert mapper.map("HK-xxx-shard-02") == "s0"
+    assert mapper.map("UK-xxx-shard-01") == "s1"
+    assert mapper.notes() == "- c: config\n- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
+
+
+def test_shard_name_mapper_config_absent():
+    mapper = ShardNameMapper(["UK-xxx-shard-01"])
+    assert mapper.map("config") == "config"
+    assert mapper.notes() == "- s0: UK-xxx-shard-01"
+
+
+def test_shard_name_mapper_deterministic_order():
+    mapper_a = ShardNameMapper(["B-shard", "A-shard", "C-shard"])
+    mapper_b = ShardNameMapper(["C-shard", "A-shard", "B-shard"])
+    assert mapper_a.notes() == mapper_b.notes() == "- s0: A-shard\n- s1: B-shard\n- s2: C-shard"
 
 
 def test_load_json():

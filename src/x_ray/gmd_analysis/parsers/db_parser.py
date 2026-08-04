@@ -1,6 +1,7 @@
 from typing import Optional
 
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
+from x_ray.gmd_analysis.shared import ShardNameMapper
 from x_ray.utils import format_size
 
 
@@ -37,6 +38,16 @@ class DBParser(BaseParser):
         dbs: list = data.get("databases", {}).get("databases", [])
         sharded_dbs: Optional[list] = data.get("sharded_databases")
         db_stats: dict = data.get("db_stats", {})
+        # Collect every shard name shown in the table so they can be replaced
+        # with short aliases (s0/s1/...) that keep the table readable.
+        shard_names: set[str] = set()
+        for db in dbs:
+            shard_names.update(db.get("shards", {}).keys())
+        if sharded_dbs is not None:
+            shard_names.update(db.get("primary") for db in sharded_dbs if db.get("primary"))
+        mapper = ShardNameMapper(shard_names)
+        if mapper.notes():
+            db_table["notes"] = mapper.notes()
         totals: dict = {
             "dataSize": 0,
             "storageSize": 0,
@@ -58,7 +69,7 @@ class DBParser(BaseParser):
             storage_size: str = format_size(storage_size_raw)
             sharded_sizes: list = []
             for shard, size in db.get("shards", {}).items():
-                sharded_sizes.append(f"{shard}: {format_size(size)}")
+                sharded_sizes.append(f"{mapper.map(shard)}: {format_size(size)}")
             if len(sharded_sizes) > 0:
                 storage_size += "<pre>" + "<br>".join(sharded_sizes) + "</pre>"
             if sharded_dbs is None:
@@ -67,7 +78,7 @@ class DBParser(BaseParser):
             else:
                 sharded_db_info = next((item for item in sharded_dbs if item["_id"] == db_name), None)
                 partitioned = sharded_db_info["partitioned"] if sharded_db_info else False
-                primary_db = sharded_db_info["primary"] if sharded_db_info else "N/A"
+                primary_db = mapper.map(sharded_db_info["primary"]) if sharded_db_info else "N/A"
             rows.append(
                 [
                     db_name,

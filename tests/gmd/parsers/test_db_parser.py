@@ -3,17 +3,17 @@ from x_ray.gmd_analysis.parsers.db_parser import DBParser  # type: ignore
 GMD_SHARDED_DBS = [
     {
         "_id": "foo",
-        "primary": "shard02",
+        "primary": "HK-xxx-shard-02",
         "partitioned": True,
     },
     {
         "_id": "test",
-        "primary": "shard01",
+        "primary": "UK-xxx-shard-01",
         "partitioned": False,
     },
     {
         "_id": "test1",
-        "primary": "shard01",
+        "primary": "UK-xxx-shard-01",
         "partitioned": False,
     },
 ]
@@ -25,16 +25,16 @@ GMD_DBS = {
             "name": "config",
             "sizeOnDisk": 3981312,
             "empty": False,
-            "shards": {"shard02": 1003520, "shard01": 917504, "config": 2060288},
+            "shards": {"HK-xxx-shard-02": 1003520, "UK-xxx-shard-01": 917504, "config": 2060288},
         },
         {
             "name": "foo",
             "sizeOnDisk": 4329472,
             "empty": False,
-            "shards": {"shard02": 3239936, "shard01": 1089536},
+            "shards": {"HK-xxx-shard-02": 3239936, "UK-xxx-shard-01": 1089536},
         },
-        {"name": "test", "sizeOnDisk": 139264, "empty": False, "shards": {"shard01": 139264}},
-        {"name": "test1", "sizeOnDisk": 81920, "empty": False, "shards": {"shard01": 81920}},
+        {"name": "test", "sizeOnDisk": 139264, "empty": False, "shards": {"UK-xxx-shard-01": 139264}},
+        {"name": "test1", "sizeOnDisk": 81920, "empty": False, "shards": {"UK-xxx-shard-01": 81920}},
     ]
 }
 
@@ -60,6 +60,7 @@ def test_db_parser_sharded():
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
+    assert dbs_table["notes"] == "- c: config\n- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
     assert dbs_table["header"] == [
         {"text": "Database Name", "width": "*"},
         {"text": "Data Size", "align": "left", "width": "120px"},
@@ -83,7 +84,7 @@ def test_db_parser_sharded():
 
     assert dbs_table["rows"][1][0] == "config"
     assert dbs_table["rows"][1][1][0].startswith("5.00 MB")
-    assert dbs_table["rows"][1][2][0].startswith("3.80 MB")
+    assert dbs_table["rows"][1][2][0].startswith("3.80 MB<pre>s0: 980.00 KB<br>s1: 896.00 KB<br>c: 1.96 MB</pre>")
     assert not dbs_table["rows"][1][3]
     assert dbs_table["rows"][1][4] == "N/A"
     assert dbs_table["rows"][1][5] == 8
@@ -95,7 +96,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][2][1][0].startswith("6.00 MB")
     assert dbs_table["rows"][2][2][0].startswith("4.13 MB")
     assert dbs_table["rows"][2][3]
-    assert dbs_table["rows"][2][4] == "shard02"
+    assert dbs_table["rows"][2][4] == "s0"
     assert dbs_table["rows"][2][5] == 12
     assert dbs_table["rows"][2][6] == 0
     assert dbs_table["rows"][2][7] == 15
@@ -105,7 +106,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][3][1][0].startswith("7.00 MB")
     assert dbs_table["rows"][3][2][0].startswith("136.00 KB")
     assert not dbs_table["rows"][3][3]
-    assert dbs_table["rows"][3][4] == "shard01"
+    assert dbs_table["rows"][3][4] == "s1"
     assert dbs_table["rows"][3][5] == 2
     assert dbs_table["rows"][3][6] == 0
     assert dbs_table["rows"][3][7] == 3
@@ -115,7 +116,7 @@ def test_db_parser_sharded():
     assert dbs_table["rows"][4][1][0].startswith("8.00 MB")
     assert dbs_table["rows"][4][2][0].startswith("80.00 KB")
     assert not dbs_table["rows"][4][3]
-    assert dbs_table["rows"][4][4] == "shard01"
+    assert dbs_table["rows"][4][4] == "s1"
     assert dbs_table["rows"][4][5] == 1
     assert dbs_table["rows"][4][6] == 0
     assert dbs_table["rows"][4][7] == 1
@@ -154,6 +155,7 @@ def test_db_parser_non_sharded():
     dbs_table = result[0]
     assert dbs_table["type"] == "table"
     assert dbs_table["caption"] == "Databases"
+    assert dbs_table["notes"] == "- c: config\n- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
     assert dbs_table["header"] == [
         {"text": "Database Name", "width": "*"},
         {"text": "Data Size", "align": "left", "width": "120px"},
@@ -177,7 +179,7 @@ def test_db_parser_non_sharded():
 
     assert dbs_table["rows"][1][0] == "config"
     assert dbs_table["rows"][1][1][0].startswith("5.00 MB")
-    assert dbs_table["rows"][1][2][0].startswith("3.80 MB")
+    assert dbs_table["rows"][1][2][0].startswith("3.80 MB<pre>s0: 980.00 KB<br>s1: 896.00 KB<br>c: 1.96 MB</pre>")
     assert dbs_table["rows"][1][3] == "N/A"
     assert dbs_table["rows"][1][4] == "N/A"
     assert dbs_table["rows"][1][5] == 8

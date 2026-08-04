@@ -1,4 +1,5 @@
 from x_ray.gmd_analysis.parsers.base_parser import BaseParser
+from x_ray.gmd_analysis.shared import ShardNameMapper
 from x_ray.utils import escape_markdown, format_json_md, format_size
 
 
@@ -33,6 +34,15 @@ class CollStatsParser(BaseParser):
         }
         output_list.append(stats_table)
         output_list.append({"type": "chart", "data": data_sizes})
+        # Collect every shard name shown in the table so they can be replaced
+        # with short aliases (s0/s1/...) that keep the table readable.
+        shard_names: set[str] = set()
+        for stats in data:
+            if stats.get("sharded", False):
+                shard_names.update(stats.get("shards", {}).keys())
+        mapper = ShardNameMapper(shard_names)
+        if mapper.notes():
+            stats_table["notes"] = mapper.notes()
         for stats in data:
             ns = stats["ns"]
             shard_key = stats.get("shardKey", None)
@@ -88,13 +98,14 @@ class CollStatsParser(BaseParser):
                     sh_cache: dict = sh_wt.get("cache", {})
                     sh_bytes_in_cache = sh_cache.get("bytes currently in the cache", 0)
                     sh_cache_ratio = f"{(sh_bytes_in_cache / sh_size) if sh_size > 0 else 0:.2%}"
-                    sh_counts.append(f"{sh_name}: {sh_count}")
-                    sh_sizes.append(f"{sh_name}: {format_size(sh_size)}")
-                    sh_storage_sizes.append(f"{sh_name}: {format_size(sh_storage_size)}")
-                    sh_total_index_sizes.append(f"{sh_name}: {format_size(sh_total_index_size)}")
-                    sh_avg_obj_sizes.append(f"{sh_name}: {format_size(sh_avg_obj_size)}")
-                    sh_fragmentation_ratios.append(f"{sh_name}: {sh_frag_ratio}")
-                    sh_caches.append(f"{sh_name}: {format_size(sh_bytes_in_cache)} / {sh_cache_ratio}")
+                    short_name = mapper.map(sh_name)
+                    sh_counts.append(f"{short_name}: {sh_count}")
+                    sh_sizes.append(f"{short_name}: {format_size(sh_size)}")
+                    sh_storage_sizes.append(f"{short_name}: {format_size(sh_storage_size)}")
+                    sh_total_index_sizes.append(f"{short_name}: {format_size(sh_total_index_size)}")
+                    sh_avg_obj_sizes.append(f"{short_name}: {format_size(sh_avg_obj_size)}")
+                    sh_fragmentation_ratios.append(f"{short_name}: {sh_frag_ratio}")
+                    sh_caches.append(f"{short_name}: {format_size(sh_bytes_in_cache)} / {sh_cache_ratio}")
                 count_str = f"{count_str}<pre>" + "<br>".join(sh_counts) + "</pre>"
                 size_str = f"{size_str}<pre>" + "<br>".join(sh_sizes) + "</pre>"
                 storage_size_str = f"{storage_size_str}<pre>" + "<br>".join(sh_storage_sizes) + "</pre>"
