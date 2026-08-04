@@ -76,7 +76,7 @@ class Framework:
             item.test(**kwargs)
             self._items.append(item)
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html"):
+    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True):
         # output the results to a markdown file
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
@@ -183,7 +183,7 @@ class Framework:
                     html = template_content.replace("{{ content }}", html)
                 f.write(html)
 
-        if fmt in {"html", "pdf"}:
+        if fmt in {"html", "pdf"} and open_browser:
             webbrowser.open(f"file://{Path(html_file).resolve()}")
 
         if fmt == "pdf":
