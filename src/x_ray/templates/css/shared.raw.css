@@ -150,6 +150,8 @@
 .markdown-body th pre {
     white-space: pre-wrap;
     word-break: break-word;
+    font-size: 10px;
+    padding: 5px;
 }
 
 .markdown-body th[data-sortable="true"] {
@@ -237,6 +239,7 @@
     vertical-align: middle;
     position: relative;
 }
+
 .risk-badge .risk-tooltip {
     display: none;
     position: absolute;
@@ -255,6 +258,7 @@
     z-index: 1000;
     pointer-events: none;
 }
+
 .risk-badge .risk-tooltip .risk-name {
     display: block;
     font-weight: 600;
@@ -262,6 +266,7 @@
     color: #ffa500;
     margin-bottom: 4px;
 }
+
 .risk-badge:hover .risk-tooltip {
     display: block;
 }

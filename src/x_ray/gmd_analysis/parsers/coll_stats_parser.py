@@ -23,8 +23,8 @@ class CollStatsParser(BaseParser):
             "header": [
                 {"text": "NS", "align": "left", "width": "*"},
                 {"text": "Count", "align": "left", "width": "120px"},
-                {"text": "Data Size", "align": "left", "width": "100px"},
-                {"text": "Storage Size", "align": "left", "width": "100px"},
+                {"text": "Data Size", "align": "left", "width": "120px"},
+                {"text": "Storage Size", "align": "left", "width": "120px"},
                 {"text": "Avg Object Size", "align": "left", "width": "120px"},
                 {"text": "Total Index Size", "align": "left", "width": "120px"},
                 {"text": "Frag Ratio", "align": "left", "width": "100px"},
