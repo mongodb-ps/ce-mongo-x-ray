@@ -22,7 +22,7 @@ jobs:
         run: make deps
 
       - name: Lint
-        run: make check-lint
+        run: make lint
 
       - name: Run tests
         run: make test
