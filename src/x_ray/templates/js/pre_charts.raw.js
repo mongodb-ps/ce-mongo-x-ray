@@ -10,8 +10,8 @@ if (typeof Chart !== "undefined") {
         id: "pieLabelPlugin",
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
-            // Pie occupies the center 1/2 of the chart width
-            var sidePad = Math.round(chart.width / 4);
+            // Pie occupies the center 40% of the chart width
+            var sidePad = Math.round(chart.width * 0.3);
             var padding = 20;
 
             // Estimate left/right item count based on slice angles
@@ -40,7 +40,7 @@ if (typeof Chart !== "undefined") {
             // Height needed for labels (first label has spacing offset, then each adds spacing)
             var labelHeight = (maxLabelCount + 1) * spacing;
 
-            // Height for a circular pie: pie occupies center 1/3 of width, so pie side = chart.width / 3
+            // Height for a circular pie: pie occupies center 40% of width
             var pieWidth = chart.width - sidePad * 2;
             var pieHeight = pieWidth; // circular
 
