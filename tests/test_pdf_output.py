@@ -32,7 +32,7 @@ def test_healthcheck_pdf_format_writes_all_reports(tmp_path, monkeypatch):
         }
     )
 
-    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf")
+    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf", open_browser=False)
 
     _assert_all_report_formats(output_folder)
 
@@ -52,7 +52,7 @@ def test_log_pdf_format_writes_all_reports(tmp_path, monkeypatch):
     framework._log_start = datetime(2026, 7, 3, tzinfo=timezone.utc)
     framework._log_end = datetime(2026, 7, 3, 1, tzinfo=timezone.utc)
 
-    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf")
+    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf", open_browser=False)
 
     _assert_all_report_formats(output_folder)
 
@@ -70,6 +70,6 @@ def test_gmd_pdf_format_writes_all_reports(tmp_path, monkeypatch):
         },
     )
 
-    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf")
+    framework.output_results(output_folder=f"{output_folder}/", fmt="pdf", open_browser=False)
 
     _assert_all_report_formats(output_folder)
