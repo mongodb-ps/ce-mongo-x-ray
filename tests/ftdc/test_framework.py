@@ -19,7 +19,7 @@ def test_empty_checkset_writes_reports(tmp_path, monkeypatch):
 
     framework = Framework(str(input_file), config)
     framework.run_ftdc_analysis("default", output_folder=str(output_folder))
-    framework.output_results(output_folder=str(output_folder), fmt="html")
+    framework.output_results(output_folder=str(output_folder), fmt="html", open_browser=False)
 
     report = Path(output_folder, "report.md")
     assert report.is_file()
@@ -67,7 +67,7 @@ def test_pdf_format_writes_markdown_html_and_pdf(tmp_path, monkeypatch):
     framework = Framework(str(tmp_path), config)
     framework.run_ftdc_analysis("default", output_folder=str(output_folder))
 
-    framework.output_results(output_folder=str(output_folder), fmt="pdf")
+    framework.output_results(output_folder=str(output_folder), fmt="pdf", open_browser=False)
 
     assert Path(output_folder, "report.md").is_file()
     assert Path(output_folder, "report.html").is_file()

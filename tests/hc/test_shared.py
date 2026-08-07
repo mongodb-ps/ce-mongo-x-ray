@@ -8,9 +8,11 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from datetime import datetime
-from bson import json_util
+
 import pytest
-from x_ray.healthcheck.shared import SEVERITY, to_json, str_to_md_id, enum_all_nodes, enum_result_items
+from bson import json_util
+
+from x_ray.healthcheck.shared import SEVERITY, enum_all_nodes, enum_result_items, str_to_md_id, to_json
 from x_ray.utils import get_script_path
 
 

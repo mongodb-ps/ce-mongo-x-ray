@@ -171,8 +171,8 @@ ISSUE_MSG_MAP = {
     ISSUE.ARBITER_MEMBER: {
         "id": ISSUE.ARBITER_MEMBER,
         "severity": SEVERITY.HIGH,
-        "title": "Arbiter Member",
-        "description": "`{set_name}` member `{host}` is an arbiter. Arbiters are not recommended.",
+        "title": "Arbiters / PSA Architecture",
+        "description": "`{set_name}` member `{host}` is an arbiter. Arbiters and PSA architecture are generally not recommended.",
     },
     ISSUE.IRRESPONSIVE_MONGOS: {
         "id": ISSUE.IRRESPONSIVE_MONGOS,

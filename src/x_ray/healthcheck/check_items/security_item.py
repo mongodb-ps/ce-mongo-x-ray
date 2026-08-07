@@ -11,9 +11,9 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 from x_ray.healthcheck.check_items.base_item import BaseItem
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.security_parser import SecurityParser
+from x_ray.healthcheck.rules.security_rule import SecurityRule
 from x_ray.healthcheck.shared import MAX_MONGOS_PING_LATENCY, discover_nodes, enum_all_nodes, enum_result_items
 from x_ray.utils import yellow
-from x_ray.healthcheck.rules.security_rule import SecurityRule
 
 
 class SecurityItem(BaseItem):

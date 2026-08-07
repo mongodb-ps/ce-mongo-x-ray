@@ -10,8 +10,9 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from datetime import datetime, timezone
 from typing import Optional
-from x_ray.healthcheck.rules.base_rule import BaseRule
+
 from x_ray.healthcheck.issues import ISSUE, create_issue
+from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.utils import as_utc_datetime
 
 

@@ -8,13 +8,15 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Optional, Union
-import html as html_mod
-import os
-import logging
-from abc import ABC, abstractmethod
 import gzip
+import html as html_mod
+import logging
+import os
+from abc import ABC, abstractmethod
+from typing import Optional, Union
+
 from bson import json_util
+
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.shared import SEVERITY, to_json
 from x_ray.utils import env, get_script_path, to_ejson

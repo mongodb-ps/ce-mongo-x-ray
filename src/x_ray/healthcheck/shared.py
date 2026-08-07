@@ -8,15 +8,17 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from enum import Enum
-import re
 import logging
-import urllib.parse
+import re
 import sys
+import urllib.parse
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Optional
+
 from pymongo import MongoClient
-from x_ray.utils import to_ejson, red
+
+from x_ray.utils import red, to_ejson
 
 logger = logging.getLogger(__name__)
 MEMBER_STATE = {

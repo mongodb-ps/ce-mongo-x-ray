@@ -8,21 +8,20 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime, timezone
-import re
 import html as html_mod
 import logging
+import re
 import webbrowser
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 import markdown
 
-from x_ray.table_width_extension import TableWidthExtension
-
-from x_ray.healthcheck.shared import str_to_md_id, irresponsive_nodes
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.utils import load_classes, get_script_path, html_to_pdf, inject_assets, yellow, bold, green, env
+from x_ray.healthcheck.shared import irresponsive_nodes, str_to_md_id
+from x_ray.table_width_extension import TableWidthExtension
+from x_ray.utils import bold, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class Framework:
             item.test(**kwargs)
             self._items.append(item)
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html"):
+    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True):
         # output the results to a markdown file
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
@@ -184,7 +183,7 @@ class Framework:
                     html = template_content.replace("{{ content }}", html)
                 f.write(html)
 
-        if fmt in {"html", "pdf"}:
+        if fmt in {"html", "pdf"} and open_browser:
             webbrowser.open(f"file://{Path(html_file).resolve()}")
 
         if fmt == "pdf":

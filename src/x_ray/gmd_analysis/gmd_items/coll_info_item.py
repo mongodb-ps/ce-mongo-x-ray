@@ -10,13 +10,13 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from typing import Any
 
-from x_ray.utils import yellow
-from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
-from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.gmd_analysis.parsers.coll_stats_parser import CollStatsParser
+from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.rules.data_size_rule import DataSizeRule
 from x_ray.healthcheck.rules.fragmentation_rule import FragmentationRule
+from x_ray.utils import yellow
 
 
 class CollInfoItem(BaseItem):

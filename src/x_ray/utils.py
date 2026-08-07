@@ -14,20 +14,22 @@ import os
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
-from importlib import import_module
-from importlib.resources import files
+import hashlib
 import json
 import logging
+import numbers
 import pkgutil
 import re
-import hashlib
 import sys
-import numbers
 from datetime import datetime, timezone
 from enum import Enum
+from importlib import import_module
+from importlib.resources import files
 from pathlib import Path
 from typing import Union
+
 from bson import json_util
+
 from x_ray.version import Version
 
 # Load .env file before reading any environment variables

@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any, Optional
 
 
 class BaseRule(ABC):

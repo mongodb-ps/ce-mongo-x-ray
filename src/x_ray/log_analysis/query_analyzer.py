@@ -12,7 +12,6 @@ from typing import Any
 
 from x_ray.utils import json_hash
 
-
 DATA_TYPES = [
     "$binary",
     "$date",

@@ -8,7 +8,12 @@ from typing import Optional
 import chromadb
 from chromadb.config import Settings
 
-from x_ray.risk_register.shared import CHROMA_COLLECTION, Risk, get_db_path
+from x_ray.risk_register.shared import (
+    CHROMA_COLLECTION,
+    CHROMA_COLLECTION_DESCRIPTION,
+    Risk,
+    get_db_path,
+)
 
 # Mute chromadb telemetry errors (posthog API mismatch)
 logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)
@@ -16,7 +21,7 @@ logging.getLogger("chromadb.telemetry").setLevel(logging.CRITICAL)
 _logger = logging.getLogger(__name__)
 
 
-def _collection():
+def _collection(collection_name: str = CHROMA_COLLECTION):
     """Return an initialized ChromaDB collection (lazy singleton)."""
     db_path = get_db_path() / "chroma"
     db_path.mkdir(parents=True, exist_ok=True)
@@ -24,45 +29,72 @@ def _collection():
         path=str(db_path),
         settings=Settings(anonymized_telemetry=False),
     )
-    return client.get_or_create_collection(CHROMA_COLLECTION)
+    return client.get_or_create_collection(collection_name)
 
 
 def ingest_risks(risks: list[Risk]) -> int:
     """Upsert risks into ChromaDB, returning the number of documents ingested.
 
-    Existing documents with the same ID are replaced (upsert).
+    Each risk is embedded twice — once for the ``Name`` field and once for the
+    ``Risk Description`` field — stored in two separate collections so that
+    matching can fall back from Name to Risk Description. Risks without a Risk
+    Description are only embedded in the Name collection. Existing documents
+    with the same ID are replaced (upsert).
     """
     if not risks:
         return 0
 
-    col = _collection()
-    ids: list[str] = []
-    documents: list[str] = []
-    metadatas: list[dict] = []
+    name_col = _collection(CHROMA_COLLECTION)
+    desc_col = _collection(CHROMA_COLLECTION_DESCRIPTION)
+
+    name_ids: list[str] = []
+    name_documents: list[str] = []
+    name_metadatas: list[dict] = []
+    desc_ids: list[str] = []
+    desc_documents: list[str] = []
+    desc_metadatas: list[dict] = []
 
     for risk in risks:
-        ids.append(risk.id)
-        documents.append(risk.name)
-        metadatas.append({
+        metadata = {
             "id": risk.id,
             "risk_level": risk.risk_level,
             "impact": risk.impact,
             "name": risk.name,
             "description": risk.description,
-        })
+        }
+        name_ids.append(risk.id)
+        name_documents.append(risk.name)
+        name_metadatas.append(metadata)
+        if risk.description.strip():
+            desc_ids.append(risk.id)
+            desc_documents.append(risk.description)
+            desc_metadatas.append(metadata)
 
-    col.upsert(ids=ids, documents=documents, metadatas=metadatas)
+    name_col.upsert(ids=name_ids, documents=name_documents, metadatas=name_metadatas)
+    if desc_ids:
+        desc_col.upsert(ids=desc_ids, documents=desc_documents, metadatas=desc_metadatas)
     _logger.info("Ingested %d risks into ChromaDB", len(risks))
     return len(risks)
 
 
-def search_risks(query: str, n_results: int = 3) -> list[dict]:
+def search_risks(
+    query: str,
+    n_results: int = 3,
+    collection_name: str = CHROMA_COLLECTION,
+) -> list[dict]:
     """Vector search for risks matching the query text.
 
-    Returns a list of dicts with keys: id, risk_level, impact, name,
-    description, distance.
+    Args:
+        query: The text to search for.
+        n_results: Maximum number of results to return.
+        collection_name: Which field collection to search; defaults to the
+            risk ``Name`` collection.
+
+    Returns:
+        A list of dicts with keys: id, risk_level, impact, name,
+        description, distance.
     """
-    col = _collection()
+    col = _collection(collection_name)
     results = col.query(query_texts=[query], n_results=n_results)
     entries: list[dict] = []
     if not results["ids"] or not results["ids"][0]:
@@ -82,45 +114,54 @@ def search_risks(query: str, n_results: int = 3) -> list[dict]:
 
 
 def clear_risks() -> None:
-    """Delete all documents from the collection."""
-    col = _collection()
-    ids = col.get()["ids"]
-    if ids:
-        col.delete(ids=ids)
-        _logger.info("Cleared %d risks from ChromaDB", len(ids))
+    """Delete all documents from all risk collections."""
+    for collection_name in (CHROMA_COLLECTION, CHROMA_COLLECTION_DESCRIPTION):
+        col = _collection(collection_name)
+        ids = col.get()["ids"]
+        if ids:
+            col.delete(ids=ids)
+            _logger.info("Cleared %d risks from %s", len(ids), collection_name)
 
 
 def _collection_count() -> int:
-    """Return the number of documents in the collection."""
-    col = _collection()
+    """Return the number of documents in the Name collection."""
+    col = _collection(CHROMA_COLLECTION)
     return col.count()
 
 
-def match_risk(category: str, max_distance: float = 1.0) -> Optional[dict]:
-    """Find the closest matching risk for a given issue category.
+def match_risk(category: str, max_distance: float = 0.9) -> Optional[dict]:
+    """Find the closest matching risk for a given issue.
+
+    Two-stage fallback search:
+    1. Match ``category`` against the risk ``Name`` field.
+    2. If no ``Name`` match is found, fall back to matching the same
+       ``category`` against the risk ``Risk Description`` field.
 
     Args:
         category: The issue category/title to match against risk names.
         max_distance: Maximum vector distance for a match to be considered
-            valid. Lower values mean closer matches. Default 1.0.
+            valid. Lower values mean closer matches. Default 0.9.
 
     Returns:
         The best matching risk dict, or ``None`` if no match found.
     """
-    results = search_risks(category, n_results=1)
-    if not results:
-        return None
-    top = results[0]
-    if top["distance"] is not None and top["distance"] > max_distance:
-        return None
-    return top
+    for collection_name in (CHROMA_COLLECTION, CHROMA_COLLECTION_DESCRIPTION):
+        results = search_risks(category, n_results=1, collection_name=collection_name)
+        if not results:
+            continue
+        top = results[0]
+        if top["distance"] is not None and top["distance"] > max_distance:
+            continue
+        return top
+    return None
 
 
-def enrich_test_results(test_results: list[dict], max_distance: float = 1.0) -> int:
+def enrich_test_results(test_results: list[dict], max_distance: float = 0.9) -> int:
     """Enrich a list of test results with matched risk information.
 
     Each result dict that has a ``title`` key will be matched against the
-    risk register. If a match is found, a ``matched_risk`` key is added.
+    risk register using the two-stage fallback search. If a match is found,
+    a ``matched_risk`` key is added.
 
     Args:
         test_results: List of test result dicts (each has a ``title`` key).

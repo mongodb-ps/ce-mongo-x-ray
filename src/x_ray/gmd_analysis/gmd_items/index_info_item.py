@@ -9,13 +9,14 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from datetime import datetime, timezone
+
 from dateutil import parser
 
-from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
+from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.parsers.base_parser import BaseParser
-from x_ray.healthcheck.rules.index_rule import IndexRule
 from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser
+from x_ray.healthcheck.rules.index_rule import IndexRule
 from x_ray.utils import as_utc_datetime
 
 

@@ -9,6 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from datetime import datetime
+
 from x_ray.log_analysis.log_items.base_item import BaseItem
 
 

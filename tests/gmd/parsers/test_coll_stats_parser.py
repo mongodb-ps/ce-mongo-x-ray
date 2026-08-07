@@ -35,7 +35,7 @@ STATS_DATA: list[dict] = [
         },
         "sharded": True,
         "shards": {
-            "shard1": {
+            "UK-xxx-shard-01": {
                 "count": 49000,
                 "size": 512,
                 "avgObjSize": 60,
@@ -49,7 +49,7 @@ STATS_DATA: list[dict] = [
                     "cache": {"bytes currently in the cache": 100 * 1024**2},
                 },
             },
-            "shard2": {
+            "HK-xxx-shard-02": {
                 "count": 51000,
                 "size": 512,
                 "avgObjSize": 68,
@@ -75,11 +75,12 @@ def test_coll_stats_parser() -> None:
     table_item = result[0]
     assert table_item["type"] == "table"
     assert table_item["caption"] == "Storage Stats"
+    assert table_item["notes"] == "- s0: HK-xxx-shard-02\n- s1: UK-xxx-shard-01"
     assert table_item["header"] == [
         {"text": "NS", "align": "left", "width": "*"},
-        {"text": "Count", "align": "left", "width": "80px"},
-        {"text": "Data Size", "align": "left", "width": "100px"},
-        {"text": "Storage Size", "align": "left", "width": "100px"},
+        {"text": "Count", "align": "left", "width": "120px"},
+        {"text": "Data Size", "align": "left", "width": "120px"},
+        {"text": "Storage Size", "align": "left", "width": "120px"},
         {"text": "Avg Object Size", "align": "left", "width": "120px"},
         {"text": "Total Index Size", "align": "left", "width": "120px"},
         {"text": "Frag Ratio", "align": "left", "width": "100px"},
@@ -95,16 +96,15 @@ def test_coll_stats_parser() -> None:
     assert table_item["rows"][0][6] == ("50.00%", 0.5)
     assert table_item["rows"][0][7] == ("100.00 MB / 9.77%", 100 * 1024**2)
     assert table_item["rows"][1][0] == r'foo.sharded\_collection <pre>{<br>&nbsp;&nbsp;"_id":&nbsp;"hashed"<br>}</pre>'
-    assert table_item["rows"][1][1] == "100000<pre>shard1: 49000<br>shard2: 51000</pre>"
-    assert table_item["rows"][1][2] == ("1.00 GB<pre>shard1: 512.00 MB<br>shard2: 512.00 MB</pre>", 1024**3)
-    assert table_item["rows"][1][3] == ("512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>", 512 * 1024**2)
-    assert table_item["rows"][1][4] == ("64.00 B<pre>shard1: 60.00 B<br>shard2: 68.00 B</pre>", 64)
-    assert table_item["rows"][1][5] == ("512.00 MB<pre>shard1: 250.00 MB<br>shard2: 262.00 MB</pre>", 512 * 1024**2)
-    assert table_item["rows"][1][6] == ("50.00%<pre>shard1: 51.20%<br>shard2: 48.85%</pre>", 0.5)
-    assert (
-        table_item["rows"][1][7]
-        == ("200.00 MB / 19.53%<pre>shard1: 100.00 MB / 19.53%<br>shard2: 100.00 MB / 19.53%</pre>",
-            200 * 1024**2)
+    assert table_item["rows"][1][1] == "100000<pre>s1: 49000<br>s0: 51000</pre>"
+    assert table_item["rows"][1][2] == ("1.00 GB<pre>s1: 512.00 MB<br>s0: 512.00 MB</pre>", 1024**3)
+    assert table_item["rows"][1][3] == ("512.00 MB<pre>s1: 250.00 MB<br>s0: 262.00 MB</pre>", 512 * 1024**2)
+    assert table_item["rows"][1][4] == ("64.00 B<pre>s1: 60.00 B<br>s0: 68.00 B</pre>", 64)
+    assert table_item["rows"][1][5] == ("512.00 MB<pre>s1: 250.00 MB<br>s0: 262.00 MB</pre>", 512 * 1024**2)
+    assert table_item["rows"][1][6] == ("50.00%<pre>s1: 51.20%<br>s0: 48.85%</pre>", 0.5)
+    assert table_item["rows"][1][7] == (
+        "200.00 MB / 19.53%<pre>s1: 100.00 MB / 19.53%<br>s0: 100.00 MB / 19.53%</pre>",
+        200 * 1024**2,
     )
     chart_item = result[1]
     assert chart_item["type"] == "chart"

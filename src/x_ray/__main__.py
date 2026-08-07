@@ -17,16 +17,19 @@ import sys
 import webbrowser
 from copy import deepcopy
 from datetime import datetime, timezone
-from importlib.metadata import PackageNotFoundError, version as pkg_version
 from getpass import getpass
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from pathlib import Path
+
 from pymongo import MongoClient
 from pymongo.uri_parser import parse_uri
-from x_ray.utils import bold, env, green, load_config
+
+from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
+from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
-from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
-from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
+from x_ray.utils import bold, env, green, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -191,6 +194,11 @@ For more information on specific commands, use:
         default="html",
         choices=["markdown", "html", "pdf"],
     )
+    hc_parser.add_argument(
+        "--no-browser",
+        help="Do not open the generated report in the browser.",
+        action="store_true",
+    )
 
     # Log analysis module
     log_description = """
@@ -256,9 +264,14 @@ For more information on specific commands, use:
         choices=["markdown", "html", "pdf"],
     )
     log_parser.add_argument(
+        "--no-browser",
+        help="Do not open the generated report in the browser.",
+        action="store_true",
+    )
+    log_parser.add_argument(
         "-r",
         "--rate",
-        help="Log sampling rate (e.g., 1 for all logs, 0.1 for 10% logs). Defaults to 1.",
+        help="Log sampling rate (e.g., 1 for all logs, 0.1 for 10%% logs). Defaults to 1.",
         type=float,
         default=1.0,
     )
@@ -305,6 +318,11 @@ For more information on specific commands, use:
         type=str,
         default="html",
         choices=["markdown", "html", "pdf"],
+    )
+    gmd_parser.add_argument(
+        "--no-browser",
+        help="Do not open the generated report in the browser.",
+        action="store_true",
     )
 
     # FTDC analysis module
@@ -353,6 +371,11 @@ For more information on specific commands, use:
         choices=["markdown", "html", "pdf"],
     )
     ftdc_parser.add_argument(
+        "--no-browser",
+        help="Do not open the generated report in the browser.",
+        action="store_true",
+    )
+    ftdc_parser.add_argument(
         "--svg",
         help="Reference SVG charts in the report instead of converting them to PNG.",
         action="store_true",
@@ -399,8 +422,8 @@ def ingest_command(args):
     if not csv_path.exists():
         logger.error("CSV file not found: %s", csv_path)
         return 1
-    from x_ray.risk_register.shared import load_risks_from_csv
     from x_ray.risk_register.db import ingest_risks
+    from x_ray.risk_register.shared import load_risks_from_csv
 
     logger.info("Reading risks from %s ...", csv_path)
     risks = load_risks_from_csv(csv_path)
@@ -438,7 +461,7 @@ def health_check_command(args):
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
     framework = HealthCheckFramework(config)
     framework.run_checks(checkset, client=client, output_folder=output_folder, parsed_uri=parsed_uri)
-    framework.output_results(output_folder=output_folder, fmt=args.format)
+    framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=not args.no_browser)
     return 0
 
 
@@ -485,7 +508,7 @@ def log_analysis_command(args):
         framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
         batch_folder = str(framework._get_output_folder(output_folder))
         final_folder = _rename_with_hostname(batch_folder, framework)
-        if args.format in {"html", "pdf"}:
+        if args.format in {"html", "pdf"} and not args.no_browser:
             html_file = Path(final_folder) / "report.html"
             if html_file.exists():
                 webbrowser.open(f"file://{html_file.resolve()}")
@@ -509,7 +532,7 @@ def gmd_alalysis_command(args):
     output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
     framework = GMDAnalysisFramework(args.gmd_file, config)
     framework.run_gmd_analysis(checkset, output_folder=output_folder)
-    framework.output_results(output_folder=output_folder, fmt=args.format)
+    framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=not args.no_browser)
     return 0
 
 
@@ -560,7 +583,7 @@ def ftdc_analysis_command(args):
         framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
         batch_folder = str(framework._get_output_folder(output_folder))
         final_folder = _rename_with_hostname(batch_folder, framework)
-        if args.format in {"html", "pdf"}:
+        if args.format in {"html", "pdf"} and not args.no_browser:
             html_file = Path(final_folder) / "report.html"
             if html_file.exists():
                 webbrowser.open(f"file://{html_file.resolve()}")

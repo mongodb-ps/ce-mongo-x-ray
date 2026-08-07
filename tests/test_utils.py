@@ -8,6 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from importlib.resources import files
+
 from x_ray.utils import load_classes
 
 
@@ -74,9 +75,10 @@ def test_format_json_md():
 
 
 def test_to_ejson():
-    from x_ray.utils import to_ejson
     from datetime import datetime
     from enum import Enum
+
+    from x_ray.utils import to_ejson
 
     class Color(Enum):
         RED = 1

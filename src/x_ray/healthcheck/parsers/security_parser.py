@@ -1,4 +1,5 @@
 from typing import Any
+
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.utils import escape_markdown, to_ejson
 

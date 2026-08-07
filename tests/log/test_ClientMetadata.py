@@ -8,14 +8,16 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 import json
+
 from bson import json_util
-from x_ray.log_analysis.log_items.client_meta_item import (
-    ClientMetaItem,
-    parse_version_from_log,
-    COMPATIBILITY_MATRIX_JSON,
-    is_driver_compatible,
-)
+
 from tests.log.mocking import gen_mock_write_output
+from x_ray.log_analysis.log_items.client_meta_item import (
+    COMPATIBILITY_MATRIX_JSON,
+    ClientMetaItem,
+    is_driver_compatible,
+    parse_version_from_log,
+)
 from x_ray.version import Version
 
 LOGS = [

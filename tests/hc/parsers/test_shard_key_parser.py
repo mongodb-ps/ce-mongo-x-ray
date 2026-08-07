@@ -1,4 +1,5 @@
 from bson import json_util  # type: ignore
+
 from x_ray.healthcheck.parsers.shard_key_parser import ShardKeyParser  # type: ignore
 
 SHARD_KEY_INFOS = json_util.loads(

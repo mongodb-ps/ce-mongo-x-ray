@@ -1,13 +1,14 @@
 """Base parser for healthcheck results."""
 
-from abc import ABC, abstractmethod
 import html as html_mod
 import os
+from abc import ABC, abstractmethod
 from typing import Any
 from uuid import uuid4
+
+from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 from x_ray.log_analysis.shared import to_json
 from x_ray.utils import get_script_path
-from x_ray.healthcheck.check_items.base_item import TABLE_ALIGNMENT
 
 
 class BaseParser(ABC):

@@ -8,18 +8,20 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from datetime import datetime, timezone
-import re
-from pathlib import Path
 import logging
+import re
 import webbrowser
+from datetime import datetime, timezone
+from pathlib import Path
+
 import markdown
-from x_ray.table_width_extension import TableWidthExtension
+
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.gmd_items.summary_item import SummaryItem
 from x_ray.gmd_analysis.shared import load_json
 from x_ray.healthcheck.shared import str_to_md_id, to_json
-from x_ray.utils import load_classes, bold, green, red, yellow, cyan, get_script_path, html_to_pdf, inject_assets, env
+from x_ray.table_width_extension import TableWidthExtension
+from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, red, yellow
 
 logger = logging.getLogger(__name__)
 GMD_CLASSES = load_classes("x_ray.gmd_analysis.gmd_items")
@@ -103,7 +105,7 @@ class Framework:
                     self._logger.warning(yellow(f"GMD analysis item '{item.name}' finalization failed: {e}"))
                     continue
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html"):
+    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True):
         batch_folder = self._get_output_folder(output_folder)
         output_file = f"{batch_folder}report.md"
         template_file = get_script_path(f"templates/{self._config.get('template', 'gmd/full.html')}")
@@ -170,7 +172,8 @@ class Framework:
                     # Replace the placeholder with the generated HTML content
                 final_html = template_content.replace("{{ content }}", html_content)
                 output.write(final_html)
-            webbrowser.open(f"file://{Path(html_file).resolve()}")
+            if open_browser:
+                webbrowser.open(f"file://{Path(html_file).resolve()}")
 
         if fmt == "pdf":
             pdf_file = f"{batch_folder}report.pdf"

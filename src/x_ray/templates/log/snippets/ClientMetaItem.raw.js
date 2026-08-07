@@ -25,7 +25,7 @@ var chart = new Chart(ctx, {
         plugins: {
             title: {
                 display: true,
-                text: 'Client By Driver'
+                text: 'Number of Clients By Driver'
             }
         }
     }
@@ -59,7 +59,7 @@ var chart = new Chart(ctx_ip, {
         plugins: {
             title: {
                 display: true,
-                text: 'Client By IP'
+                text: 'Number of Clients By IP'
             }
         }
     }

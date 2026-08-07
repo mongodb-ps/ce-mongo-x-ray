@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from bson import json_util  # type: ignore
+
 from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser  # type: ignore
 
 INDEX_INFOS = """[

@@ -14,9 +14,9 @@ from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GMD_EVENTS
 from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
 from x_ray.healthcheck.parsers.rs_overview_parser import RSOverviewParser
-from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
-from x_ray.healthcheck.rules.rs_config_rule import RSConfigRule
 from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
+from x_ray.healthcheck.rules.rs_config_rule import RSConfigRule
+from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
 
 
 class RSInfoItem(BaseItem):

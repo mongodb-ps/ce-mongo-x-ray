@@ -9,8 +9,9 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 from bson import json_util
-from x_ray.log_analysis.query_analyzer import analyze_query_pattern
+
 from x_ray.log_analysis.log_items.base_item import BaseItem
+from x_ray.log_analysis.query_analyzer import analyze_query_pattern
 from x_ray.utils import escape_markdown, format_json_md, json_hash
 
 

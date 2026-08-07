@@ -8,14 +8,15 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
-from typing import Any, Optional
 import logging
 import os
+from typing import Any, Optional
+
 from bson import json_util
+
 from x_ray.log_analysis.shared import to_json
-from x_ray.utils import get_script_path
+from x_ray.utils import get_script_path, to_ejson
 from x_ray.version import Version
-from x_ray.utils import to_ejson
 
 
 def get_version(log_line):
