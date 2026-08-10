@@ -36,7 +36,7 @@ dependencies = [
   "PyYAML==6.0.3",
   "requests==2.34.2",
   "urllib3==2.7.0",
-  "openai==2.51.0",
+  "openai==2.53.0",
   "chromadb==1.5.9",
   "httpx==0.28.1",
   "httpcore==1.0.9",
