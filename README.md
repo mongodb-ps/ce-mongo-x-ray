@@ -47,7 +47,7 @@ pip install mongo-x-ray
 #### 2.1.2 Build from Source
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
-cd x-ray
+cd ce-mongo-x-ray
 pip install .
 ```
 
@@ -64,7 +64,7 @@ Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/relea
 x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
-cd x-ray
+cd ce-mongo-x-ray
 make deps # if it's the first time you build the project
 make # equal to `make build`
 ```
@@ -101,11 +101,11 @@ python3 -m pip install -e ".[dev]"
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
 ```
-| Argument         | Description                                                                                                                                                                                         |        Default         |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                         |        `false`         |
-| `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                     |          n/a           |
-| `-c`, `--config` | Path to configuration file.                                                                                                                                                                         | Built-in `config.json` |
+| Argument         | Description                                                                                                                                                                                                                                     |        Default         |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |
+| `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                                                                 |          n/a           |
+| `-c`, `--config` | Path to configuration file.                                                                                                                                                                                                                     | Built-in `config.json` |
 | `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `ingest`: Ingest a risk register CSV.<br/>- `version`: Show version info. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
@@ -161,17 +161,17 @@ Refer to the wiki for more details.
 ```bash
 x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] [--top TOP] [--discover] log_file [start_time] [end_time]
 ```
-| Argument           | Description                                                                       |        Default         |
-| ------------------ | --------------------------------------------------------------------------------- | :--------------------: |
-| `-s`, `--checkset` | Checkset to run.                                                                  |       `default`        |
-| `-o`, `--output`   | Output folder path.                                                               |       `output/`        |
-| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |         `html`         |
-| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.                                       |          `1`           |
-| `--top`            | When analyzing the slow queries, only list top N.                                 |          `10`          |
-| `--discover`       | Recursively search the given path for folders containing log files.               |        `false`         |
-| `log_file`         | Path to the MongoDB log file or a folder of log files to analyze.                 |          n/a           |
-| `start_time`       | Inclusive UTC start time in ISO-8601 format. Defaults to the first log line.      |          n/a           |
-| `end_time`         | Inclusive UTC end time in ISO-8601 format. Defaults to the last log line.         |          n/a           |
+| Argument           | Description                                                                       |  Default  |
+| ------------------ | --------------------------------------------------------------------------------- | :-------: |
+| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
+| `-o`, `--output`   | Output folder path.                                                               | `output/` |
+| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
+| `-r`, `--rate`     | Sample rate. Only analyze a subset of logs.                                       |    `1`    |
+| `--top`            | When analyzing the slow queries, only list top N.                                 |   `10`    |
+| `--discover`       | Recursively search the given path for folders containing log files.               |  `false`  |
+| `log_file`         | Path to the MongoDB log file or a folder of log files to analyze.                 |    n/a    |
+| `start_time`       | Inclusive UTC start time in ISO-8601 format. Defaults to the first log line.      |    n/a    |
+| `end_time`         | Inclusive UTC end time in ISO-8601 format. Defaults to the last log line.         |    n/a    |
 
 ### 3.3 getMongoData Analysis Component
 #### 3.3.1 Examples
@@ -247,11 +247,11 @@ normal operation.
 
 **Configuration** — set the following environment variables:
 
-| Variable            | Required | Default                  | Description                              |
-| ------------------- | :------: | ------------------------ | ---------------------------------------- |
-| `OPENAI_API_KEY`    |   Yes    | —                        | API key for the AI service               |
-| `OPENAI_BASE_URL`   |    No    | OpenAI default           | Compatible API endpoint (e.g. DeepSeek)  |
-| `AI_MODEL`          |    No    | `gpt-4o`                 | Model name to use                        |
+| Variable          | Required | Default        | Description                             |
+| ----------------- | :------: | -------------- | --------------------------------------- |
+| `OPENAI_API_KEY`  |   Yes    | —              | API key for the AI service              |
+| `OPENAI_BASE_URL` |    No    | OpenAI default | Compatible API endpoint (e.g. DeepSeek) |
+| `AI_MODEL`        |    No    | `gpt-4o`       | Model name to use                       |
 
 If `OPENAI_API_KEY` is not set, AI analysis is silently skipped.
 
@@ -282,13 +282,13 @@ x-ray ingest risks.csv            # Load risks from a CSV file
 
 The CSV must have the following columns:
 
-| Column           | Description                |
-| ---------------- | -------------------------- |
-| `ID`             | Unique risk identifier     |
-| `Risk Level`     | Severity level (e.g. High) |
-| `Impact`         | Business impact            |
-| `Name`           | Short risk name            |
-| `Risk Description` | Full description         |
+| Column             | Description                |
+| ------------------ | -------------------------- |
+| `ID`               | Unique risk identifier     |
+| `Risk Level`       | Severity level (e.g. High) |
+| `Impact`           | Business impact            |
+| `Name`             | Short risk name            |
+| `Risk Description` | Full description           |
 
 Risks with the same `ID` are updated (upserted) on re-ingestion.
 The database is stored at `~/.x-ray/chroma/`.
