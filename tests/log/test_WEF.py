@@ -2,11 +2,13 @@
 Copyright (c) 2025 MongoDB Inc.
 
 DISCLAIMER: THESE CODE SAMPLES ARE PROVIDED FOR EDUCATIONAL AND ILLUSTRATIVE PURPOSES ONLY,
-TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES. 
+TO DEMONSTRATE THE FUNCTIONALITY OF SPECIFIC MONGODB FEATURES.
 THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLING, AND TESTING REQUIRED FOR A LIVE ENVIRONMENT.
-YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION. 
+YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+import io
+
 from bson import json_util
 
 from tests.log.mocking import gen_mock_write_output
@@ -50,3 +52,29 @@ def test_wef_item():
     assert result["severity"] == "w"
     assert len(result["timestamp"]) == 1
     assert "Access control is not enabled" in result["msg"]
+
+
+def test_wef_item_newlines_in_msg(tmp_path):
+    item = WEFItem(output_folder=str(tmp_path), config={})
+    logs = [
+        json_util.loads(
+            '{"t":{"$date":"2026-07-04T08:09:59.594+01:00"},"s":"F","c":"-","id":23092,"ctx":"initandlisten","msg":"\\n\\n***aborting after fassert() failure\\n\\n"}'
+        ),
+        json_util.loads(
+            '{"t":{"$date":"2026-07-04T08:10:40.208+01:00"},"s":"W","c":"CONTROL","id":20698,"ctx":"main","msg":"***** SERVER RESTARTED *****"}'
+        ),
+    ]
+    for log in logs:
+        item.analyze(log)
+    item.finalize_analysis()
+
+    buf = io.StringIO()
+    item.review_results_markdown(buf)
+    md = buf.getvalue()
+
+    # Newlines in the message must be converted to <br> so the table row stays intact
+    assert "|<br><br>\\*\\*\\*aborting after fassert() failure<br><br>|" in md
+    rows = [line for line in md.splitlines() if line.startswith("|[23092](#")]
+    assert len(rows) == 1
+    assert rows[0].startswith("|[23092](#")
+    assert rows[0].endswith("|")

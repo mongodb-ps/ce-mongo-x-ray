@@ -17,6 +17,11 @@ from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.utils import bold, env, escape_markdown, green, yellow
 
 
+def _table_br(text: str) -> str:
+    """Replace newlines with <br> so they don't break markdown table rows."""
+    return text.replace("\r\n", "<br>").replace("\n", "<br>").replace("\r", "<br>")
+
+
 class WEFItem(BaseItem):
     def __init__(self, output_folder, config):
         super().__init__(output_folder, config)
@@ -103,15 +108,15 @@ class WEFItem(BaseItem):
                 mr = line_json.get("matched_risk")
                 if mr:
                     rid = html_mod.escape(str(mr.get("id", "")))
-                    rname = html_mod.escape(str(mr.get("name", "")))
-                    rdesc = html_mod.escape(str(mr.get("description", "")))
+                    rname = _table_br(html_mod.escape(str(mr.get("name", ""))))
+                    rdesc = _table_br(html_mod.escape(str(mr.get("description", ""))))
                     risk_html = (
                         f'<span class="risk-badge">RISK-{rid}'
                         f'<span class="risk-tooltip">'
                         f'<span class="risk-name">{rname}</span>'
                         f"{rdesc}</span></span>"
                     )
-                rows.append(f"|[{log_id}](#{i})|{severity}|{escape_markdown(msg)}|{count}|{risk_html}|\n")
+                rows.append(f"|[{log_id}](#{i})|{severity}|{_table_br(escape_markdown(msg))}|{count}|{risk_html}|\n")
                 i += 1
         rows = sorted(rows, key=lambda x: x.lower())
         for row in rows:
