@@ -64,6 +64,14 @@ def test_escape_markdown():
     assert escaped == "This\\_is\\*some\\`markdown\\|text&lt;with&gt;special\\_chars"
 
 
+def test_escape_markdown_newlines():
+    from x_ray.utils import escape_markdown
+
+    assert escape_markdown("line1\nline2") == "line1<br>line2"
+    assert escape_markdown("line1\r\nline2\rline3") == "line1<br>line2<br>line3"
+    assert escape_markdown("single line") == "single line"
+
+
 def test_format_json_md():
     from x_ray.utils import format_json_md
 

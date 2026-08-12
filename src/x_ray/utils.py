@@ -246,6 +246,7 @@ def format_size(size_bytes, decimal=2):
 def escape_markdown(text):
     """
     Escape markdown special characters.
+    Newlines are converted to <br> so they don't break markdown table rows.
     """
     ESCAPE_MAP = {
         "_": "\\_",
@@ -254,6 +255,13 @@ def escape_markdown(text):
         "|": "\\|",
         "<": "&lt;",
         ">": "&gt;",
+        # Newline entries must stay LAST: the <br> they generate contains < and >,
+        # so they would be re-escaped to &lt;br&gt; if "<"/">" were applied after them.
+        # Order within the newline entries matters too: "\r\n" must be replaced
+        # before "\n"/"\r", otherwise CRLF becomes two <br>.
+        "\r\n": "<br>",
+        "\n": "<br>",
+        "\r": "<br>",
     }
     if not isinstance(text, str):
         text = str(text)
