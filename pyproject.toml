@@ -65,6 +65,7 @@ dev = [
   "pyinstaller-hooks-contrib>=2026.6",
   "macholib==1.16.4",
   "altgraph==0.17.5",
+  "playwright==1.62.0",
 ]
 [project.urls]
 Homepage = "https://github.com/mongodb-ps/ce-mongo-x-ray"

@@ -145,6 +145,9 @@ class StateTraceItem(BaseItem):
             )
 
     def finalize_analysis(self):
+        # mongos logs contain no replica-set state changes, leaving the cache unset.
+        if self._cache is None:
+            self._cache = {}
         if self._last_log:
             # Because we are using line chart to describe the state changes,
             # we need to add a final point to indicate the last known state.
