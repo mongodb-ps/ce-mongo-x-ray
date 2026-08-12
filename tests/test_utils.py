@@ -70,6 +70,8 @@ def test_escape_markdown_newlines():
     assert escape_markdown("line1\nline2") == "line1<br>line2"
     assert escape_markdown("line1\r\nline2\rline3") == "line1<br>line2<br>line3"
     assert escape_markdown("single line") == "single line"
+    # The <br> generated from newlines must not be re-escaped by the "<"/">" rules
+    assert escape_markdown("a<b\nc>d") == "a&lt;b<br>c&gt;d"
 
 
 def test_format_json_md():
