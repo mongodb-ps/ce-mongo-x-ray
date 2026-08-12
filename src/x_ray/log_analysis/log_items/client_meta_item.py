@@ -55,10 +55,10 @@ class ClientMetaItem(BaseItem):
             "os": attr["doc"].get("os", {}),
             "platform": attr["doc"].get("platform", ""),
         }
-        # Exclude automation agent connections — dominates the chart
+        # Exclude automation agent and internal network driver connections — dominates the chart
         app_name = doc["application"].get("name", "").lower()
         driver_name = doc["driver"].get("name", "")
-        if "automation" in app_name or driver_name == "NetworkInterfaceTL":
+        if "automation" in app_name or driver_name.startswith("NetworkInterfaceTL"):
             return
         doc_hash = json_hash(doc)
         if doc_hash not in self._cache:

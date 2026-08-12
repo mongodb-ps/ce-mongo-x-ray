@@ -25,6 +25,9 @@ LOGS = [
         '{"t":{"$date":"2025-09-25T23:39:51.220+02:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn3","msg":"client metadata","attr":{"remote":"192.168.0.1:51013","client":"conn3","doc":{"driver":{"name":"NetworkInterfaceTL","version":"5.0.14"},"os":{"type":"Darwin","name":"Mac OS X","architecture":"x86_64","version":"24.6.0"}}}}'
     ),
     json_util.loads(
+        '{"t":{"$date":"2025-09-25T23:39:51.400+02:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn4","msg":"client metadata","attr":{"remote":"192.168.0.1:51014","client":"conn4","doc":{"driver":{"name":"NetworkInterfaceTL-ReplNetwork","version":"7.0.37"},"os":{"type":"Darwin","name":"Mac OS X","architecture":"x86_64","version":"24.6.0"}}}}'
+    ),
+    json_util.loads(
         '{"t":{"$date":"2025-09-25T23:39:51.993+02:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn5","msg":"client metadata","attr":{"remote":"192.168.0.2:51028","client":"conn5","doc":{"driver":{"name":"PyMongo|c","version":"4.14.1"},"os":{"type":"Darwin","name":"Darwin","architecture":"arm64","version":"15.7"},"platform":"CPython 3.11.12.final.0","application":{"name":"mlaunch v1.7.2"}}}}'
     ),
     json_util.loads(
