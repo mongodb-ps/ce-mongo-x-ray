@@ -442,7 +442,11 @@ def health_check_command(args):
     if uri is None:
         uri = input("Enter MongoDB URI: ")
     parsed_uri = parse_uri(uri)
-    if parsed_uri["username"] is None or parsed_uri["password"] is None:
+    if os.getenv("X_RAY_NO_AUTH"):
+        # Skip the credential prompt and run without authentication, e.g. for
+        # unit tests against an unauthenticated deployment.
+        client = MongoClient(uri)
+    elif parsed_uri["username"] is None or parsed_uri["password"] is None:
         username = input("Enter MongoDB username: ")
         password = getpass("Enter MongoDB password: ")
         parsed_uri["username"] = username
