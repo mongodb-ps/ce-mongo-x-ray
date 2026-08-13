@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test cluster-setup full-test lint minify help
+.PHONY: build clean deps test cluster-setup cluster-teardown full-test lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
@@ -66,15 +66,23 @@ cluster-setup:
 	@FTDC_FILE="$$(find .tests/mongo -path '*diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
 		if [ -n "$$FTDC_FILE" ]; then cp "$$FTDC_FILE" .tests/mongo/metrics.final; else echo "WARNING: no finalized FTDC file found" >&2; fi
 
-# Full test: prepare the cluster, then run all tests (including the
-# integration-marked UI tests).
+# Tear down the test cluster: kill its processes and remove its files.
+cluster-teardown:
+	@echo "Stopping the test cluster..."
+	@(cd .tests/mongo 2>/dev/null && mlaunch kill --signal 9) || true
+	@rm -rf .tests
+
+# Full test: prepare the cluster, run all tests, then tear the cluster down.
 full-test: cluster-setup
 	@echo "Running all tests..."
-	HC_URI="mongodb://localhost:47017" \
+	@HC_URI="mongodb://localhost:47017" \
 		GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
 		LOG_SAMPLE="$(CURDIR)/.tests/mongo/data/replset/rs1/mongod.log" \
 		FTDC_SAMPLE="$(CURDIR)/.tests/mongo/metrics.final" \
-		$(PYTHON) -m pytest
+		$(PYTHON) -m pytest; \
+		status=$$?; \
+		make cluster-teardown; \
+		exit $$status
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
 # Run ruff lint
@@ -118,6 +126,7 @@ help:
 	@echo "  make minify       - Minify HTML/JS templates"
 	@echo "  make test         - Run non-integration tests"
 	@echo "  make cluster-setup - Start and seed a test cluster"
+	@echo "  make cluster-teardown - Stop and clean up a test cluster"
 	@echo "  make full-test    - Start a test cluster and run all tests"
 	@echo "  make lint         - Run ruff check (lint)"
 	@echo "  make clean        - Clean build artifacts"

@@ -98,6 +98,22 @@
             "group": {
                 "kind": "build"
             }
+        },
+        {
+            "label": "cluster-teardown",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "cluster-teardown"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }

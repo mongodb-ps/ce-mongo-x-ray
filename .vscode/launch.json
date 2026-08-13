@@ -135,6 +135,7 @@
             "module": "pytest",
             "console": "integratedTerminal",
             "preLaunchTask": "prepare-test-cluster",
+            "postDebugTask": "cluster-teardown",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "HC_URI": "mongodb://localhost:47017",
