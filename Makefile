@@ -61,9 +61,6 @@ cluster-setup:
 	@if [ -d .tests/mongo ]; then (cd .tests/mongo && mlaunch kill --signal 9) 2>/dev/null || true; sleep 3; rm -rf .tests/mongo; fi
 	@echo "Starting MongoDB cluster ($(TYPE))..."
 	bash tests/prepare_cluster.sh $(MONGOD) $(TYPE)
-	@echo "Seeding test data..."
-	mongosh --quiet mongodb://localhost:47017 misc/redundant_index.js
-	mongosh --quiet mongodb://localhost:47017 misc/slow_query_generator.js
 	@echo "Generating getMongoData report..."
 	mongosh --quiet mongodb://localhost:47017 misc/getMongoData.js > .tests/mongo/getMongoData-output.json
 	@echo "Copying FTDC samples to stable paths..."
