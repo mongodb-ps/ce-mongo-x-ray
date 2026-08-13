@@ -8,6 +8,8 @@ PROJECT_NAME = x-ray
 MONGOD ?= $(shell command -v mongod)
 # Cluster topology created by prepare_cluster.sh: "rs" (replica set) or "sh" (sharded cluster).
 TYPE ?= rs
+# MongoDB major.minor series to test in integration-test (the latest installed patch of each).
+VERSIONS ?= 6.0 7.0 8.0
 
 # Detect OS and set Python path accordingly
 ifeq ($(OS),Windows_NT)
@@ -64,9 +66,11 @@ cluster-setup:
 	mongosh --quiet mongodb://localhost:47017 misc/slow_query_generator.js
 	@echo "Generating getMongoData report..."
 	mongosh --quiet mongodb://localhost:47017 misc/getMongoData.js > .tests/mongo/getMongoData-output.json
-	@echo "Copying an FTDC sample to a stable path..."
-	@FTDC_FILE="$$(find .tests/mongo -path '*db/diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
-		if [ -n "$$FTDC_FILE" ]; then cp "$$FTDC_FILE" .tests/mongo/metrics.final; else echo "WARNING: no finalized FTDC file found" >&2; fi
+	@echo "Copying FTDC samples to stable paths..."
+	@MONGOD_FTDC="$$(find .tests/mongo -path '*db/diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
+		if [ -n "$$MONGOD_FTDC" ]; then cp "$$MONGOD_FTDC" .tests/mongo/metrics.mongod; else echo "WARNING: no finalized mongod FTDC file found" >&2; fi; \
+		MONGOS_FTDC="$$(find .tests/mongo -path '*mongos.diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
+		if [ -n "$$MONGOS_FTDC" ]; then cp "$$MONGOS_FTDC" .tests/mongo/metrics.mongos; fi
 
 # Tear down the test cluster: kill its processes and remove its files.
 cluster-teardown:
@@ -74,9 +78,9 @@ cluster-teardown:
 	@(cd .tests/mongo 2>/dev/null && mlaunch kill --signal 9) || true
 	@rm -rf .tests
 
-# Verify the tools required by integration-test (mtools, m, jq, mongosh).
+# Verify the tools required by integration-test (mtools, m, mongosh).
 integration-test-deps:
-	@for tool in mlaunch m jq mongosh; do \
+	@for tool in mlaunch m mongosh; do \
 		if ! command -v $$tool >/dev/null 2>&1; then \
 			echo "Error: '$$tool' is required by integration-test but was not found in PATH" >&2; \
 			exit 1; \
@@ -84,20 +88,20 @@ integration-test-deps:
 	done
 	@echo "✓ integration-test dependencies found"
 
-# Test the integration suite against the latest patch of every installed
-# MongoDB major version (from `m installed`), with both rs and sh topologies.
+# Test the integration suite against the latest installed patch of every
+# MongoDB series listed in VERSIONS, with both rs and sh topologies.
 integration-test: integration-test-deps
-	@versions="$$(m installed --json | jq -r '[.[].name] | map(split(".") | map(tonumber)) | sort | group_by(.[0]) | map(.[-1] | join(".")) | .[]')"; \
-	if [ -z "$$versions" ]; then echo "Error: no MongoDB versions installed (run 'm install')" >&2; exit 1; fi; \
-	for version in $$versions; do \
+	@for version in $(VERSIONS); do \
+		patch="$$(m installed | awk '{print $$NF}' | grep -E "^$$version\\." | sort -V | tail -1)"; \
+		if [ -z "$$patch" ]; then echo "Error: no installed MongoDB $$version.x (run 'm $$version')" >&2; exit 1; fi; \
 		for type in rs sh; do \
-			echo "=== MongoDB $$version ($$type) ==="; \
-			make cluster-setup MONGOD="$$(m bin $$version)" TYPE="$$type" || { make cluster-teardown; exit 1; }; \
+			echo "=== MongoDB $$patch ($$type) ==="; \
+			make cluster-setup MONGOD="$$(m bin $$patch)" TYPE="$$type" || { make cluster-teardown; exit 1; }; \
 			HC_URI="mongodb://localhost:47017" \
 				GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
 				GMD_TOPOLOGY="$$type" \
 				LOG_SAMPLE="$$(find "$(CURDIR)/.tests/mongo" -name 'mongod.log' | head -1)" \
-				FTDC_SAMPLE="$(CURDIR)/.tests/mongo/metrics.final" \
+				FTDC_SAMPLE="$$(s="$(CURDIR)/.tests/mongo/metrics.mongod"; [ -f "$(CURDIR)/.tests/mongo/metrics.mongos" ] && s="$(CURDIR)/.tests/mongo/metrics.mongos:$$s"; echo "$$s")" \
 				$(PYTHON) -m pytest -m "integration"; \
 				status=$$?; \
 				make cluster-teardown; \

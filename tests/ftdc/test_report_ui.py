@@ -24,23 +24,30 @@ pytest.importorskip("playwright")
 from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
 from x_ray.utils import load_config
 
-FTDC_SAMPLE = os.environ.get("FTDC_SAMPLE", "metrics.2026-07-29T06-50-11Z-00000")
+# FTDC samples: a colon-separated list (the integration-test target passes the
+# mongos and mongod diagnostic files), or the bundled sample by default.
+FTDC_SAMPLES = os.environ.get("FTDC_SAMPLE", "metrics.2026-07-29T06-50-11Z-00000").split(
+    os.pathsep
+)
 
-EXPECTED_SECTIONS = [
-    "1 Baseline Analysis",
-    "1.1 Workload",
-    "1.2 Ops and Latencies",
-    "1.3 Performance",
-    "2 Metadata Review",
-]
+# The baseline analysis renders "1.1 Workload" plus either the mongod layout
+# (with "Ops and Latencies") or the mongos layout (where it is skipped and
+# Performance is renumbered).
+H2_SECTIONS = ["1 Baseline Analysis", "2 Metadata Review"]
+MONGOD_SUBSECTIONS = ["1.1 Workload", "1.2 Ops and Latencies", "1.3 Performance"]
+MONGOS_SUBSECTIONS = ["1.1 Workload", "1.2 Performance"]
 
 
-@pytest.fixture(scope="module")
-def report_html(tmp_path_factory):
-    """Generate the HTML report from the FTDC sample."""
-    data_file = Path(FTDC_SAMPLE)
+def _baseline_subsections(items):
+    return [item for item in items if item.startswith("1.")]
+
+
+@pytest.fixture(scope="module", params=FTDC_SAMPLES)
+def report_html(request, tmp_path_factory):
+    """Generate the HTML report from an FTDC sample."""
+    data_file = Path(request.param)
     if not data_file.is_absolute():
-        data_file = Path(__file__).resolve().parent.parent.parent / "misc" / FTDC_SAMPLE
+        data_file = Path(__file__).resolve().parent.parent.parent / "misc" / request.param
     assert data_file.is_file(), f"Missing sample data: {data_file}"
     # The FTDC framework ingests every `metrics.*` file in a directory and
     # skips `.interim`/`.tmp` files, so copy the sample under a finalized name.
@@ -93,15 +100,23 @@ def test_all_sections_rendered(page):
     h1 = [h.inner_text() for h in page.locator("h1").all()]
     assert h1 == ["FTDC Analysis Report"]
     headings = [h.inner_text() for h in page.locator("h2, h3").all()]
-    for section in EXPECTED_SECTIONS:
+    for section in H2_SECTIONS:
         assert section in headings, f"Missing report section: {section}"
+    assert _baseline_subsections(headings) in (
+        MONGOD_SUBSECTIONS,
+        MONGOS_SUBSECTIONS,
+    ), f"Unexpected baseline layout: {_baseline_subsections(headings)}"
 
 
 @pytest.mark.integration
 def test_outline_contains_links_to_all_sections(page):
     outline_links = page.locator("#outline a").all_inner_texts()
-    for section in EXPECTED_SECTIONS:
+    for section in H2_SECTIONS:
         assert section in outline_links, f"Outline is missing a link to: {section}"
+    assert _baseline_subsections(outline_links) in (
+        MONGOD_SUBSECTIONS,
+        MONGOS_SUBSECTIONS,
+    ), f"Unexpected outline layout: {_baseline_subsections(outline_links)}"
 
 
 @pytest.mark.integration
