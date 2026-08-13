@@ -25,7 +25,7 @@ case "$2" in
         topology=(--replicaset --nodes 3)
         ;;
     sh)
-        topology=(--replicaset --sharded 2 --config 1 --mongos 1)
+        topology=(--replicaset --sharded 1 --config 1 --mongos 1)
         ;;
     *)
         echo "Unknown cluster type: $2 (expected 'rs' or 'sh')" >&2
