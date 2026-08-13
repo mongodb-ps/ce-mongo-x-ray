@@ -8,6 +8,7 @@ from pyftdc import DataPoint
 from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import (
     MEMBER_STATE_COLORS,
     BaselineAnalysisItem,
+    _downsample_points,
 )
 from x_ray.ftdc_analysis.shared import (
     BASELINE_ANALYSIS_STATIC_METRICS,
@@ -26,6 +27,12 @@ from x_ray.ftdc_analysis.shared import (
     MemberRole,
     get_member_role,
 )
+
+# These tests white-box BaselineAnalysisItem: they assert on private state
+# (_series, _results, _sample_rate, ...) that the class keeps only for its own
+# analysis, and the write_chart mock must mirror write_bar_chart's keyword
+# signature even for parameters this exercise does not use.
+# pylint: disable=protected-access,unused-argument
 
 
 def test_legacy_overview_static_metrics_alias():
@@ -400,7 +407,7 @@ def test_baseline_analysis_calculates_requested_sections(tmp_path):
     remote_bars = (
         ElementTree.parse(tmp_path / remote_state["chart"]).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
     )
-    assert [bar.attrib["class"] for bar in remote_bars] == [
+    assert [r.attrib["class"] for r in remote_bars] == [
         "metric-bar metric-bar-yellow",
         "metric-bar metric-bar-yellow",
         "metric-bar metric-bar-gray",
@@ -763,8 +770,6 @@ def test_get_member_role_csrs():
 
 
 def test_downsample_points_returns_every_60th():
-    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
-
     points = [(datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=i), float(i)) for i in range(300)]
     result = _downsample_points(points)
     assert len(result) == 5  # 300 // 60
@@ -774,8 +779,6 @@ def test_downsample_points_returns_every_60th():
 
 
 def test_downsample_points_returns_all_when_fewer_than_60():
-    from x_ray.ftdc_analysis.ftdc_items.baseline_analysis_item import _downsample_points
-
     points = [(datetime(2026, 1, 1, tzinfo=timezone.utc), float(i)) for i in range(30)]
     result = _downsample_points(points)
     assert len(result) == 30

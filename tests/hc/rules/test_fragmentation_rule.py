@@ -167,5 +167,5 @@ def test_sharded_high_fragmentation():
 def test_sharded_normal_fragmentation():
     """No shard exceeds the fragmentation threshold."""
     rule = FragmentationRule(thresholds=config)
-    results, frag_data = rule.apply(SHARDED_DATA_NORMAL_FRAGMENTATION)
+    results, _ = rule.apply(SHARDED_DATA_NORMAL_FRAGMENTATION)
     assert len(results) == 0

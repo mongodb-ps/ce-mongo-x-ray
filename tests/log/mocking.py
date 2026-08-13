@@ -23,7 +23,7 @@ def gen_mock_write_output(item):
     def _mock_write_output_internal():
         """Mock _write_output that captures cache instead of writing to file."""
         nonlocal output
-        cache = item._cache
+        cache = item._cache  # pylint: disable=protected-access
         if cache is None:
             return
         if isinstance(cache, list):

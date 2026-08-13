@@ -18,10 +18,17 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("playwright")
+pytest.importorskip("playwright")  # pylint: disable=wrong-import-position
 
 from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
 from x_ray.utils import load_config
+
+# Playwright fixtures are named after their injected value (browser, page,
+# report_html), so parameters and fixture locals shadow the outer fixture
+# function names, and the importorskip/lazy-playwright-import ordering is
+# deliberate: the whole module is skipped when Chromium is missing — the
+# idiomatic pytest patterns.
+# pylint: disable=redefined-outer-name,wrong-import-position
 
 
 def _gmd_samples():
@@ -96,12 +103,12 @@ def report_html(request, tmp_path_factory):
 
 @pytest.fixture(scope="module")
 def browser():
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import sync_playwright  # pylint: disable=import-outside-toplevel
 
     with sync_playwright() as p:
         try:
             browser = p.chromium.launch()
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             pytest.skip(f"Chromium is not installed for Playwright: {exc}")
         yield browser
         browser.close()

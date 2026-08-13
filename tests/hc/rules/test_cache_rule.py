@@ -80,7 +80,7 @@ def test_cache_rule_normal():
         DATA_SERVER_STATUS_NORMAL,
         extra_info={"host": "localhost", "server_status": DATA_BASE_SERVER_STATUS},
     )
-    assert result == []
+    assert not result
     assert parsed_data["readInto"] == 50000000.0
     assert parsed_data["writtenFrom"] == 5000000.0
     assert parsed_data["forUpdates"] == 5000000

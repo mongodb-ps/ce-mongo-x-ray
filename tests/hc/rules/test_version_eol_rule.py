@@ -44,7 +44,7 @@ def test_upd_version():
 
     # Test with up-to-date version
     result, _ = rule.apply(UPD_BUILD_INFO, extra_info={"host": "localhost"})
-    assert result == []
+    assert not result
     assert _ == UPD_BUILD_INFO
 
 

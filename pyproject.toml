@@ -106,6 +106,26 @@ exclude = [".venv", "build", "dist"]
 select = ["E", "F", "I"]
 ignore = ["E501"]
 
+[tool.pylint]
+# Editor-facing pylint mirror of the historical gate (pylint --errors-only).
+# The disabled checks are conventions and refactor suggestions the project
+# never enforced: line length is owned by ruff's 120-column rule (C0301),
+# docstrings are not part of the gate (C0114/C0115/C0116), and the shared
+# parser fixtures in tests intentionally duplicate large sample documents
+# (R0801). too-many-* are design suggestions, not defects.
+max-line-length = 120
+disable = [
+  "C0301",          # line-too-long: ruff's 120-column rule owns this
+  "C0114",          # missing-module-docstring: not part of the gate
+  "C0115",          # missing-class-docstring: not part of the gate
+  "C0116",          # missing-function-docstring: not part of the gate
+  "R0801",          # duplicate-code: shared parser fixtures duplicate samples
+  "R0903",          # too-few-public-methods: design suggestion
+  "R0913",          # too-many-arguments: design suggestion
+  "R0914",          # too-many-locals: design suggestion
+  "R0915",          # too-many-statements: design suggestion
+]
+
 [tool.pyright]
 pythonVersion = "3.10"
 venvPath = "."

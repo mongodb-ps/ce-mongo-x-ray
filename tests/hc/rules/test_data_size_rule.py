@@ -75,7 +75,7 @@ SHARDED_DATA_LARGE = {
 
 def test_data_size_rule_large():
     rule = DataSizeRule(config)
-    results, parsed_data = rule.apply(DATA_WITH_LARGE_SIZE)
+    results, _ = rule.apply(DATA_WITH_LARGE_SIZE)
 
     assert len(results) == 2
 
@@ -92,7 +92,7 @@ def test_data_size_rule_large():
 
 def test_data_size_rule_normal():
     rule = DataSizeRule(config)
-    results, parsed_data = rule.apply(DATA_WITH_NORMAL_SIZE)
+    results, _ = rule.apply(DATA_WITH_NORMAL_SIZE)
 
     assert len(results) == 0
 
@@ -100,7 +100,7 @@ def test_data_size_rule_normal():
 def test_data_size_rule_sharded_normal():
     """Aggregate size exceeds threshold, but no single shard does — no issues expected."""
     rule = DataSizeRule(config)
-    results, parsed_data = rule.apply(SHARDED_DATA_NORMAL)
+    results, _ = rule.apply(SHARDED_DATA_NORMAL)
 
     assert len(results) == 0
 
@@ -108,7 +108,7 @@ def test_data_size_rule_sharded_normal():
 def test_data_size_rule_sharded_large():
     """One shard exceeds threshold — issues expected only for that shard."""
     rule = DataSizeRule(config)
-    results, parsed_data = rule.apply(SHARDED_DATA_LARGE)
+    results, _ = rule.apply(SHARDED_DATA_LARGE)
 
     assert len(results) == 2
     assert all(r["host"] == "shard02" for r in results)

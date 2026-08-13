@@ -49,8 +49,8 @@ def test_log_pdf_format_writes_all_reports(tmp_path, monkeypatch):
             "template": "log/full.html",
         },
     )
-    framework._log_start = datetime(2026, 7, 3, tzinfo=timezone.utc)
-    framework._log_end = datetime(2026, 7, 3, 1, tzinfo=timezone.utc)
+    framework._log_start = datetime(2026, 7, 3, tzinfo=timezone.utc)  # pylint: disable=protected-access
+    framework._log_end = datetime(2026, 7, 3, 1, tzinfo=timezone.utc)  # pylint: disable=protected-access
 
     framework.output_results(output_folder=f"{output_folder}/", fmt="pdf", open_browser=False)
 

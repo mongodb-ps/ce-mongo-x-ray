@@ -140,7 +140,7 @@ def test_bar_chart_uses_threshold_colors(tmp_path):
     chart = tmp_path / write_bar_chart(tmp_path, "Threshold test", points, thresholds=(10, 20), image_format="svg")
     bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
 
-    assert [bar.attrib["class"] for bar in bars] == [
+    assert [rect.attrib["class"] for rect in bars] == [
         "metric-bar metric-bar-green",
         "metric-bar metric-bar-green",
         "metric-bar metric-bar-yellow",
@@ -161,10 +161,10 @@ def test_bar_chart_keeps_current_color_without_thresholds(tmp_path):
     timestamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
     chart = tmp_path / write_bar_chart(tmp_path, "Default color test", [(timestamp, 10.0)], image_format="svg")
-    bar = ElementTree.parse(chart).getroot().find(".//{http://www.w3.org/2000/svg}rect")
+    rect = ElementTree.parse(chart).getroot().find(".//{http://www.w3.org/2000/svg}rect")
 
-    assert bar is not None
-    assert bar.attrib["class"] == "metric-bar"
+    assert rect is not None
+    assert rect.attrib["class"] == "metric-bar"
     assert chart.name == "ftdc-baseline-analysis-default-color-test.svg"
 
 
@@ -186,7 +186,7 @@ def test_bar_chart_uses_value_colors(tmp_path):
     )
     bars = ElementTree.parse(chart).getroot().findall(".//{http://www.w3.org/2000/svg}rect")
 
-    assert [bar.attrib["class"] for bar in bars] == [
+    assert [rect.attrib["class"] for rect in bars] == [
         "metric-bar metric-bar-green",
         "metric-bar metric-bar-yellow",
         "metric-bar metric-bar-blue",

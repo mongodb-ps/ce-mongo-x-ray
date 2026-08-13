@@ -98,7 +98,7 @@ def test_input_files_use_filename_end_times(tmp_path):
         end_time=datetime(2026, 6, 17, 11, 30, tzinfo=timezone.utc),
     )
 
-    assert [path.name for path in framework._input_files()] == names[1:]
+    assert [path.name for path in framework._input_files()] == names[1:]  # pylint: disable=protected-access
 
 
 def test_framework_passes_selected_ingest_file_count_to_items(tmp_path, monkeypatch):

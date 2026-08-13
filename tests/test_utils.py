@@ -11,6 +11,10 @@ from importlib.resources import files
 
 from x_ray.utils import load_classes
 
+# Each test imports the exact helper it exercises so the function under test is
+# explicit; the pattern is deliberate across this module.
+# pylint: disable=import-outside-toplevel
+
 
 def test_load_config():
     from x_ray.utils import load_config

@@ -15,6 +15,12 @@ from bson import json_util
 from x_ray.healthcheck.shared import SEVERITY, enum_all_nodes, enum_result_items, str_to_md_id, to_json
 from x_ray.utils import get_script_path
 
+# The enumeration callbacks below convert any failure into pytest.fail so an
+# unexpected assertion error surfaces with context instead of being swallowed;
+# they also mirror the enumeration API's callback signature even when a
+# particular closure does not use every parameter.
+# pylint: disable=broad-exception-caught,unused-argument
+
 
 def test_to_json():
     s = SEVERITY.HIGH

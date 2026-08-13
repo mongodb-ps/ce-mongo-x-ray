@@ -10,6 +10,9 @@ from x_ray.ftdc_analysis.ftdc_items.metadata_review_item import (
 )
 from x_ray.utils import load_classes
 
+# White-box tests assert on the item's private _raw_metadata state by design.
+# pylint: disable=protected-access
+
 
 def test_resolve_path_extracts_nested_value():
     doc = {"a": {"b": {"c": 42}}}
@@ -42,7 +45,7 @@ def test_item_skips_analyze_after_first_successful_read(tmp_path, monkeypatch):
     call_count = 0
 
     class Reader:
-        def __init__(self, source):
+        def __init__(self, _source):
             nonlocal call_count
             call_count += 1
 
@@ -64,7 +67,7 @@ def test_item_handles_missing_metadata_gracefully(tmp_path, monkeypatch):
     item = MetadataReviewItem(str(tmp_path), {})
 
     class Reader:
-        def __init__(self, source):
+        def __init__(self, _source):
             pass
 
         def get_metadata(self):

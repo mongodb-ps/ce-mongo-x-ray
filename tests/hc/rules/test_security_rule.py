@@ -82,7 +82,7 @@ DATA_WITH_NO_ISSUES = {
 
 def test_security_rule_issues():
     rule = SecurityRule({})
-    results, parsed_data = rule.apply(DATA_WITH_ISSUES)
+    results, _ = rule.apply(DATA_WITH_ISSUES)
 
     assert len(results) == 7
 
@@ -102,7 +102,7 @@ def test_security_rule_issues():
 
 def test_security_rule_issues_2():
     rule = SecurityRule({})
-    results, parsed_data = rule.apply(DATA_WITH_ISSUES_2)
+    results, _ = rule.apply(DATA_WITH_ISSUES_2)
 
     assert len(results) == 2
 
@@ -117,6 +117,6 @@ def test_security_rule_issues_2():
 
 def test_security_rule_no_issues():
     rule = SecurityRule({})
-    results, parsed_data = rule.apply(DATA_WITH_NO_ISSUES)
+    results, _ = rule.apply(DATA_WITH_NO_ISSUES)
 
     assert len(results) == 0

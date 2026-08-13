@@ -80,7 +80,7 @@ def test_match_risk_falls_back_when_name_match_is_too_far(monkeypatch):
 
 
 def test_match_risk_returns_none_when_both_stages_miss(monkeypatch):
-    def fake_search(query, n_results=3, collection_name=CHROMA_COLLECTION):
+    def fake_search(query, n_results=3, collection_name=CHROMA_COLLECTION):  # pylint: disable=unused-argument
         return []
 
     monkeypatch.setattr(db, "search_risks", fake_search)
@@ -92,7 +92,7 @@ def test_enrich_test_results_matches_by_title(monkeypatch):
     monkeypatch.setattr(db, "_collection_count", lambda: 1)
     captured = {}
 
-    def fake_match_risk(title, max_distance=1.0):
+    def fake_match_risk(title, max_distance=1.0):  # pylint: disable=unused-argument
         captured["title"] = title
         return dict(RISK_R1)
 
@@ -130,8 +130,8 @@ def test_ingest_and_two_stage_search(tmp_path, monkeypatch):
 
     assert db.ingest_risks(risks) == 3
 
-    name_col = db._collection(CHROMA_COLLECTION)
-    desc_col = db._collection(CHROMA_COLLECTION_DESCRIPTION)
+    name_col = db._collection(CHROMA_COLLECTION)  # pylint: disable=protected-access
+    desc_col = db._collection(CHROMA_COLLECTION_DESCRIPTION)  # pylint: disable=protected-access
     assert name_col.count() == 3
     assert desc_col.count() == 2  # R3 has no Risk Description
 
