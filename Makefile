@@ -97,7 +97,7 @@ integration-test: integration-test-deps
 			HC_URI="mongodb://localhost:47017" \
 				GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
 				GMD_TOPOLOGY="$$type" \
-				LOG_SAMPLE="$$(find "$(CURDIR)/.tests/mongo" -name 'mongod.log' | head -1)" \
+				LOG_SAMPLE="$$(mongod_log="$$(find "$(CURDIR)/.tests/mongo" -name 'mongod.log' | head -1)"; mongos_log="$$(find "$(CURDIR)/.tests/mongo" -name 'mongos.log' | head -1)"; if [ -n "$$mongos_log" ]; then echo "$$mongos_log:$$mongod_log"; else echo "$$mongod_log"; fi)" \
 				FTDC_SAMPLE="$$(s="$(CURDIR)/.tests/mongo/metrics.mongod"; [ -f "$(CURDIR)/.tests/mongo/metrics.mongos" ] && s="$(CURDIR)/.tests/mongo/metrics.mongos:$$s"; echo "$$s")" \
 				$(PYTHON) -m pytest -m "integration"; \
 				status=$$?; \

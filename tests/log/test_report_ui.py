@@ -27,7 +27,8 @@ from x_ray.utils import load_config
 def _log_samples():
     custom = os.environ.get("LOG_SAMPLE")
     if custom:
-        return [custom]
+        # The integration-test target passes the mongos and mongod logs.
+        return custom.split(os.pathsep)
     return ["example-rs.log", "example-sh.log", "example-mongos.log"]
 
 
