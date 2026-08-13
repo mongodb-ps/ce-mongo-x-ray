@@ -42,10 +42,13 @@ def report_html(tmp_path_factory):
     if not data_file.is_absolute():
         data_file = Path(__file__).resolve().parent.parent.parent / "misc" / FTDC_SAMPLE
     assert data_file.is_file(), f"Missing sample data: {data_file}"
-    # The FTDC framework ingests every `metrics.*` file in a directory, so copy
-    # the sample into its own directory to avoid picking up unrelated files.
+    # The FTDC framework ingests every `metrics.*` file in a directory and
+    # skips `.interim`/`.tmp` files, so copy the sample under a finalized name.
+    dest_name = data_file.name
+    if dest_name.endswith(".interim") or dest_name.endswith(".tmp"):
+        dest_name = dest_name.rsplit(".", 1)[0] + ".copy"
     input_dir = tmp_path_factory.mktemp("ftdc")
-    shutil.copy(data_file, input_dir / data_file.name)
+    shutil.copy(data_file, input_dir / dest_name)
     output_dir = tmp_path_factory.mktemp("report")
     config = load_config(None)["ftdc"]
     framework = FTDCAnalysisFramework(str(input_dir), deepcopy(config))

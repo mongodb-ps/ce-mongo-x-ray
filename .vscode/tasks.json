@@ -82,6 +82,22 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "prepare-test-cluster",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "cluster-setup"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            },
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }

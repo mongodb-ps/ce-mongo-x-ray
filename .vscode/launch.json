@@ -120,9 +120,27 @@
             "request": "launch",
             "module": "pytest",
             "console": "integratedTerminal",
-            "args": [],
+            "args": [
+                "-m",
+                "not integration"
+            ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        },
+        {
+            "name": "Full Test",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "console": "integratedTerminal",
+            "preLaunchTask": "prepare-test-cluster",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src",
+                "HC_URI": "mongodb://localhost:47017",
+                "GMD_SAMPLE": "${workspaceFolder}/.tests/mongo/getMongoData-output.json",
+                "LOG_SAMPLE": "${workspaceFolder}/.tests/mongo/data/replset/rs1/mongod.log",
+                "FTDC_SAMPLE": "${workspaceFolder}/.tests/mongo/metrics.final"
             }
         },
         {
