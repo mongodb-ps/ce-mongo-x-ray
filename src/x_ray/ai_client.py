@@ -8,7 +8,7 @@ import os
 from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
-    from openai import OpenAI
+    from openai import OpenAI  # pylint: disable=import-outside-toplevel
 
 
 class _MetricData(TypedDict):
@@ -32,7 +32,7 @@ def _get_client() -> tuple[OpenAI | None, str | None]:
         return None, None
     base_url = os.getenv("OPENAI_BASE_URL", "")
     try:
-        from openai import OpenAI
+        from openai import OpenAI  # pylint: disable=import-outside-toplevel
     except ImportError:
         _logger.warning("openai package not installed; AI analysis disabled")
         return None, None
@@ -77,7 +77,7 @@ def analyze_ftdc_section(
             messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         _logger.exception("AI analysis request failed for %s", section_title)
         return None
 
@@ -182,7 +182,7 @@ def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
             messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         _logger.exception("AI overview request failed")
         return None
 
@@ -208,6 +208,6 @@ def analyze_log_line_gpt(log_line: dict) -> str:
             ],
         )
         return (response.choices[0].message.content or "").strip()
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         _logger.exception("Failed to analyze log line with GPT")
         return ""

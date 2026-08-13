@@ -11,7 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 from typing import Optional, TextIO
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.rs_details_parser import RSDetailsParser
 from x_ray.healthcheck.parsers.rs_overview_parser import RSOverviewParser
 from x_ray.healthcheck.rules.oplog_window_rule import OplogWindowRule
@@ -51,10 +51,10 @@ class RSInfoItem(BaseItem):
         def get_replica_info(block):
             self._replication_info = block.get("output", {})
 
-        self.watch_one(GMD_EVENTS.REPLICA_STATUS, get_replica_status)
-        self.watch_one(GMD_EVENTS.REPLICA_SET_CONFIG, get_replica_set_config)
-        self.watch_one(GMD_EVENTS.REPLICA_INFO, get_replica_info)
-        self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
+        self.watch_one(GmdEvents.REPLICA_STATUS, get_replica_status)
+        self.watch_one(GmdEvents.REPLICA_SET_CONFIG, get_replica_set_config)
+        self.watch_one(GmdEvents.REPLICA_INFO, get_replica_info)
+        self.watch_one(GmdEvents.SERVER_STATUS_INFO, get_server_status)
 
         def analyze_oplog_window():
             time_delta = (self._replication_info or {}).get("timeDiff", 0)
@@ -70,8 +70,8 @@ class RSInfoItem(BaseItem):
             self.append_test_results(test_result)
 
         oplog_window_events = {
-            GMD_EVENTS.SERVER_STATUS_INFO,
-            GMD_EVENTS.REPLICA_INFO,
+            GmdEvents.SERVER_STATUS_INFO,
+            GmdEvents.REPLICA_INFO,
         }
         self.watch_all(oplog_window_events, analyze_oplog_window)
 
@@ -81,16 +81,16 @@ class RSInfoItem(BaseItem):
             return
         assert (
             self._rs_config is not None
-        ), f"GMD subsection {GMD_EVENTS.REPLICA_SET_CONFIG.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.REPLICA_SET_CONFIG.value} should be available for review."
         assert (
             self._rs_status is not None
-        ), f"GMD subsection {GMD_EVENTS.REPLICA_STATUS.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.REPLICA_STATUS.value} should be available for review."
         assert (
             self._replication_info is not None
-        ), f"GMD subsection {GMD_EVENTS.REPLICA_INFO.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.REPLICA_INFO.value} should be available for review."
         assert (
             self._server_status is not None
-        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.SERVER_STATUS_INFO.value} should be available for review."
         parsed_output = RSOverviewParser().markdown([(self._rs_config["_id"], self._rs_config)])
         output.write(parsed_output)
         data = {

@@ -43,7 +43,7 @@ class CollInfoItem(BaseItem):
         client = kwargs.get("client")
         parsed_uri = kwargs.get("parsed_uri")
 
-        def enum_collections(name, node, func, colls, **kwargs):
+        def enum_collections(name, node, func, colls, **kwargs):  # pylint: disable=unused-argument
             client = node["client"]
             latency = node.get("pingLatencySec", 0)
             host = node["host"] if "host" in node else "cluster"
@@ -80,12 +80,12 @@ class CollInfoItem(BaseItem):
             self.append_test_results(test_result)
             return test_result, raw_result
 
-        def func_overview(host, stats, **kwargs):
+        def func_overview(host, stats, **kwargs):  # pylint: disable=unused-argument
             # Check data size
             test_result, _ = self._rules["data_size"].apply(stats, extra_info={"host": host})
             return test_result, stats
 
-        def func_node(host, stats, **kwargs):
+        def func_node(host, stats, **kwargs):  # pylint: disable=unused-argument
             ns = stats["ns"]
             test_result = []
             # Check fragmentation
@@ -119,11 +119,11 @@ class CollInfoItem(BaseItem):
         result = self.captured_sample
         output: list[str] = []
 
-        def func_overview(set_name, node, **kwargs) -> None:
+        def func_overview(set_name, node, **kwargs) -> None:  # pylint: disable=unused-argument
             parser: BaseParser = CollOverviewParser()
             output.append(parser.markdown(node.get("rawResult", None)))
 
-        def func_node(set_name, node, **kwargs) -> None:
+        def func_node(set_name, node, **kwargs) -> None:  # pylint: disable=unused-argument
             host = node["host"] if "host" in node else "cluster"
             parser: BaseParser = CollStatsParser()
             output.append(

@@ -12,7 +12,7 @@ from typing import Any
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.coll_stats_parser import CollStatsParser
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.rules.data_size_rule import DataSizeRule
 from x_ray.healthcheck.rules.fragmentation_rule import FragmentationRule
@@ -82,13 +82,13 @@ class CollInfoItem(BaseItem):
                 for coll in collections:
                     self.shard_keys[coll.get("_id", "")] = coll.get("key", {})
 
-        self.watch_one(GMD_EVENTS.COLLECTION_STATS, _get_collections_stats)
-        self.watch_one(GMD_EVENTS.SHARDED_DATABASES, _get_shard_key_info)
+        self.watch_one(GmdEvents.COLLECTION_STATS, _get_collections_stats)
+        self.watch_one(GmdEvents.SHARDED_DATABASES, _get_shard_key_info)
 
     def review_results_markdown(self, output) -> None:
         assert (
             len(self._collections_stats) > 0
-        ), f"GMD subsection {GMD_EVENTS.COLLECTION_STATS.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.COLLECTION_STATS.value} should be available for review."
 
         coll_stats: list[dict[str, Any]] = []
         for stats in self._collections_stats:

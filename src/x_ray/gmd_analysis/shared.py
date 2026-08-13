@@ -60,7 +60,7 @@ def load_json(json_str: str):
     return json.loads(json_str, object_hook=custom_hook)
 
 
-class GMD_EVENTS(enum.Enum):
+class GmdEvents(enum.Enum):
     SERVER_BUILD_INFO = "server_build_info"
     HOST_INFO = "host_info"
     ISMASTER = "ismaster"

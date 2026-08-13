@@ -97,7 +97,7 @@ def connect_and_test(host, uri):
             latency = MAX_MONGOS_PING_LATENCY + 1
             irresponsive_nodes.append({"host": host, "pingLatencySec": latency})
             logger.debug("Failed to ping MongoDB node.")
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         latency = MAX_MONGOS_PING_LATENCY + 1  # Set to a high value to indicate failure
         irresponsive_nodes.append({"host": host, "pingLatencySec": latency})
         logger.debug("Failed to ping MongoDB node: %s", e)
@@ -209,7 +209,7 @@ def discover_nodes(client, parsed_uri):
                 )
             active_nodes["map"] = parsed_map
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         logger.error(red(f"Failed to discover nodes: {str(e)}"))
         sys.exit(1)
 
@@ -258,7 +258,7 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
         result["members"] = []
         try:
             result["testResult"], result["rawResult"] = func_rs_cluster(set_name, nodes, level="rs_cluster")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(
                 red(f"Failed to get execution result from replica set {set_name}: {e.__class__.__name__} {str(e)}")
             )
@@ -267,7 +267,7 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
             test_result, raw_result = None, None
             try:
                 test_result, raw_result = func_rs_member(set_name, member, level="rs_member")
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error(
                     red(
                         f"Failed to get execution result from replica set {set_name}, member {member['host']}: {e.__class__.__name__} {str(e)}"
@@ -286,7 +286,7 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
         try:
             test_result, raw_result = func_sh_cluster("mongos", nodes, level="sh_cluster")
             result["testResult"], result["rawResult"] = test_result, raw_result
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(red(f"Failed to get execution result from sharded cluster: {e.__class__.__name__} {str(e)}"))
         for component_name, host_info in nodes["map"].items():
             set_name = host_info["setName"]
@@ -305,7 +305,7 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
                     test_result, raw_result = func_shard(set_name, host_info, level="shard")
                 result["map"][component_name]["testResult"] = test_result
                 result["map"][component_name]["rawResult"] = raw_result
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error(red(f"Failed to get execution result from {set_name}: {e.__class__.__name__} {str(e)}"))
 
             for member in host_info["members"]:
@@ -317,7 +317,7 @@ def enum_all_nodes(nodes, **kwargs):  # pylint: disable=too-many-branches
                         test_result, raw_result = func_config_member(set_name, member, level="config_member")
                     else:
                         test_result, raw_result = func_shard_member(set_name, member, level="shard_member")
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     logger.error(
                         red(
                             f"Failed to get execution result from {set_name}, member {member['host']}: {e.__class__.__name__} {str(e)}"

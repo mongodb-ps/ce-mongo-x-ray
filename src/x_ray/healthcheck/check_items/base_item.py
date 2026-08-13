@@ -44,7 +44,7 @@ class BaseItem(ABC):
     _test_result: list
     _config: dict
 
-    def __init__(self, output_folder: str, config: Optional[dict] = None, **kwargs) -> None:
+    def __init__(self, output_folder: str, config: Optional[dict] = None, **_kwargs) -> None:
         self._config: dict = config or {}
         self._test_result: list = []
         self._logger = logging.getLogger(self.__class__.__name__)

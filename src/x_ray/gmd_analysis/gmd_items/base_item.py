@@ -6,7 +6,7 @@ from typing import Callable, Optional
 
 from bson import json_util
 
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.rules.base_rule import BaseRule
 from x_ray.healthcheck.shared import SEVERITY
@@ -15,7 +15,7 @@ from x_ray.version import Version
 
 
 class BaseItem:  # pylint: disable=too-many-instance-attributes
-    def __init__(self, output_folder: str, config, **kwargs) -> None:
+    def __init__(self, output_folder: str, config, **_kwargs) -> None:
         self.config: dict = config
         self._output_file = os.path.join(output_folder, f"{self.__class__.__name__}.json")
         self._logger = logging.getLogger(__name__)
@@ -31,9 +31,9 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         self._in_complete_flag = False
         # Subscribe some common events that most items care about
         self._cache = None
-        self._watched_events: dict[GMD_EVENTS, list[Callable]] = {}
-        self._watched_all_events: list[tuple[set[GMD_EVENTS], Callable]] = []
-        self._fired_events: set[GMD_EVENTS] = set()
+        self._watched_events: dict[GmdEvents, list[Callable]] = {}
+        self._watched_all_events: list[tuple[set[GmdEvents], Callable]] = []
+        self._fired_events: set[GmdEvents] = set()
 
         def get_version(block):
             self._server_version = Version.parse(block.get("output", {}).get("version", ""))
@@ -59,17 +59,17 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             if "me" in output:
                 self._hostname = output["me"]
 
-        self.watch_one(GMD_EVENTS.SERVER_BUILD_INFO, get_version)
-        self.watch_one(GMD_EVENTS.HOST_INFO, get_host)
-        self.watch_one(GMD_EVENTS.ISMASTER, get_cluster_type)
+        self.watch_one(GmdEvents.SERVER_BUILD_INFO, get_version)
+        self.watch_one(GmdEvents.HOST_INFO, get_host)
+        self.watch_one(GmdEvents.ISMASTER, get_cluster_type)
 
     def test(self, block) -> None:
         sub_sec = block.get("subsection", "")
         sub_sec = sub_sec.replace("INCOMPLETE_", "")
         try:
-            current_event = GMD_EVENTS(sub_sec)
+            current_event = GmdEvents(sub_sec)
         except ValueError:
-            current_event = GMD_EVENTS.UNKNOWN
+            current_event = GmdEvents.UNKNOWN
         # Fire subscribed single events
         for event, funcs in self._watched_events.items():
             if current_event == event:
@@ -78,7 +78,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
                 for func in funcs:
                     try:
                         func(block)
-                    except Exception as e:
+                    except Exception as e:  # pylint: disable=broad-exception-caught
                         self._logger.warning(yellow("Error in subscribed function for event %s: %s"), event.value, e)
                 self._fired_events.add(event)
 
@@ -87,7 +87,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             if events.issubset(self._fired_events) and current_event in events:
                 try:
                     func()
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     self._logger.warning("Error in subscribed all-events function for events %s: %s", events, e)
 
     @property
@@ -185,7 +185,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
         for item in items:
             self.append_test_result(item["host"], item["severity"], item["title"], item["description"])
 
-    def watch_one(self, event: GMD_EVENTS, func) -> None:
+    def watch_one(self, event: GmdEvents, func) -> None:
         """
         Fires when the specified event occurs.
         The order of `watch_one` depends on the order of events in the GMD log, not the order of `watch_one` calls.
@@ -194,7 +194,7 @@ class BaseItem:  # pylint: disable=too-many-instance-attributes
             self._watched_events[event] = []
         self._watched_events[event].append(func)
 
-    def watch_all(self, events: set[GMD_EVENTS], func) -> None:
+    def watch_all(self, events: set[GmdEvents], func) -> None:
         """
         Fires when all the specified events occured.
         `watch_all` fires after the last `watch_one` fires.

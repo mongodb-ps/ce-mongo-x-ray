@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from dateutil import parser
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.index_info_parser import IndexInfoParser
 from x_ray.healthcheck.rules.index_rule import IndexRule
@@ -31,9 +31,9 @@ class IndexInfoItem(BaseItem):
 
         def _get_indexes(block) -> None:
             output: dict = block.get("output", {})
-            cmdParams: dict = block.get("commandParameters", {})
+            cmd_params: dict = block.get("commandParameters", {})
             self._ns_indexes.append(
-                {"ns": f"{cmdParams.get('db', '')}.{cmdParams.get('collection', '')}", "specs": output}
+                {"ns": f"{cmd_params.get('db', '')}.{cmd_params.get('collection', '')}", "specs": output}
             )
 
         def _get_index_stats(block) -> None:
@@ -53,8 +53,8 @@ class IndexInfoItem(BaseItem):
                 ],
             }
 
-        self.watch_one(GMD_EVENTS.INDEXES, _get_indexes)
-        self.watch_one(GMD_EVENTS.INDEX_STATS, _get_index_stats)
+        self.watch_one(GmdEvents.INDEXES, _get_indexes)
+        self.watch_one(GmdEvents.INDEX_STATS, _get_index_stats)
 
     def finalize_analysis(self) -> None:
         # construct index structure so we can reuse indexRule for analysis.

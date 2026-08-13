@@ -38,7 +38,7 @@ class ShardKeyItem(BaseItem):
             self._logger.info("Cluster is not a sharded cluster. Skip...")
             return
 
-        def func_sh_cluster(name, node, **kwargs):
+        def func_sh_cluster(name, node, **kwargs):  # pylint: disable=unused-argument
             client = node["client"]
             collections = list(client.config.collections.find({"_id": {"$ne": "config.system.sessions"}}))
             shards = [doc["_id"] for doc in client.config.shards.find()]
@@ -68,7 +68,7 @@ class ShardKeyItem(BaseItem):
         result = self.captured_sample
         output: list = []
 
-        def func_cluster(set_name, node, **kwargs) -> None:
+        def func_cluster(set_name, node, **kwargs) -> None:  # pylint: disable=unused-argument
             raw_result = node["rawResult"]
             parser: BaseParser = ShardKeyParser()
             output.append(parser.markdown(raw_result))

@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.db_parser import DBParser
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 
 
@@ -56,17 +56,17 @@ class DBItem(BaseItem):
                 db_name = raw_output.get("db", "unknown")
                 self._db_stats[db_name] = raw_output
 
-        self.watch_one(GMD_EVENTS.SHARDED_DATABASES, get_sharded_databases)
-        self.watch_one(GMD_EVENTS.LIST_OF_DATABASES, get_databases)
-        self.watch_one(GMD_EVENTS.DATABASE_STATS, get_db_stats)
+        self.watch_one(GmdEvents.SHARDED_DATABASES, get_sharded_databases)
+        self.watch_one(GmdEvents.LIST_OF_DATABASES, get_databases)
+        self.watch_one(GmdEvents.DATABASE_STATS, get_db_stats)
 
     def review_results_markdown(self, output) -> None:
         assert (
             self._databases is not None
-        ), f"GMD subsection {GMD_EVENTS.LIST_OF_DATABASES.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.LIST_OF_DATABASES.value} should be available for review."
         assert (
             self._db_stats is not None
-        ), f"GMD subsection {GMD_EVENTS.DATABASE_STATS.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.DATABASE_STATS.value} should be available for review."
         parser: BaseParser = DBParser()
         parsed_data = parser.markdown(
             {

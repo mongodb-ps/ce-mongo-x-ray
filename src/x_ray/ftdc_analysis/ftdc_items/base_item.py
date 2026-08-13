@@ -8,7 +8,7 @@ from pathlib import Path
 class BaseItem(ABC):
     """Analyze FTDC files and render one section of the report."""
 
-    def __init__(self, output_folder: str, config: dict, **kwargs) -> None:
+    def __init__(self, output_folder: str, config: dict, **_kwargs) -> None:
         self.config = config
         self.output_folder = Path(output_folder)
         self._logger = logging.getLogger(__name__)

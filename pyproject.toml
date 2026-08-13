@@ -55,6 +55,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "ruff==0.16.1",
+  "pylint==4.0.6",
   "pyright==1.1.411",
   "pytest==9.1.1",
   "pytest-cov==7.1.0",
@@ -107,12 +108,19 @@ select = ["E", "F", "I"]
 ignore = ["E501"]
 
 [tool.pylint]
-# Editor-facing pylint mirror of the historical gate (pylint --errors-only).
-# The disabled checks are conventions and refactor suggestions the project
-# never enforced: line length is owned by ruff's 120-column rule (C0301),
-# docstrings are not part of the gate (C0114/C0115/C0116), and the shared
-# parser fixtures in tests intentionally duplicate large sample documents
-# (R0801). too-many-* are design suggestions, not defects.
+# Lint contract with ruff: `make lint` runs BOTH tools over src and tests and
+# both must pass. ruff owns style (E/F/I, pycodestyle + pyflakes + isort) and
+# pylint owns the W/E defects and import placement. The exception lists below
+# are the shared policy: every family disabled here is intentionally off in
+# both tools (ruff has no equivalent rule to turn on, and vice versa).
+#
+# - C0301: line length is owned by ruff's 120-column rule.
+# - C0114/C0115/C0116: docstrings are not part of the gate (ruff's E/F/I do
+#   not check them).
+# - R0801: the shared parser fixtures in tests intentionally duplicate large
+#   sample documents (ruff has no duplicate-code rule).
+# - R0902/R0903/R0911/R0912/R0913/R0914/R0915/R0917/R1702: the too-many-* /
+#   design-suggestion family (ruff's E/F/I do not check them).
 max-line-length = 120
 disable = [
   "C0301",          # line-too-long: ruff's 120-column rule owns this
@@ -120,10 +128,15 @@ disable = [
   "C0115",          # missing-class-docstring: not part of the gate
   "C0116",          # missing-function-docstring: not part of the gate
   "R0801",          # duplicate-code: shared parser fixtures duplicate samples
+  "R0902",          # too-many-instance-attributes: design suggestion
   "R0903",          # too-few-public-methods: design suggestion
+  "R0911",          # too-many-returns: design suggestion
+  "R0912",          # too-many-branches: design suggestion
   "R0913",          # too-many-arguments: design suggestion
   "R0914",          # too-many-locals: design suggestion
   "R0915",          # too-many-statements: design suggestion
+  "R0917",          # too-many-positional-arguments: design suggestion
+  "R1702",          # too-many-nested-blocks: design suggestion
 ]
 
 [tool.pyright]

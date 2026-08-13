@@ -131,7 +131,7 @@ class Framework:
         date_part, time_part = value[:-1].split("T", maxsplit=1)
         return datetime.fromisoformat(f"{date_part}T{time_part.replace('-', ':')}+00:00").astimezone(timezone.utc)
 
-    def run_ftdc_analysis(self, ftdcset_name: str, *args, **kwargs) -> None:
+    def run_ftdc_analysis(self, ftdcset_name: str, *_args, **kwargs) -> None:
         """Run a configured set of FTDC analysis items."""
         ftdcsets = self._config.get("ftdcsets", {})
         if ftdcset_name not in ftdcsets:

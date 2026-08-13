@@ -12,7 +12,7 @@ from typing import Optional, TextIO
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.sh_details_parser import SHDetailsParser
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
@@ -51,20 +51,20 @@ class SHInfoItem(BaseItem):
         def get_server_status(block):
             self._csrs = block.get("output", {}).get("sharding", {}).get("configsvrConnectionString", "")
 
-        self.watch_one(GMD_EVENTS.ROUTERS, get_routers)
-        self.watch_one(GMD_EVENTS.SHARDS, get_shards)
-        self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
+        self.watch_one(GmdEvents.ROUTERS, get_routers)
+        self.watch_one(GmdEvents.SHARDS, get_shards)
+        self.watch_one(GmdEvents.SERVER_STATUS_INFO, get_server_status)
 
     def review_results_markdown(self, output: TextIO) -> None:
         if self._shards is None and self._routers is None:
             self._logger.info("No sharding information is available. Skipping Sharding Architecture section.")
             return
         # Type assertions: if all events fired, these should not be None
-        assert self._shards is not None, f"GMD subsection {GMD_EVENTS.SHARDS.value} should be available for review."
-        assert self._routers is not None, f"GMD subsection {GMD_EVENTS.ROUTERS.value} should be available for review."
+        assert self._shards is not None, f"GMD subsection {GmdEvents.SHARDS.value} should be available for review."
+        assert self._routers is not None, f"GMD subsection {GmdEvents.ROUTERS.value} should be available for review."
         assert (
             self._csrs is not None
-        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.SERVER_STATUS_INFO.value} should be available for review."
 
         # Convert the data to the format required by the markdown parser
         data = {

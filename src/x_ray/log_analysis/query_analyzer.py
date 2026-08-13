@@ -138,7 +138,7 @@ def analyze_query_pattern(log_line):
         first_stage = query[0] if len(query) > 0 else {}
         if "$match" in first_stage:
             query = first_stage["$match"]
-        # TODO: enumerate all stages to find out $sort stage.
+        # TODO: enumerate all stages to find out $sort stage.  # pylint: disable=fixme
     elif "find" in command:
         query_type = "find"
         query = command.get("filter", {})

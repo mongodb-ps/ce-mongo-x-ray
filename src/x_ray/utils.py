@@ -14,6 +14,9 @@ import os
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
+# The env-var guard above must run before the heavy imports below, so this
+# import block is intentionally not at the top of the module.
+# pylint: disable=wrong-import-position
 import hashlib
 import json
 import logging
@@ -42,7 +45,7 @@ try:
 except ImportError:
     pass  # python-dotenv is optional; .env loading is skipped if unavailable
 
-levels = logging._nameToLevel
+levels = logging._nameToLevel  # pylint: disable=protected-access
 level = os.getenv("LOG_LEVEL", "INFO")
 env = os.getenv("ENV", "production")
 ai_key = os.getenv("OPENAI_API_KEY", "")
@@ -248,7 +251,7 @@ def escape_markdown(text):
     Escape markdown special characters.
     Newlines are converted to <br> so they don't break markdown table rows.
     """
-    ESCAPE_MAP = {
+    escape_map = {
         "_": "\\_",
         "*": "\\*",
         "`": "\\`",
@@ -266,7 +269,7 @@ def escape_markdown(text):
     if not isinstance(text, str):
         text = str(text)
     # Escape underscores, asterisks, backticks, and other special characters
-    for key, value in ESCAPE_MAP.items():
+    for key, value in escape_map.items():
         text = text.replace(key, value)
     return text
 

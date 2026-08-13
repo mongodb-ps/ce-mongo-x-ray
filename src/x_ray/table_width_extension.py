@@ -163,5 +163,6 @@ class TableWidthExtension(TableExtension):
         md.parser.blockprocessors.register(processor, "table", 75)
 
 
-def makeExtension(**kwargs):
+# markdown's Extension API requires this exact method name.
+def makeExtension(**kwargs):  # pylint: disable=invalid-name
     return TableWidthExtension(**kwargs)

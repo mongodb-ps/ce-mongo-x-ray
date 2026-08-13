@@ -109,14 +109,14 @@ class IndexRule(BaseRule):
 
 def is_redundant(index1, index2):
     # These options must be identical for indexes to be considered redundant
-    OPTIONS = [
+    options = [
         "unique",
         "sparse",
         "partialFilterExpression",
         "collation",
         "hidden",
     ]
-    for o in OPTIONS:
+    for o in options:
         if index1.get(o) != index2.get(o):
             return False
     # Check if the keys are identical or if one is a prefix of the other

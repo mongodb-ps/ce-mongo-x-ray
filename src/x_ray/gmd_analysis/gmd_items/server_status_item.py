@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.cache_parser import CacheParser
 from x_ray.healthcheck.parsers.conn_parser import ConnParser
@@ -41,16 +41,16 @@ class ServerStatusItem(BaseItem):
             )
             self.append_test_results(test_result)
 
-        self.watch_one(GMD_EVENTS.SERVER_STATUS_INFO, get_server_status)
+        self.watch_one(GmdEvents.SERVER_STATUS_INFO, get_server_status)
 
         self.watch_all(
-            {GMD_EVENTS.SERVER_STATUS_INFO, GMD_EVENTS.ISMASTER, GMD_EVENTS.HOST_INFO}, process_server_status
+            {GmdEvents.SERVER_STATUS_INFO, GmdEvents.ISMASTER, GmdEvents.HOST_INFO}, process_server_status
         )
 
     def review_results_markdown(self, output) -> None:
         assert (
             self._server_status is not None
-        ), f"GMD subsection {GMD_EVENTS.SERVER_STATUS_INFO.value} should be available for review."
+        ), f"GMD subsection {GmdEvents.SERVER_STATUS_INFO.value} should be available for review."
 
         if self._query_targeting is not None:
             parser: BaseParser = QueryTargetingParser()

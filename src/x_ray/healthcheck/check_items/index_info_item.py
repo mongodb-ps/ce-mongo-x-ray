@@ -108,7 +108,7 @@ class IndexInfoItem(BaseItem):
         result = self.captured_sample
         output: list[str] = []
 
-        def func_cluster(set_name, node, **kwargs) -> None:
+        def func_cluster(set_name, node, **kwargs) -> None:  # pylint: disable=unused-argument
             raw_result = node.get("rawResult", [])
             parser: BaseParser = IndexInfoParser()
             output.append(parser.markdown(raw_result, set_name=set_name))

@@ -1,5 +1,5 @@
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
-from x_ray.gmd_analysis.shared import GMD_EVENTS
+from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.host_info_parser import HostInfoParser
 from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
@@ -42,13 +42,13 @@ class HostInfoItem(BaseItem):
             )
             self.append_test_results(test_result)
 
-        self.watch_one(GMD_EVENTS.HOST_INFO, get_host_info)
-        self.watch_one(GMD_EVENTS.COMMAND_LINE_INFO, get_server_cmd_line_opts)
-        self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.SERVER_BUILD_INFO}, process_build_info)
-        self.watch_all({GMD_EVENTS.HOST_INFO, GMD_EVENTS.COMMAND_LINE_INFO}, process_fs_type)
+        self.watch_one(GmdEvents.HOST_INFO, get_host_info)
+        self.watch_one(GmdEvents.COMMAND_LINE_INFO, get_server_cmd_line_opts)
+        self.watch_all({GmdEvents.HOST_INFO, GmdEvents.SERVER_BUILD_INFO}, process_build_info)
+        self.watch_all({GmdEvents.HOST_INFO, GmdEvents.COMMAND_LINE_INFO}, process_fs_type)
 
     def review_results_markdown(self, output) -> None:
         data = self._host_info
-        assert data is not None, f"GMD subsection {GMD_EVENTS.HOST_INFO.value} should be available for review."
+        assert data is not None, f"GMD subsection {GmdEvents.HOST_INFO.value} should be available for review."
         parsed_output = self._host_info_parser.markdown([(self._hostname, data)])
         output.write(parsed_output)

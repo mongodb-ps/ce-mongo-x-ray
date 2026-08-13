@@ -51,7 +51,7 @@ class Framework:
         Path(batch_folder).mkdir(parents=True, exist_ok=True)
         return batch_folder
 
-    def run_gmd_analysis(self, gmd_set_name: str, *args, **kwargs):
+    def run_gmd_analysis(self, gmd_set_name: str, *_args, **kwargs):
         self._gmd_set_name = gmd_set_name
         # Create output folder if it doesn't exist
         output_folder = kwargs.get("output_folder", "output/")
@@ -82,7 +82,7 @@ class Framework:
             content = f.read()
             try:
                 objects = load_json(content)
-            except Exception as ex:
+            except Exception as ex:  # pylint: disable=broad-exception-caught
                 self._logger.error(red(f"Failed to parse the getMongoData output as JSON: {ex}"))
                 return
 
@@ -94,14 +94,14 @@ class Framework:
                 for item in self._items:
                     try:
                         item.test(obj)
-                    except Exception as e:
+                    except Exception as e:  # pylint: disable=broad-exception-caught
                         self._logger.warning(yellow(f"GMD analysis item '{item.name}' failed: {e}"))
                         continue
 
             for item in self._items:
                 try:
                     item.finalize_analysis()
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     self._logger.warning(yellow(f"GMD analysis item '{item.name}' finalization failed: {e}"))
                     continue
 
@@ -120,15 +120,15 @@ class Framework:
             # Enrich all test results with matched risks before building summary
             for item in self._items:
                 try:
-                    from x_ray.risk_register.db import enrich_test_results
-                    enrich_test_results(item._test_result)
-                except Exception:
+                    from x_ray.risk_register.db import enrich_test_results  # pylint: disable=import-outside-toplevel
+                    enrich_test_results(item._test_result)  # pylint: disable=protected-access
+                except Exception:  # pylint: disable=broad-exception-caught
                     self._logger.debug("Risk register matching not available", exc_info=True)
             summary_item = SummaryItem()
             summary_item.summarize(self._items)
             summary_item.overview(output)
             for i, item in enumerate(self._items):
-                if item._in_complete_flag:
+                if item._in_complete_flag:  # pylint: disable=protected-access
                     self._logger.warning(
                         yellow(f"GMD item '{item.name}' is incomplete because of too many databases/collections.")
                     )
@@ -140,7 +140,7 @@ class Framework:
                     output.write(f"{item.description}\n\n")
                     output.write(f"[Review Raw Results &rarr;](#{review_title_id})\n\n")
                     item.test_result_markdown(output)
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     self._logger.warning(yellow(f"Failed to generate markdown for GMD item '{item.name}': {e}"))
                     continue
 
@@ -153,7 +153,7 @@ class Framework:
                     output.write(f"### {review_title}\n\n")
                     output.write(f"[&larr; Review Test Results](#{title_id})\n\n")
                     item.review_results_markdown(output)
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
                     self._logger.warning(yellow(f"Failed to generate review markdown for GMD item '{item.name}': {e}"))
                     continue
 

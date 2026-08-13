@@ -167,7 +167,7 @@ def is_driver_compatible(log_driver_name: str, log_driver_version: str, server_v
         ), f"Minimum driver version not found for driver: {driver_name} in compatibility matrix"
         driver_ver = parse_version_from_log(log_driver_name, log_driver_version, driver_name)
         return not driver_ver or driver_ver >= min_version
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         logger.warning("Failed to parse driver version: %s, error: %s", log_driver_version, e)
         return True
 

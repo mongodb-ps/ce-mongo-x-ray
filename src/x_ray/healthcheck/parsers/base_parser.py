@@ -27,7 +27,7 @@ class BaseParser(ABC):
         """
         raise NotImplementedError("Subclasses must implement the parse method")
 
-    def format_table(self, item, i) -> str:
+    def format_table(self, item, _i) -> str:
         """
         Parse a table represented by header and rows into markdown.
 
@@ -117,7 +117,7 @@ class BaseParser(ABC):
         output += "</script>\n"
         return output
 
-    def format_code(self, item, i) -> str:
+    def format_code(self, item, _i) -> str:
         """
         Format code block into markdown.
 

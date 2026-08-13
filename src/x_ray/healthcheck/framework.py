@@ -46,7 +46,7 @@ class Framework:
             Path(batch_folder).mkdir(parents=True, exist_ok=True)
         return batch_folder
 
-    def run_checks(self, checkset_name: str, *args, **kwargs):
+    def run_checks(self, checkset_name: str, *_args, **kwargs):
         self._checkset_name = checkset_name
         # Create output folder if it doesn't exist
         output_folder = kwargs.get("output_folder", "output/")
@@ -107,12 +107,12 @@ class Framework:
 
             # Enrich test results with matched risks from the risk register
             try:
-                from x_ray.risk_register.db import enrich_test_results
+                from x_ray.risk_register.db import enrich_test_results  # pylint: disable=import-outside-toplevel
 
                 matched = enrich_test_results(all_test_result)
                 if matched:
                     logger.info(green(f"Matched {matched} issues to known risks"))
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 logger.debug("Risk register matching not available", exc_info=True)
 
             # Build category → matched_risk lookup

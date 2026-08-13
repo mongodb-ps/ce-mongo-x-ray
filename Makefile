@@ -107,10 +107,12 @@ integration-test: integration-test-deps
 	done
 	@echo "\033[32m✓ All integration tests passed!\033[0m"
 
-# Run ruff lint
+# Run ruff and pylint (the shared lint contract; both must pass)
 lint:
 	@echo "Running ruff check..."
 	$(PYTHON) -m ruff check src tests
+	@echo "Running pylint check..."
+	$(PYTHON) -m pylint src tests
 	@echo "\033[32m✓ No lint errors found!\033[0m"
 
 # Minify templates

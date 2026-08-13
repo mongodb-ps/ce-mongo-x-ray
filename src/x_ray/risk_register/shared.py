@@ -49,7 +49,7 @@ def load_risks_from_csv(csv_path: Path) -> list[Risk]:
 
 def get_db_path() -> Path:
     """Return the platform-specific database directory path."""
-    import platform
+    import platform  # pylint: disable=import-outside-toplevel
 
     system = platform.system()
     if system == "Windows":

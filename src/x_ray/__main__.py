@@ -422,8 +422,8 @@ def ingest_command(args):
     if not csv_path.exists():
         logger.error("CSV file not found: %s", csv_path)
         return 1
-    from x_ray.risk_register.db import ingest_risks
-    from x_ray.risk_register.shared import load_risks_from_csv
+    from x_ray.risk_register.db import ingest_risks  # pylint: disable=import-outside-toplevel
+    from x_ray.risk_register.shared import load_risks_from_csv  # pylint: disable=import-outside-toplevel
 
     logger.info("Reading risks from %s ...", csv_path)
     risks = load_risks_from_csv(csv_path)
@@ -510,7 +510,7 @@ def log_analysis_command(args):
         )
         framework.run_logs_analysis(args.checkset, output_folder=output_folder)
         framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
-        batch_folder = str(framework._get_output_folder(output_folder))
+        batch_folder = str(framework._get_output_folder(output_folder))  # pylint: disable=protected-access
         final_folder = _rename_with_hostname(batch_folder, framework)
         if args.format in {"html", "pdf"} and not args.no_browser:
             html_file = Path(final_folder) / "report.html"
@@ -585,7 +585,7 @@ def ftdc_analysis_command(args):
         )
         framework.run_ftdc_analysis(args.checkset, output_folder=output_folder)
         framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=False)
-        batch_folder = str(framework._get_output_folder(output_folder))
+        batch_folder = str(framework._get_output_folder(output_folder))  # pylint: disable=protected-access
         final_folder = _rename_with_hostname(batch_folder, framework)
         if args.format in {"html", "pdf"} and not args.no_browser:
             html_file = Path(final_folder) / "report.html"
