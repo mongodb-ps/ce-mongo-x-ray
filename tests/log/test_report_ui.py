@@ -12,6 +12,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 # browser and verify the key UI elements exist. The outline, charts, copy
 # buttons and syntax highlighting are all created dynamically by JavaScript,
 # hence the need for Playwright.
+import os
 from copy import deepcopy
 from pathlib import Path
 
@@ -22,7 +23,15 @@ pytest.importorskip("playwright")
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
 from x_ray.utils import load_config
 
-EXAMPLE_LOGS = ["example-rs.log", "example-sh.log", "example-mongos.log"]
+
+def _log_samples():
+    custom = os.environ.get("LOG_SAMPLE")
+    if custom:
+        return [custom]
+    return ["example-rs.log", "example-sh.log", "example-mongos.log"]
+
+
+EXAMPLE_LOGS = _log_samples()
 
 EXPECTED_SECTIONS = [
     "Connection Rate",
@@ -40,7 +49,9 @@ EXPECTED_SECTIONS = [
 @pytest.fixture(scope="module", params=EXAMPLE_LOGS)
 def report_html(request, tmp_path_factory):
     """Generate the HTML report from a sample log."""
-    log_file = Path(__file__).resolve().parent.parent.parent / "misc" / request.param
+    log_file = Path(request.param)
+    if not log_file.is_absolute():
+        log_file = Path(__file__).resolve().parent.parent.parent / "misc" / request.param
     assert log_file.is_file(), f"Missing sample log: {log_file}"
     output_dir = tmp_path_factory.mktemp("report")
     config = load_config(None)["log"]

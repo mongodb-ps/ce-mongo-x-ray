@@ -12,6 +12,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 # and verify the key UI elements exist. The outline, copy buttons, metadata
 # tabs and syntax highlighting are created dynamically by JavaScript, hence
 # the need for Playwright.
+import os
 import shutil
 from copy import deepcopy
 from pathlib import Path
@@ -23,7 +24,7 @@ pytest.importorskip("playwright")
 from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
 from x_ray.utils import load_config
 
-FTDC_SAMPLE = "metrics.2026-07-29T06-50-11Z-00000"
+FTDC_SAMPLE = os.environ.get("FTDC_SAMPLE", "metrics.2026-07-29T06-50-11Z-00000")
 
 EXPECTED_SECTIONS = [
     "1 Baseline Analysis",
@@ -37,7 +38,9 @@ EXPECTED_SECTIONS = [
 @pytest.fixture(scope="module")
 def report_html(tmp_path_factory):
     """Generate the HTML report from the FTDC sample."""
-    data_file = Path(__file__).resolve().parent.parent.parent / "misc" / FTDC_SAMPLE
+    data_file = Path(FTDC_SAMPLE)
+    if not data_file.is_absolute():
+        data_file = Path(__file__).resolve().parent.parent.parent / "misc" / FTDC_SAMPLE
     assert data_file.is_file(), f"Missing sample data: {data_file}"
     # The FTDC framework ingests every `metrics.*` file in a directory, so copy
     # the sample into its own directory to avoid picking up unrelated files.
@@ -106,8 +109,9 @@ def test_outline_toggle_buttons(page):
 
 @pytest.mark.integration
 def test_markdown_tables_rendered(page):
-    # Member State, Workload, Ops and Latencies and Performance each emit a table.
-    assert page.locator("table").count() >= 4
+    # Workload and Performance always emit tables; Member State and Ops and
+    # Latencies depend on the captured data.
+    assert page.locator("table").count() >= 2
 
 
 @pytest.mark.integration
@@ -121,7 +125,7 @@ def test_copy_table_buttons_added(page):
     # addTableCopyButtons() wraps every table with a copy button once the
     # highlight.js CDN script has loaded (it runs at the end of script.js).
     page.wait_for_selector(".table-copy-button")
-    assert page.locator(".table-copy-button").count() >= 4
+    assert page.locator(".table-copy-button").count() >= 2
 
 
 @pytest.mark.integration

@@ -1,8 +1,11 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test lint minify help
+.PHONY: build clean deps test full-test lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
+
+# MongoDB binary used to start the test replica set (full-test target).
+MONGOD ?= $(shell command -v mongod)
 
 # Detect OS and set Python path accordingly
 ifeq ($(OS),Windows_NT)
@@ -47,6 +50,26 @@ test:
 	$(PYTHON) -m pytest -m "not integration"
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
+# Full test: start a real MongoDB replica set, seed it, then run all tests
+# (including the integration-marked UI tests).
+full-test:
+	@echo "Stopping any existing test cluster..."
+	@if [ -d .tests/mongo ]; then (cd .tests/mongo && mlaunch stop) 2>/dev/null || true; sleep 5; rm -rf .tests/mongo; fi
+	@echo "Starting MongoDB replica set..."
+	bash tests/prepare_rs.sh $(MONGOD)
+	@echo "Seeding test data..."
+	mongosh --quiet mongodb://localhost:47017 misc/redundant_index.js
+	mongosh --quiet mongodb://localhost:47017 misc/slow_query_generator.js
+	@echo "Generating getMongoData report..."
+	mongosh --quiet mongodb://localhost:47017 misc/getMongoData.js > .tests/mongo/getMongoData-output.json
+	@echo "Running all tests..."
+	HC_URI="mongodb://localhost:47017" \
+		GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
+		LOG_SAMPLE="$(CURDIR)/.tests/mongo/data/replset/rs1/mongod.log" \
+		FTDC_SAMPLE="$$(find "$(CURDIR)/.tests/mongo" -path '*diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)" \
+		$(PYTHON) -m pytest
+	@echo "\033[32m✓ All tests passed!\033[0m"
+
 # Run ruff lint
 lint:
 	@echo "Running ruff check..."
@@ -86,7 +109,8 @@ help:
 	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
 	@echo "  make build        - Build executable"
 	@echo "  make minify       - Minify HTML/JS templates"
-	@echo "  make test         - Run all tests"
+	@echo "  make test         - Run non-integration tests"
+	@echo "  make full-test    - Start a test cluster and run all tests"
 	@echo "  make lint         - Run ruff check (lint)"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make help         - Display this help information"

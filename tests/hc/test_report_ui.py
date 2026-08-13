@@ -12,6 +12,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 # generated HTML report in a headless browser to verify the key UI elements
 # exist. The outline, charts, copy buttons and syntax highlighting are all
 # created dynamically by JavaScript, hence the need for Playwright.
+import os
 from copy import deepcopy
 
 import pytest
@@ -24,7 +25,7 @@ from pymongo.uri_parser import parse_uri
 from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.utils import load_config
 
-HC_URI = "mongodb://localhost:47017"
+HC_URI = os.environ.get("HC_URI", "mongodb://localhost:47017")
 
 HC_ITEMS = [
     "Build Information",

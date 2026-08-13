@@ -12,6 +12,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 # browser and verify the key UI elements exist. The outline, copy buttons and
 # syntax highlighting are created dynamically by JavaScript, hence the need
 # for Playwright.
+import os
 from copy import deepcopy
 from pathlib import Path
 
@@ -22,7 +23,15 @@ pytest.importorskip("playwright")
 from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
 from x_ray.utils import load_config
 
-GMD_SAMPLES = ["getMongoData-rs.json", "getMongoData-sh.json"]
+
+def _gmd_samples():
+    custom = os.environ.get("GMD_SAMPLE")
+    if custom:
+        return [custom]
+    return ["getMongoData-rs.json", "getMongoData-sh.json"]
+
+
+GMD_SAMPLES = _gmd_samples()
 
 GMD_ITEMS = [
     "Build Information",
@@ -40,23 +49,39 @@ EXPECTED_SECTIONS = ["1 Review Test Results", "2 Review Raw Results"] + [
     f"{part}{name}" for i, name in enumerate(GMD_ITEMS, 1) for part in (f"1.{i} ", f"2.{i} Review ")
 ]
 
-# The sharded-cluster report has no replica-set info and vice versa.
-ARCH_SECTIONS = {
-    "getMongoData-rs.json": {
-        "2.3 Review Replica Set Architecture": True,
-        "2.4 Review Sharded Cluster Architecture": False,
-    },
-    "getMongoData-sh.json": {
-        "2.3 Review Replica Set Architecture": False,
-        "2.4 Review Sharded Cluster Architecture": True,
-    },
-}
+# The sharded-cluster report has no replica-set info and vice versa. The
+# cluster started by prepare_rs.sh is a replica set, so a custom GMD_SAMPLE is
+# expected to contain replica-set (and not sharded-cluster) sections.
+def _arch_sections():
+    custom = os.environ.get("GMD_SAMPLE")
+    if custom:
+        return {
+            custom: {
+                "2.3 Review Replica Set Architecture": True,
+                "2.4 Review Sharded Cluster Architecture": False,
+            }
+        }
+    return {
+        "getMongoData-rs.json": {
+            "2.3 Review Replica Set Architecture": True,
+            "2.4 Review Sharded Cluster Architecture": False,
+        },
+        "getMongoData-sh.json": {
+            "2.3 Review Replica Set Architecture": False,
+            "2.4 Review Sharded Cluster Architecture": True,
+        },
+    }
+
+
+ARCH_SECTIONS = _arch_sections()
 
 
 @pytest.fixture(scope="module", params=GMD_SAMPLES)
 def report_html(request, tmp_path_factory):
     """Generate the HTML report from a getMongoData sample."""
-    data_file = Path(__file__).resolve().parent.parent.parent / "misc" / request.param
+    data_file = Path(request.param)
+    if not data_file.is_absolute():
+        data_file = Path(__file__).resolve().parent.parent.parent / "misc" / request.param
     assert data_file.is_file(), f"Missing sample data: {data_file}"
     output_dir = tmp_path_factory.mktemp("report")
     config = load_config(None)["gmd"]

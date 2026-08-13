@@ -212,6 +212,9 @@ output/
 .DS_Store
 export_secret.sh
 
+# Test cluster started by make full-test
+.tests/
+
 misc/ftdc*
 .qwen
 getMongoData-output.json
