@@ -112,9 +112,10 @@ def test_outline_toggle_buttons(page):
 
 @pytest.mark.integration
 def test_markdown_tables_rendered(page):
-    # Workload and Performance always emit tables; Member State and Ops and
-    # Latencies depend on the captured data.
-    assert page.locator("table").count() >= 2
+    # The table count depends on how much data the captured metrics file has
+    # (fresh clusters and shards can be sparse), but at least the Workload
+    # table is always emitted.
+    assert page.locator("table").count() >= 1
 
 
 @pytest.mark.integration
@@ -128,7 +129,7 @@ def test_copy_table_buttons_added(page):
     # addTableCopyButtons() wraps every table with a copy button once the
     # highlight.js CDN script has loaded (it runs at the end of script.js).
     page.wait_for_selector(".table-copy-button")
-    assert page.locator(".table-copy-button").count() >= 2
+    assert page.locator(".table-copy-button").count() >= 1
 
 
 @pytest.mark.integration

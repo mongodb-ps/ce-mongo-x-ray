@@ -1,11 +1,13 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test cluster-setup cluster-teardown full-test lint minify help
+.PHONY: build clean deps test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
 
-# MongoDB binary used to start the test replica set (full-test target).
+# MongoDB binary used to start the test cluster (full-test / integration-test).
 MONGOD ?= $(shell command -v mongod)
+# Cluster topology created by prepare_cluster.sh: "rs" (replica set) or "sh" (sharded cluster).
+TYPE ?= rs
 
 # Detect OS and set Python path accordingly
 ifeq ($(OS),Windows_NT)
@@ -54,16 +56,16 @@ test:
 # set, seed it, and generate the getMongoData report.
 cluster-setup:
 	@echo "Stopping any existing test cluster..."
-	@if [ -d .tests/mongo ]; then (cd .tests/mongo && mlaunch stop) 2>/dev/null || true; sleep 5; rm -rf .tests/mongo; fi
-	@echo "Starting MongoDB replica set..."
-	bash tests/prepare_rs.sh $(MONGOD)
+	@if [ -d .tests/mongo ]; then (cd .tests/mongo && mlaunch kill --signal 9) 2>/dev/null || true; sleep 3; rm -rf .tests/mongo; fi
+	@echo "Starting MongoDB cluster ($(TYPE))..."
+	bash tests/prepare_cluster.sh $(MONGOD) $(TYPE)
 	@echo "Seeding test data..."
 	mongosh --quiet mongodb://localhost:47017 misc/redundant_index.js
 	mongosh --quiet mongodb://localhost:47017 misc/slow_query_generator.js
 	@echo "Generating getMongoData report..."
 	mongosh --quiet mongodb://localhost:47017 misc/getMongoData.js > .tests/mongo/getMongoData-output.json
 	@echo "Copying an FTDC sample to a stable path..."
-	@FTDC_FILE="$$(find .tests/mongo -path '*diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
+	@FTDC_FILE="$$(find .tests/mongo -path '*db/diagnostic.data*' -name 'metrics.*' -not -name '*.interim' -not -name '*.tmp' | head -1)"; \
 		if [ -n "$$FTDC_FILE" ]; then cp "$$FTDC_FILE" .tests/mongo/metrics.final; else echo "WARNING: no finalized FTDC file found" >&2; fi
 
 # Tear down the test cluster: kill its processes and remove its files.
@@ -72,18 +74,37 @@ cluster-teardown:
 	@(cd .tests/mongo 2>/dev/null && mlaunch kill --signal 9) || true
 	@rm -rf .tests
 
-# Full test: prepare the cluster, run all tests, then tear the cluster down.
-full-test: cluster-setup
-	@echo "Running all tests..."
-	@HC_URI="mongodb://localhost:47017" \
-		GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
-		LOG_SAMPLE="$(CURDIR)/.tests/mongo/data/replset/rs1/mongod.log" \
-		FTDC_SAMPLE="$(CURDIR)/.tests/mongo/metrics.final" \
-		$(PYTHON) -m pytest; \
-		status=$$?; \
-		make cluster-teardown; \
-		exit $$status
-	@echo "\033[32m✓ All tests passed!\033[0m"
+# Verify the tools required by integration-test (mtools, m, jq, mongosh).
+integration-test-deps:
+	@for tool in mlaunch m jq mongosh; do \
+		if ! command -v $$tool >/dev/null 2>&1; then \
+			echo "Error: '$$tool' is required by integration-test but was not found in PATH" >&2; \
+			exit 1; \
+		fi; \
+	done
+	@echo "✓ integration-test dependencies found"
+
+# Test the integration suite against the latest patch of every installed
+# MongoDB major version (from `m installed`), with both rs and sh topologies.
+integration-test: integration-test-deps
+	@versions="$$(m installed --json | jq -r '[.[].name] | map(split(".") | map(tonumber)) | sort | group_by(.[0]) | map(.[-1] | join(".")) | .[]')"; \
+	if [ -z "$$versions" ]; then echo "Error: no MongoDB versions installed (run 'm install')" >&2; exit 1; fi; \
+	for version in $$versions; do \
+		for type in rs sh; do \
+			echo "=== MongoDB $$version ($$type) ==="; \
+			make cluster-setup MONGOD="$$(m bin $$version)" TYPE="$$type" || { make cluster-teardown; exit 1; }; \
+			HC_URI="mongodb://localhost:47017" \
+				GMD_SAMPLE="$(CURDIR)/.tests/mongo/getMongoData-output.json" \
+				GMD_TOPOLOGY="$$type" \
+				LOG_SAMPLE="$$(find "$(CURDIR)/.tests/mongo" -name 'mongod.log' | head -1)" \
+				FTDC_SAMPLE="$(CURDIR)/.tests/mongo/metrics.final" \
+				$(PYTHON) -m pytest -m "integration"; \
+				status=$$?; \
+				make cluster-teardown; \
+				if [ $$status -ne 0 ]; then echo "FAILED: MongoDB $$version ($$type)" >&2; exit $$status; fi; \
+		done; \
+	done
+	@echo "\033[32m✓ All integration tests passed!\033[0m"
 
 # Run ruff lint
 lint:
@@ -127,7 +148,7 @@ help:
 	@echo "  make test         - Run non-integration tests"
 	@echo "  make cluster-setup - Start and seed a test cluster"
 	@echo "  make cluster-teardown - Stop and clean up a test cluster"
-	@echo "  make full-test    - Start a test cluster and run all tests"
+	@echo "  make integration-test - Test all installed MongoDB versions (rs + sh)"
 	@echo "  make lint         - Run ruff check (lint)"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make help         - Display this help information"

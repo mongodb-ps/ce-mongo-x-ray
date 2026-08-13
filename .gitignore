@@ -212,7 +212,7 @@ output/
 .DS_Store
 export_secret.sh
 
-# Test cluster started by make full-test
+# Test cluster started by make integration-test
 .tests/
 
 misc/ftdc*

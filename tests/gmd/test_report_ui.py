@@ -50,15 +50,16 @@ EXPECTED_SECTIONS = ["1 Review Test Results", "2 Review Raw Results"] + [
 ]
 
 # The sharded-cluster report has no replica-set info and vice versa. The
-# cluster started by prepare_rs.sh is a replica set, so a custom GMD_SAMPLE is
-# expected to contain replica-set (and not sharded-cluster) sections.
+# cluster created by prepare_cluster.sh is a replica set by default; with
+# GMD_TOPOLOGY=sh the expectations are reversed.
 def _arch_sections():
     custom = os.environ.get("GMD_SAMPLE")
     if custom:
+        is_sharded = os.environ.get("GMD_TOPOLOGY") == "sh"
         return {
             custom: {
-                "2.3 Review Replica Set Architecture": True,
-                "2.4 Review Sharded Cluster Architecture": False,
+                "2.3 Review Replica Set Architecture": not is_sharded,
+                "2.4 Review Sharded Cluster Architecture": is_sharded,
             }
         }
     return {
