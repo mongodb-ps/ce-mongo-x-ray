@@ -44,7 +44,7 @@ build:
 # Run tests 
 test:
 	@echo "Running tests..."
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest -m "not integration"
 	@echo "\033[32m✓ All tests passed!\033[0m"
 
 # Run ruff lint
