@@ -139,11 +139,15 @@
     word-break: break-word;
 }
 
-.markdown-body th {
+.markdown-body table th {
     background-color: #f0f0f0;
     position: sticky;
     top: 0;
     z-index: 1;
+    /* With border-collapse: collapse the 1px top border rides the sticky
+       header; keep it the same color as the background so the stuck header
+       has no visible seam against the content scrolling underneath. */
+    border-top: 1px solid #f0f0f0;
 }
 
 .markdown-body td pre,
