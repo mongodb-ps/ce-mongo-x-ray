@@ -29,7 +29,15 @@ if (typeof Chart !== "undefined") {
 
     // Pick the slices whose labels are drawn: at most MAX_PIE_LABELS_PER_SIDE
     // per side, always the highest-ratio ones. `midAngles[i]` is the mid
-    // angle of slice i, which decides its side (cos >= 0 → right).
+    // angle of slice i, which decides its side.
+    //
+    // Side split is the vertical line through the centre (cos(mid) = 0 at
+    // 12 and 6 o'clock). The pie closes at the top, so the smallest slices
+    // pile up with mid ≈ 270°; floating-point noise there flips the sign of
+    // cos to tiny positive values and wrongly dumps them on the right side.
+    // Treat |cos| ≤ EPSILON as the left side (they approach the seam from
+    // the left half of the circle).
+    var PIE_SIDE_EPSILON = 1e-9;
     var selectPieLabels = function (data, total, midAngles) {
         var items = [];
         data.forEach(function (value, i) {
@@ -39,7 +47,7 @@ if (typeof Chart !== "undefined") {
         var left = [];
         var right = [];
         items.forEach(function (item) {
-            if (Math.cos(item.mid) >= 0) {
+            if (Math.cos(item.mid) > PIE_SIDE_EPSILON) {
                 if (right.length < MAX_PIE_LABELS_PER_SIDE) right.push(item);
             } else if (left.length < MAX_PIE_LABELS_PER_SIDE) {
                 left.push(item);
