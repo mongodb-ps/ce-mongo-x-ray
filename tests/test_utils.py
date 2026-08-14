@@ -124,3 +124,13 @@ def test_json_hash():
     assert hash1 == "EC55C9EC4B598E6F"
     hash2 = json_hash(data, digest_size=4)
     assert hash2 == "C5F6113B"
+
+
+def test_inject_assets_injects_pie_label_settings():
+    from x_ray.utils import inject_assets
+
+    template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
+    output = inject_assets(template, "hc")
+    assert "var PIE_LABEL_LENGTH = 40;" in output
+    assert "var PIE_LABEL_THRESHOLD = 1;" in output
+    assert "PIE_LABEL_LENGTH || 0" in output or "PIE_LABEL_LENGTH||0" in output

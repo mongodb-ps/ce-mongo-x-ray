@@ -77,7 +77,15 @@ if (typeof Chart !== "undefined") {
                 if (pct < threshold) return;
                 var angle = (arc.startAngle + arc.endAngle) / 2;
                 var label = chart.data.labels[i];
-                var text = label + "  " + pct.toFixed(1) + "%";
+                // Truncate long namespaces so the drawn labels do not overlap
+                // the pie; the Chart.js tooltip still shows the full label on
+                // hover because chart.data.labels keeps the untruncated text.
+                var labelLength = window.PIE_LABEL_LENGTH || 0;
+                var displayLabel = label;
+                if (labelLength > 0 && label.length > labelLength) {
+                    displayLabel = label.slice(0, labelLength) + "...";
+                }
+                var text = displayLabel + "  " + pct.toFixed(1) + "%";
                 var item = { angle: angle, arc: arc, text: text, pct: pct };
                 if (Math.cos(angle) >= 0) {
                     rightItems.push(item);
