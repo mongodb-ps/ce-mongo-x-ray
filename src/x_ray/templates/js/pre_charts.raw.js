@@ -49,18 +49,32 @@ if (typeof Chart !== "undefined") {
     };
 
     // Gradient colors for the pie slices: from a deep blue head to an
-    // orange-red tail (deliberately high-contrast endpoints), interpolated
-    // through the hue circle so adjacent slices stay visually distinct.
+    // orange-red tail (deliberately high-contrast endpoints). The hue
+    // advances proportionally to each slice's share of the total, so bigger
+    // slices span a wider color range and small slices stay close in color.
     var PIE_GRADIENT_START = 215;   // deep blue
     var PIE_GRADIENT_END = 20;      // orange-red
-    var pieGradientColors = function (count) {
+    var pieGradientColors = function (values) {
         var colors = [];
-        if (count <= 0) return colors;
-        if (count === 1) return ["hsl(" + PIE_GRADIENT_START + ", 70%, 55%)"];
+        if (!values || values.length === 0) return colors;
         var delta = ((PIE_GRADIENT_END - PIE_GRADIENT_START) % 360 + 360) % 360;
-        for (var i = 0; i < count; i++) {
-            var hue = (PIE_GRADIENT_START + delta * i / (count - 1)) % 360;
+        var total = values.reduce(function (a, b) { return a + b; }, 0);
+        if (total <= 0) {
+            // All values zero: fall back to an even spread by index.
+            for (var k = 0; k < values.length; k++) {
+                var hue0 = (PIE_GRADIENT_START + delta * k / values.length) % 360;
+                colors.push("hsl(" + hue0.toFixed(1) + ", 70%, 55%)");
+            }
+            return colors;
+        }
+        var cum = 0;
+        for (var i = 0; i < values.length; i++) {
+            var frac = values[i] / total;
+            // Midpoint of this slice's cumulative proportion span.
+            var t = Math.min(cum + frac / 2, 1);
+            var hue = (PIE_GRADIENT_START + delta * t) % 360;
             colors.push("hsl(" + hue.toFixed(1) + ", 70%, 55%)");
+            cum += frac;
         }
         return colors;
     };
@@ -82,7 +96,7 @@ if (typeof Chart !== "undefined") {
                 dataset.data = order.map(function (i) { return data[i]; });
                 chart.data.labels = order.map(function (i) { return labels[i]; });
             }
-            dataset.backgroundColor = pieGradientColors(dataset.data.length);
+            dataset.backgroundColor = pieGradientColors(dataset.data);
         },
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
