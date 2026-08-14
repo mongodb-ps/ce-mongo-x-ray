@@ -136,10 +136,8 @@ def inject_assets(template: str, module: str) -> str:
     if pre_parts:
         pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
         config = load_config(None)
-        threshold = config.get("pie_label_threshold", 0)
         label_length = config.get("pie_label_length", 40)
         pre_tag = (
-            f"<script>var PIE_LABEL_THRESHOLD = {threshold};</script>\n"
             f"<script>var PIE_LABEL_LENGTH = {label_length};</script>\n"
             f'<script type="text/javascript">\n{pre_content}\n</script>'
         )

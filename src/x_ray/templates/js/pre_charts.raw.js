@@ -23,31 +23,68 @@ if (typeof Chart !== "undefined") {
         return arc.startAngle + t;
     };
 
+    // How many labels each side (left/right of the pie) may show at most.
+    var MAX_PIE_LABELS_PER_SIDE = 15;
+
+    // Pick the slices whose labels are drawn: at most MAX_PIE_LABELS_PER_SIDE
+    // per side, always the highest-ratio ones. `midAngles[i]` is the mid
+    // angle of slice i, which decides its side (cos >= 0 → right).
+    var selectPieLabels = function (data, total, midAngles) {
+        var items = [];
+        data.forEach(function (value, i) {
+            items.push({ index: i, pct: (value / total) * 100, mid: midAngles[i] });
+        });
+        items.sort(function (a, b) { return b.pct - a.pct; });
+        var left = [];
+        var right = [];
+        items.forEach(function (item) {
+            if (Math.cos(item.mid) >= 0) {
+                if (right.length < MAX_PIE_LABELS_PER_SIDE) right.push(item);
+            } else if (left.length < MAX_PIE_LABELS_PER_SIDE) {
+                left.push(item);
+            }
+        });
+        return { left: left, right: right };
+    };
+
     var PieLabelPlugin = {
         id: "pieLabelPlugin",
+        // Sort the slices by ratio (descending) before Chart.js builds the
+        // chart, so the largest slice sits at the top (12 o'clock) and the
+        // rest follow clockwise.
+        beforeInit: function (chart) {
+            if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
+            var dataset = chart.data.datasets[0];
+            var data = dataset && dataset.data;
+            var labels = chart.data.labels;
+            if (!data || !labels || data.length < 2) return;
+            var order = data.map(function (v, i) { return i; })
+                .sort(function (a, b) { return data[b] - data[a]; });
+            dataset.data = order.map(function (i) { return data[i]; });
+            chart.data.labels = order.map(function (i) { return labels[i]; });
+        },
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
             // Pie occupies the center 40% of the chart width
             var sidePad = Math.round(chart.width * 0.3);
             var padding = 20;
 
-            // Estimate left/right item count based on slice angles
-            var threshold = window.PIE_LABEL_THRESHOLD || 0;
+            // Estimate left/right item count with the same selection rules as
+            // afterDraw: at most MAX_PIE_LABELS_PER_SIDE per side, top ratios.
             var data = chart.data.datasets[0].data;
             var total = data.reduce(function (a, b) { return a + b; }, 0);
             var leftCount = 0, rightCount = 0;
             if (total > 0) {
                 var currentAngle = -Math.PI / 2; // start from 12 o'clock
-                for (var i = 0; i < data.length; i++) {
-                    var value = data[i];
+                var midAngles = data.map(function (value) {
                     var sliceAngle = (value / total) * 2 * Math.PI;
-                    var midAngle = currentAngle + sliceAngle / 2;
-                    var pct = (value / total) * 100;
-                    if (pct >= threshold) {
-                        if (Math.cos(midAngle) >= 0) rightCount++; else leftCount++;
-                    }
+                    var mid = currentAngle + sliceAngle / 2;
                     currentAngle += sliceAngle;
-                }
+                    return mid;
+                });
+                var selection = selectPieLabels(data, total, midAngles);
+                rightCount = selection.right.length;
+                leftCount = selection.left.length;
             }
 
             var fontSize = 11;
@@ -79,7 +116,6 @@ if (typeof Chart !== "undefined") {
             if (!meta || !meta.data.length) return;
             var total = meta.total || 0;
             if (total <= 0) return;
-            var threshold = window.PIE_LABEL_THRESHOLD || 0;
             var ctx = chart.ctx;
             var area = chart.chartArea;
             var fontSize = 11;
@@ -92,12 +128,16 @@ if (typeof Chart !== "undefined") {
             // not part of Chart.js's own tooltip interaction).
             chart._pieLabelRects = [];
 
-            meta.data.forEach(function (arc, i) {
-                var value = chart.data.datasets[0].data[i];
-                var pct = (value / total) * 100;
-                if (pct < threshold) return;
-                var angle = (arc.startAngle + arc.endAngle) / 2;
-                var label = chart.data.labels[i];
+            // Draw at most MAX_PIE_LABELS_PER_SIDE labels per side, always the
+            // highest-ratio slices (replaces the old threshold filter).
+            var data = chart.data.datasets[0].data;
+            var labels = chart.data.labels;
+            var midAngles = meta.data.map(function (arc) { return (arc.startAngle + arc.endAngle) / 2; });
+            var selection = selectPieLabels(data, total, midAngles);
+
+            var buildItem = function (sel) {
+                var arc = meta.data[sel.index];
+                var label = labels[sel.index];
                 // Truncate long namespaces so the drawn labels do not overlap
                 // the pie; the full label is kept for the hover tooltip.
                 var labelLength = window.PIE_LABEL_LENGTH || 0;
@@ -105,15 +145,13 @@ if (typeof Chart !== "undefined") {
                 if (labelLength > 0 && label.length > labelLength) {
                     displayLabel = label.slice(0, labelLength) + "...";
                 }
-                var text = displayLabel + "  " + pct.toFixed(1) + "%";
-                var fullText = label + "  " + pct.toFixed(1) + "%";
-                var item = { angle: angle, arc: arc, text: text, fullText: fullText, pct: pct };
-                if (Math.cos(angle) >= 0) {
-                    rightItems.push(item);
-                } else {
-                    leftItems.push(item);
-                }
-            });
+                var text = displayLabel + "  " + sel.pct.toFixed(1) + "%";
+                var fullText = label + "  " + sel.pct.toFixed(1) + "%";
+                return { angle: (arc.startAngle + arc.endAngle) / 2, arc: arc, text: text, fullText: fullText, pct: sel.pct };
+            };
+
+            selection.right.forEach(function (sel) { rightItems.push(buildItem(sel)); });
+            selection.left.forEach(function (sel) { leftItems.push(buildItem(sel)); });
 
             var sortByAngle = function (a, b) { return a.angle - b.angle; };
             var sortByAngleDesc = function (a, b) { return b.angle - a.angle; };
