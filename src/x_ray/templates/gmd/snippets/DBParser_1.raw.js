@@ -1,6 +1,5 @@
 const labels = data.map((item) => item.name);
 const storageSizes = data.map((item) => item.storageSize || 0);
-const colors = labels.map((_, index) => `hsl(${(index * 360) / Math.max(labels.length, 1)}, 70%, 60%)`);
 
 const wrapper = document.createElement("div");
 const canvas = document.createElement("canvas");
@@ -19,7 +18,6 @@ const chart = new Chart(ctx, {
         datasets: [
             {
                 data: storageSizes,
-                backgroundColor: colors,
                 borderWidth: 1,
             },
         ],

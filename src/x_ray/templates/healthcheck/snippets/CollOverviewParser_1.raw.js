@@ -10,10 +10,6 @@ const smallIndexChart = indexSizes.length <= 10;
 wrapper.className = "pie100";
 canvas.className = "pie100";
 
-const colors = labels.map(() =>
-    `hsl(${Math.random() * 360}, 70%, 60%)`
-);
-
 const ctx = canvas.getContext('2d');
 const chart = new Chart(ctx, {
     type: 'pie',
@@ -21,7 +17,6 @@ const chart = new Chart(ctx, {
         labels: labels,
         datasets: [{
             data: sizes,
-            backgroundColor: colors,
             borderWidth: 1
         }]
     },
@@ -59,7 +54,6 @@ const chart2 = new Chart(ctx2, {
         labels: labels,
         datasets: [{
             data: indexSizes,
-            backgroundColor: colors,
             borderWidth: 1
         }]
     },

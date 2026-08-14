@@ -137,8 +137,10 @@ def inject_assets(template: str, module: str) -> str:
         pre_content = "\n".join(p.read_text(encoding="utf-8") for p in pre_parts)
         config = load_config(None)
         label_length = config.get("pie_label_length", 40)
+        label_per_side = config.get("pie_label_per_side", 15)
         pre_tag = (
             f"<script>var PIE_LABEL_LENGTH = {label_length};</script>\n"
+            f"<script>var PIE_LABEL_PER_SIDE = {label_per_side};</script>\n"
             f'<script type="text/javascript">\n{pre_content}\n</script>'
         )
         template = template.replace("{{ pre_script }}", pre_tag)

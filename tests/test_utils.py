@@ -132,5 +132,7 @@ def test_inject_assets_injects_pie_label_settings():
     template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
     output = inject_assets(template, "hc")
     assert "var PIE_LABEL_LENGTH = 40;" in output
+    assert "var PIE_LABEL_PER_SIDE = 15;" in output
     assert "PIE_LABEL_LENGTH || 0" in output or "PIE_LABEL_LENGTH||0" in output
+    assert "PIE_LABEL_PER_SIDE || 15" in output or "PIE_LABEL_PER_SIDE||15" in output
     assert "PIE_LABEL_THRESHOLD" not in output

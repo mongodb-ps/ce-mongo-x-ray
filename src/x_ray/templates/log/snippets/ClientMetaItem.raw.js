@@ -9,7 +9,6 @@ data.forEach(doc => {
 
 var driverLabels = Object.keys(driverCount);
 var driverValues = Object.values(driverCount);
-var driverColors = driverLabels.map((_, i) => `hsl(${i * 360 / driverLabels.length}, 70%, 60%)`);
 
 const ctx = document.getElementById('canvas_{name}').getContext('2d');
 var chart = new Chart(ctx, {
@@ -17,8 +16,7 @@ var chart = new Chart(ctx, {
     data: {
         labels: driverLabels,
         datasets: [{
-            data: driverValues,
-            backgroundColor: driverColors
+            data: driverValues
         }]
     },
     options: {
@@ -43,7 +41,6 @@ data.forEach(doc => {
 });
 var ipLabels = Object.keys(ipCount);
 var ipValues = Object.values(ipCount);
-var ipColors = ipLabels.map((_, i) => `hsl(${i * 360 / ipLabels.length}, 70%, 60%)`);
 
 const ctx_ip = document.getElementById('canvas_{name}_ip').getContext('2d');
 var chart = new Chart(ctx_ip, {
@@ -51,8 +48,7 @@ var chart = new Chart(ctx_ip, {
     data: {
         labels: ipLabels,
         datasets: [{
-            data: ipValues,
-            backgroundColor: ipColors
+            data: ipValues
         }]
     },
     options: {

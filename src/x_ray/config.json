@@ -1,5 +1,6 @@
 {
     "pie_label_length": 40,
+    "pie_label_per_side": 15,
     "healthcheck": {
         "checksets": {
             "default": {

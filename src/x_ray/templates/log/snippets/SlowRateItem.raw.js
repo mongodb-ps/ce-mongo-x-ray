@@ -73,7 +73,6 @@ data.forEach(d => {
 
 var nsLabels = Object.keys(nsCount);
 var dataSlow = Object.values(nsCount);
-var nsColors = nsLabels.map((_, i) => `hsl(${i * 360 / nsLabels.length}, 70%, 60%)`);
 
 const ctx_byns = document.getElementById('canvas_{name}_byns').getContext('2d');
 var chart2 = new Chart(ctx_byns, {
@@ -81,8 +80,7 @@ var chart2 = new Chart(ctx_byns, {
     data: {
         labels: nsLabels,
         datasets: [{
-            data: dataSlow,
-            backgroundColor: nsColors
+            data: dataSlow
         }]
     },
     options: {
@@ -105,7 +103,6 @@ data.forEach(d => {
 
 var msLabels = Object.keys(nsSlowMs);
 var msValues = Object.values(nsSlowMs);
-var msColors = msLabels.map((_, i) => `hsl(${i * 360 / msLabels.length}, 70%, 60%)`);
 
 const ctx_byns_ms = document.getElementById('canvas_{name}_byns_ms').getContext('2d');
 var chart3 = new Chart(ctx_byns_ms, {
@@ -113,8 +110,7 @@ var chart3 = new Chart(ctx_byns_ms, {
     data: {
         labels: msLabels,
         datasets: [{
-            data: msValues,
-            backgroundColor: msColors
+            data: msValues
         }]
     },
     options: {

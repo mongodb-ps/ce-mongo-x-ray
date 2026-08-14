@@ -24,7 +24,8 @@ if (typeof Chart !== "undefined") {
     };
 
     // How many labels each side (left/right of the pie) may show at most.
-    var MAX_PIE_LABELS_PER_SIDE = 15;
+    // Configurable via pie_label_per_side in config.json.
+    var MAX_PIE_LABELS_PER_SIDE = window.PIE_LABEL_PER_SIDE || 15;
 
     // Pick the slices whose labels are drawn: at most MAX_PIE_LABELS_PER_SIDE
     // per side, always the highest-ratio ones. `midAngles[i]` is the mid
@@ -47,21 +48,41 @@ if (typeof Chart !== "undefined") {
         return { left: left, right: right };
     };
 
+    // Gradient colors for the pie slices: from a deep blue head to an
+    // orange-red tail (deliberately high-contrast endpoints), interpolated
+    // through the hue circle so adjacent slices stay visually distinct.
+    var PIE_GRADIENT_START = 215;   // deep blue
+    var PIE_GRADIENT_END = 20;      // orange-red
+    var pieGradientColors = function (count) {
+        var colors = [];
+        if (count <= 0) return colors;
+        if (count === 1) return ["hsl(" + PIE_GRADIENT_START + ", 70%, 55%)"];
+        var delta = ((PIE_GRADIENT_END - PIE_GRADIENT_START) % 360 + 360) % 360;
+        for (var i = 0; i < count; i++) {
+            var hue = (PIE_GRADIENT_START + delta * i / (count - 1)) % 360;
+            colors.push("hsl(" + hue.toFixed(1) + ", 70%, 55%)");
+        }
+        return colors;
+    };
+
     var PieLabelPlugin = {
         id: "pieLabelPlugin",
         // Sort the slices by ratio (descending) before Chart.js builds the
         // chart, so the largest slice sits at the top (12 o'clock) and the
-        // rest follow clockwise.
+        // rest follow clockwise; then apply the gradient colors.
         beforeInit: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;
             var dataset = chart.data.datasets[0];
             var data = dataset && dataset.data;
             var labels = chart.data.labels;
-            if (!data || !labels || data.length < 2) return;
-            var order = data.map(function (v, i) { return i; })
-                .sort(function (a, b) { return data[b] - data[a]; });
-            dataset.data = order.map(function (i) { return data[i]; });
-            chart.data.labels = order.map(function (i) { return labels[i]; });
+            if (!data || !labels || data.length === 0) return;
+            if (data.length >= 2) {
+                var order = data.map(function (v, i) { return i; })
+                    .sort(function (a, b) { return data[b] - data[a]; });
+                dataset.data = order.map(function (i) { return data[i]; });
+                chart.data.labels = order.map(function (i) { return labels[i]; });
+            }
+            dataset.backgroundColor = pieGradientColors(dataset.data.length);
         },
         beforeLayout: function (chart) {
             if (chart.config.type !== "pie" && chart.config.type !== "doughnut") return;

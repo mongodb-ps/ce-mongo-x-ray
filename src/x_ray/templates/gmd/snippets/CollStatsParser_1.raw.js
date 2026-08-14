@@ -1,7 +1,6 @@
 const labels = Object.keys(data);
 const sizes = labels.map((key) => data[key]?.size || 0);
 const indexSizes = labels.map((key) => data[key]?.index_size || 0);
-const colors = labels.map((_, index) => `hsl(${(index * 360) / Math.max(labels.length, 1)}, 70%, 60%)`);
 
 let wrapper = document.createElement("div");
 let canvas = document.createElement("canvas");
@@ -18,7 +17,6 @@ const sizeChart = new Chart(sizeCtx, {
         datasets: [
             {
                 data: sizes,
-                backgroundColor: colors,
                 borderWidth: 1,
             },
         ],
@@ -61,7 +59,6 @@ const indexChart = new Chart(indexCtx, {
         datasets: [
             {
                 data: indexSizes,
-                backgroundColor: colors,
                 borderWidth: 1,
             },
         ],
