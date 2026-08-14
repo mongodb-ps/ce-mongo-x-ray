@@ -6,6 +6,23 @@ if (typeof Chart !== "undefined") {
     }
     Chart.defaults.plugins.datalabels = { display: false };
 
+    // Pick the point on a slice's outer arc where the connector line anchors.
+    // The label direction is expressed as the shortest signed distance from
+    // the slice start (modular arithmetic, since Chart.js accumulates angles
+    // beyond ±π), then clamped with an inset so the anchor never sits on the
+    // border between two slices (which looks like a gap, especially near the
+    // horizontal axis).
+    var pieAnchorAngle = function (arc, labelAngle) {
+        var twoPI = 2 * Math.PI;
+        var sweep = arc.endAngle - arc.startAngle;
+        var la = labelAngle - arc.startAngle;
+        la = ((la % twoPI) + twoPI) % twoPI;
+        if (la > Math.PI) la -= twoPI;
+        var inset = Math.min(sweep * 0.25, 0.2);
+        var t = Math.min(Math.max(la, inset), sweep - inset);
+        return arc.startAngle + t;
+    };
+
     var PieLabelPlugin = {
         id: "pieLabelPlugin",
         beforeLayout: function (chart) {
@@ -135,10 +152,7 @@ if (typeof Chart !== "undefined") {
                 chart._pieLabelRects.push({ text: item.fullText, x: textX, y: y - fontSize / 2, w: textW, h: fontSize });
                 var outer = item.arc.outerRadius;
                 var labelAngle = Math.atan2(y - item.arc.y, textX - item.arc.x);
-                var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
-                var twoPI = 2 * Math.PI;
-                labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
-                var clampedAngle = Math.max(item.arc.startAngle, Math.min(item.arc.endAngle, labelAngle));
+                var clampedAngle = pieAnchorAngle(item.arc, labelAngle);
                 var sx = item.arc.x + Math.cos(clampedAngle) * outer;
                 var sy = item.arc.y + Math.sin(clampedAngle) * outer;
                 var dx = 6;
@@ -171,10 +185,7 @@ if (typeof Chart !== "undefined") {
                 chart._pieLabelRects.push({ text: item.fullText, x: labelX - textW, y: y - fontSize / 2, w: textW, h: fontSize });
                 var outer = item.arc.outerRadius;
                 var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
-                var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
-                var twoPI = 2 * Math.PI;
-                labelAngle += Math.round((mid - labelAngle) / twoPI) * twoPI;
-                var clampedAngle = Math.max(item.arc.startAngle, Math.min(item.arc.endAngle, labelAngle));
+                var clampedAngle = pieAnchorAngle(item.arc, labelAngle);
                 var sx = item.arc.x + Math.cos(clampedAngle) * outer;
                 var sy = item.arc.y + Math.sin(clampedAngle) * outer;
                 var dx = 6;
