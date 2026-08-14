@@ -70,6 +70,10 @@ if (typeof Chart !== "undefined") {
 
             var leftItems = [];
             var rightItems = [];
+            // Hit areas of the drawn labels, used to show the full label in an
+            // HTML tooltip on hover (the drawn text is plain canvas, so it is
+            // not part of Chart.js's own tooltip interaction).
+            chart._pieLabelRects = [];
 
             meta.data.forEach(function (arc, i) {
                 var value = chart.data.datasets[0].data[i];
@@ -78,15 +82,15 @@ if (typeof Chart !== "undefined") {
                 var angle = (arc.startAngle + arc.endAngle) / 2;
                 var label = chart.data.labels[i];
                 // Truncate long namespaces so the drawn labels do not overlap
-                // the pie; the Chart.js tooltip still shows the full label on
-                // hover because chart.data.labels keeps the untruncated text.
+                // the pie; the full label is kept for the hover tooltip.
                 var labelLength = window.PIE_LABEL_LENGTH || 0;
                 var displayLabel = label;
                 if (labelLength > 0 && label.length > labelLength) {
                     displayLabel = label.slice(0, labelLength) + "...";
                 }
                 var text = displayLabel + "  " + pct.toFixed(1) + "%";
-                var item = { angle: angle, arc: arc, text: text, pct: pct };
+                var fullText = label + "  " + pct.toFixed(1) + "%";
+                var item = { angle: angle, arc: arc, text: text, fullText: fullText, pct: pct };
                 if (Math.cos(angle) >= 0) {
                     rightItems.push(item);
                 } else {
@@ -128,6 +132,7 @@ if (typeof Chart !== "undefined") {
                 var textW = ctx.measureText(item.text).width;
                 var textX = labelX - maxRightW;
                 ctx.fillText(item.text, textX, y);
+                chart._pieLabelRects.push({ text: item.fullText, x: textX, y: y - fontSize / 2, w: textW, h: fontSize });
                 var outer = item.arc.outerRadius;
                 var labelAngle = Math.atan2(y - item.arc.y, textX - item.arc.x);
                 var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
@@ -161,7 +166,9 @@ if (typeof Chart !== "undefined") {
             ctx.textAlign = "right";
             leftItems.forEach(function (item) {
                 ctx.fillStyle = "#333";
+                var textW = ctx.measureText(item.text).width;
                 ctx.fillText(item.text, labelX, y);
+                chart._pieLabelRects.push({ text: item.fullText, x: labelX - textW, y: y - fontSize / 2, w: textW, h: fontSize });
                 var outer = item.arc.outerRadius;
                 var labelAngle = Math.atan2(y - item.arc.y, labelX - item.arc.x);
                 var mid = (item.arc.startAngle + item.arc.endAngle) / 2;
@@ -188,6 +195,46 @@ if (typeof Chart !== "undefined") {
             });
 
             ctx.restore();
+
+            // Hover: the drawn labels are plain canvas text, so they never
+            // reach Chart.js's own tooltip. Track the cursor over the label
+            // hit areas and show an HTML tooltip with the full label.
+            var canvas = chart.canvas;
+            if (!canvas._pieHoverAttached) {
+                canvas._pieHoverAttached = true;
+                canvas.addEventListener("mousemove", function (e) {
+                    var canvasRect = canvas.getBoundingClientRect();
+                    var x = e.clientX - canvasRect.left;
+                    var y = e.clientY - canvasRect.top;
+                    var hit = null;
+                    (chart._pieLabelRects || []).forEach(function (rect) {
+                        if (!hit && x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h) {
+                            hit = rect;
+                        }
+                    });
+                    var tip = window.__pieLabelTooltip;
+                    if (hit) {
+                        if (!tip) {
+                            tip = document.createElement("div");
+                            tip.style.cssText =
+                                "position:fixed;display:none;background:rgba(51,51,51,.95);color:#fff;" +
+                                "padding:4px 8px;border-radius:4px;font:11px sans-serif;pointer-events:none;" +
+                                "z-index:1000;max-width:80vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+                            document.body.appendChild(tip);
+                            window.__pieLabelTooltip = tip;
+                        }
+                        tip.textContent = hit.text;
+                        tip.style.left = (e.clientX + 12) + "px";
+                        tip.style.top = (e.clientY + 12) + "px";
+                        tip.style.display = "block";
+                    } else if (tip) {
+                        tip.style.display = "none";
+                    }
+                });
+                canvas.addEventListener("mouseleave", function () {
+                    if (window.__pieLabelTooltip) window.__pieLabelTooltip.style.display = "none";
+                });
+            }
         }
     };
     Chart.register(PieLabelPlugin);
