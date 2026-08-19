@@ -109,12 +109,17 @@ def test_discover_paths_returns_all_matches():
 @pytest.mark.parametrize(
     "arguments",
     [
-        ["healthcheck", "mongodb://localhost:27017", "-f", "pdf"],
         ["log", "/var/log/mongodb/mongod.log", "-f", "pdf"],
-        ["gmd", "/tmp/getMongoData.json", "-f", "pdf"],
+        ["ftdc", "/diagnostic.data", "-f", "pdf"],
     ],
 )
-def test_other_modules_accept_pdf_format(arguments):
+def test_log_and_ftdc_accept_pdf_format(arguments):
     args = setup_parser().parse_args(arguments)
 
     assert args.format == "pdf"
+
+
+@pytest.mark.parametrize("command", ["healthcheck", "hc", "gmd", "ingest"])
+def test_removed_commands_are_rejected(command):
+    with pytest.raises(SystemExit):
+        setup_parser().parse_args([command])

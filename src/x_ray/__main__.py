@@ -17,17 +17,11 @@ import sys
 import webbrowser
 from copy import deepcopy
 from datetime import datetime, timezone
-from getpass import getpass
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
-from pymongo import MongoClient
-from pymongo.uri_parser import parse_uri
-
 from x_ray.ftdc_analysis.framework import Framework as FTDCAnalysisFramework
-from x_ray.gmd_analysis.framework import Framework as GMDAnalysisFramework
-from x_ray.healthcheck.framework import Framework as HealthCheckFramework
 from x_ray.log_analysis.framework import Framework as LogAnalysisFramework
 from x_ray.utils import bold, env, green, load_config
 
@@ -107,16 +101,11 @@ def setup_parser():
         description="X-Ray project for MongoDB analysis and diagnostics.",
         epilog="""
 Examples:
-  x-ray healthcheck mongodb://localhost:27017 -f html
-  x-ray hc -s comprehensive -o /path/to/output/
   x-ray log /var/log/mongodb/mongod.log
-  x-ray gmd /path/to/getMongoData_output.json
   x-ray ftdc /path/to/diagnostic.data
 
 For more information on specific commands, use:
-  x-ray healthcheck --help
   x-ray log --help
-  x-ray gmd --help
   x-ray ftdc --help
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -144,61 +133,6 @@ For more information on specific commands, use:
         default=False,
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=False)
-
-    # Health check module
-    hc_description = """
-    Run comprehensive health checks on MongoDB deployments including replica sets and sharded clusters (Standalone instance is NOT supported!).
-    The results will be output in the format specified (HTML or Markdown).
-    """
-
-    hc_epilog = """
-    Examples:
-      x-ray healthcheck mongodb://localhost:27017
-      x-ray hc mongodb://user:password@mongodb0.example.com:27017/?authSource=admin
-      x-ray hc -s default -f html -o /path/to/output/
-    """
-
-    hc_parser = subparsers.add_parser(
-        "healthcheck",
-        aliases=["hc"],
-        help="Run health checks on MongoDB cluster",
-        description=hc_description,
-        epilog=hc_epilog,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    hc_parser.add_argument(
-        "uri",
-        nargs="?",
-        help="MongoDB database URI. If not provided, you will be prompted to enter it.",
-        type=str,
-    )
-    hc_parser.add_argument(
-        "-s",
-        "--checkset",
-        help='Checkset to run. Defaults to "default".',
-        type=str,
-        default="default",
-    )
-    hc_parser.add_argument(
-        "-o",
-        "--output",
-        help='Output folder path. Defaults to "output/".',
-        type=str,
-        default="output/",
-    )
-    hc_parser.add_argument(
-        "-f",
-        "--format",
-        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
-        type=str,
-        default="html",
-        choices=["markdown", "html", "pdf"],
-    )
-    hc_parser.add_argument(
-        "--no-browser",
-        help="Do not open the generated report in the browser.",
-        action="store_true",
-    )
 
     # Log analysis module
     log_description = """
@@ -283,48 +217,6 @@ For more information on specific commands, use:
         default=False,
     )
 
-    gmd_epilog = """
-    Examples:
-      x-ray gmd /misc/getMongoData-output.json
-      x-ray gmd /misc/getMongoData-output.json -f html -o /path/to/output/
-    """
-
-    gmd_parser = subparsers.add_parser(
-        "gmd",
-        help="Analyze getMongoData output files",
-        description=log_description,
-        epilog=gmd_epilog,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    gmd_parser.add_argument("gmd_file", help="Path to the getMongoData output file.")
-    gmd_parser.add_argument(
-        "-s",
-        "--checkset",
-        help='Checkset to run. Defaults to "default".',
-        type=str,
-        default="default",
-    )
-    gmd_parser.add_argument(
-        "-o",
-        "--output",
-        help='Output folder path. Defaults to "output/".',
-        type=str,
-        default="output/",
-    )
-    gmd_parser.add_argument(
-        "-f",
-        "--format",
-        help='Output format (markdown/html/pdf). PDF also generates Markdown and HTML. Defaults to "html".',
-        type=str,
-        default="html",
-        choices=["markdown", "html", "pdf"],
-    )
-    gmd_parser.add_argument(
-        "--no-browser",
-        help="Do not open the generated report in the browser.",
-        action="store_true",
-    )
-
     # FTDC analysis module
     ftdc_description = """
     Analyze MongoDB Full Time Diagnostic Data Capture (FTDC) files.
@@ -395,78 +287,7 @@ For more information on specific commands, use:
         default=False,
     )
 
-    ingest_parser = subparsers.add_parser(
-        "ingest",
-        help="Ingest a risk register CSV into ChromaDB",
-        description="Parse a risk register CSV file and store risks in a local ChromaDB "
-        "database for later vector search matching.",
-        epilog=(
-            "Example:\n"
-            '  x-ray ingest risks.csv\n'
-            "\n"
-            "Expected CSV columns:\n"
-            "  ID, Risk Level, Impact, Name, Risk Description\n"
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    ingest_parser.add_argument(
-        "csv_path", help="Path to the risk register CSV file."
-    )
-
     return parser
-
-
-def ingest_command(args):
-    """Ingest a risk register CSV into ChromaDB."""
-    csv_path = Path(args.csv_path)
-    if not csv_path.exists():
-        logger.error("CSV file not found: %s", csv_path)
-        return 1
-    from x_ray.risk_register.db import ingest_risks  # pylint: disable=import-outside-toplevel
-    from x_ray.risk_register.shared import load_risks_from_csv  # pylint: disable=import-outside-toplevel
-
-    logger.info("Reading risks from %s ...", csv_path)
-    risks = load_risks_from_csv(csv_path)
-    if not risks:
-        logger.warning("No valid risks found in %s", csv_path)
-        return 0
-    logger.info("Found %d risks", len(risks))
-    count = ingest_risks(risks)
-    logger.info(green(f"Ingested {count} risks into ChromaDB"))
-    return 0
-
-
-def health_check_command(args):
-    """Health check command"""
-    uri = args.uri
-    if uri is None:
-        uri = input("Enter MongoDB URI: ")
-    parsed_uri = parse_uri(uri)
-    if os.getenv("X_RAY_NO_AUTH"):
-        # Skip the credential prompt and run without authentication, e.g. for
-        # unit tests against an unauthenticated deployment.
-        client = MongoClient(uri)
-    elif parsed_uri["username"] is None or parsed_uri["password"] is None:
-        username = input("Enter MongoDB username: ")
-        password = getpass("Enter MongoDB password: ")
-        parsed_uri["username"] = username
-        parsed_uri["password"] = password
-        client = MongoClient(uri, username=username, password=password)
-    else:
-        client = MongoClient(uri)
-    try:
-        config = load_config(args.config)["healthcheck"]
-    except FileNotFoundError:
-        logger.error("Config file not found: %s", args.config)
-        logger.info("Please provide a valid path to config.json.")
-        return 1
-
-    checkset = args.checkset
-    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
-    framework = HealthCheckFramework(config)
-    framework.run_checks(checkset, client=client, output_folder=output_folder, parsed_uri=parsed_uri)
-    framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=not args.no_browser)
-    return 0
 
 
 def log_analysis_command(args):
@@ -516,27 +337,6 @@ def log_analysis_command(args):
             html_file = Path(final_folder) / "report.html"
             if html_file.exists():
                 webbrowser.open(f"file://{html_file.resolve()}")
-    return 0
-
-
-def gmd_alalysis_command(args):
-    """getMongoData analysis command"""
-    if not Path(args.gmd_file).is_file():
-        logger.error("getMongoData output file not found: %s", args.gmd_file)
-        return 1
-    logger.info("Analyzing getMongoData output file: %s", args.gmd_file)
-    try:
-        config = load_config(args.config)["gmd"]
-    except FileNotFoundError:
-        logger.error("Config file not found: %s", args.config)
-        logger.info("Please provide a valid path to config.json.")
-        return 1
-
-    checkset = args.checkset
-    output_folder = args.output if args.output.endswith("/") else f"{args.output}/"
-    framework = GMDAnalysisFramework(args.gmd_file, config)
-    framework.run_gmd_analysis(checkset, output_folder=output_folder)
-    framework.output_results(output_folder=output_folder, fmt=args.format, open_browser=not args.no_browser)
     return 0
 
 
@@ -630,16 +430,10 @@ def main():
     if args.quiet:
         logger.setLevel(logging.FATAL)
 
-    if args.command in ["healthcheck", "hc"]:
-        return health_check_command(args)
     if args.command == "log":
         return log_analysis_command(args)
-    if args.command == "gmd":
-        return gmd_alalysis_command(args)
     if args.command == "ftdc":
         return ftdc_analysis_command(args)
-    if args.command == "ingest":
-        return ingest_command(args)
 
     logger.error("Unknown command: %s", args.command)
     return 1

@@ -4,33 +4,19 @@
 [![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
-This project aims to create tools for MongoDB analysis and diagnosis. So far 3 modules are being built:
-- Health check module.
+This project aims to create tools for MongoDB analysis and diagnosis. So far the following modules are being built:
 - Log analysis module.
-- `getMongoData` visualization module (Under construction).
+- FTDC analysis module.
 
 ## 1 Compatibility Matrix
-### 1.1 Health Check
-|  Replica Set  | Sharded Cluster | Standalone |
-| :-----------: | :-------------: | :--------: |
-| >=4.2 &check; |  >=4.2 &check;  |  &cross;   |
-
-Older versions are not tested.
-
-### 1.2 Log Analysis
+### 1.1 Log Analysis
 Log analysis requires JSON format logs, which is supported since 4.4.
 |  Replica Set  | Sharded Cluster |  Standalone   |
 | :-----------: | :-------------: | :-----------: |
 | >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
 
 
-### 1.3 getMongoData Analysis
-Analyze & visualize the [getMongoData.js](https://github.com/mongodb/support-tools/tree/master/getMongoData) output.
-|  Replica Set  | Sharded Cluster | Standalone |
-| :-----------: | :-------------: | :--------: |
-| >=4.4 &check; |  >=4.4 &check;  |  &cross;   |
-
-### 1.4 FTDC Analysis
+### 1.2 FTDC Analysis
 Run a basic FTDC analysis.
 |  Replica Set  | Sharded Cluster |  Standalone   |
 | :-----------: | :-------------: | :-----------: |
@@ -99,14 +85,14 @@ python3 -m pip install -e ".[dev]"
 
 ## 3 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {healthcheck,hc,log,gmd,ftdc}
+x-ray [-h] [-q] [-c CONFIG] {log,ftdc}
 ```
 | Argument         | Description                                                                                                                                                                                                                                     |        Default         |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |
 | `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                                                                 |          n/a           |
 | `-c`, `--config` | Path to configuration file.                                                                                                                                                                                                                     | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `healthcheck` or `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `ingest`: Ingest a risk register CSV.<br/>- `version`: Show version info. |          None          |
+| `command`        | Command to run. Include:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
@@ -114,38 +100,8 @@ Besides, you can use environment variables to control some behaviors:
   - The output will not create a new folder for each run but overwrite the same files.
 - `LOG_LEVEL`: Can be `DEBUG`, `ERROR` or `INFO` (default).
 
-### 3.1 Health Check Component
+### 3.1 Log Analysis Component
 #### 3.1.1 Examples
-```bash
-./x-ray healthcheck localhost:27017 # Scan the cluster with default settings.
-./x-ray hc localhost:27017 --output ./output/ # Specify output folder.
-./x-ray hc localhost:27017 --config ./config.json # Use your own configuration.
-```
-
-#### 3.1.2 Full Arguments
-```bash
-x-ray healthcheck [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [uri]
-```
-| Argument           | Description                                                                       |  Default  |
-| ------------------ | --------------------------------------------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
-| `-o`, `--output`   | Output folder path.                                                               | `output/` |
-| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
-| `uri`              | MongoDB database URI.                                                             |   None    |
-
-For security reasons you may not want to include credentials in the command. There are 2 options:
-- If the URI is not provided, user will be asked to input one.
-- If URI is provided but not username/password, user will also be asked to input them.
-
-#### 3.1.3 More Info
-Refer to the wiki for more details.
-- [Customize the thresholds](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Configuration)
-- [Database permissions](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Database-Permissions)
-- [Output](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Output)
-- [Customize the output](https://github.com/mongodb-ps/ce-mongo-x-ray/wiki/Health-Check-Output-Template)
-
-### 3.2 Log Analysis Component
-#### 3.2.1 Examples
 ```bash
 # Full analysis
 ./x-ray log mongodb.log
@@ -157,7 +113,7 @@ Refer to the wiki for more details.
 ./x-ray log --discover /var/log/
 ```
 
-#### 3.2.2 Full Arguments
+#### 3.1.2 Full Arguments
 ```bash
 x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] [--top TOP] [--discover] log_file [start_time] [end_time]
 ```
@@ -173,26 +129,7 @@ x-ray log [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] [-r RATE] [--t
 | `start_time`       | Inclusive UTC start time in ISO-8601 format. Defaults to the first log line.      |    n/a    |
 | `end_time`         | Inclusive UTC end time in ISO-8601 format. Defaults to the last log line.         |    n/a    |
 
-### 3.3 getMongoData Analysis Component
-#### 3.3.1 Examples
-```bash
-# getMongoData output for a sharded cluster
-x-ray gmd misc/getMongoData-sh.json
-# getMongoData output for a replica set
-x-ray gmd misc/getMongoData-rs.json
-```
-
-#### 3.3.2 Full Arguments
-```bash
-x-ray gmd [-h] [-s CHECKSET] [-o OUTPUT] [-f {markdown,html,pdf}] gmd_file
-```
-| Argument           | Description                                                                       |  Default  |
-| ------------------ | --------------------------------------------------------------------------------- | :-------: |
-| `-s`, `--checkset` | Checkset to run.                                                                  | `default` |
-| `-o`, `--output`   | Output folder path.                                                               | `output/` |
-| `-f`, `--format`   | Output format (`markdown`, `html`, or `pdf`). PDF also retains Markdown and HTML. |  `html`   |
-
-### 3.4 FTDC Analysis Component
+### 3.2 FTDC Analysis Component
 
 The FTDC baseline analysis reports its capture timespan and effective sample rate, then
 groups metrics into Workload, Read/Write Operations and Latencies, and
@@ -239,7 +176,7 @@ Vertical grid lines are spaced every 100 pixels and horizontal grid lines every 
 Workload and operation/latency charts use lines. Performance charts use bars.
 Member-state charts are always 450×50 pixel bars.
 
-#### 3.4.1 AI Analysis (Optional)
+#### 3.2.1 AI Analysis (Optional)
 FTDC reports can include AI-generated summaries for each section (Workload,
 Ops and Latencies, Performance). The analysis appears as a brief 2-3 sentence
 assessment at the end of each section, flagging potential issues or confirming
@@ -268,36 +205,3 @@ export OPENAI_API_KEY="sk-..."
 x-ray ftdc /var/lib/mongo/diagnostic.data
 ```
 
-### 3.5 Risk Register Ingestion
-
-The `ingest` command loads a CSV risk register into a local [ChromaDB](https://www.trychroma.com/)
-database for later vector-search matching against issues found by the health check,
-GMD, and log modules.
-
-#### 3.5.1 Examples
-
-```bash
-x-ray ingest risks.csv            # Load risks from a CSV file
-```
-
-The CSV must have the following columns:
-
-| Column             | Description                |
-| ------------------ | -------------------------- |
-| `ID`               | Unique risk identifier     |
-| `Risk Level`       | Severity level (e.g. High) |
-| `Impact`           | Business impact            |
-| `Name`             | Short risk name            |
-| `Risk Description` | Full description           |
-
-Risks with the same `ID` are updated (upserted) on re-ingestion.
-The database is stored at `~/.x-ray/chroma/`.
-
-When a health check, GMD, or log report is generated, each found issue is
-automatically matched against the risk register. Matching risks appear as a
-blue `RISK-{ID}` badge in the Category column, with a hover tooltip showing
-the full risk name and description. Only matches with &gt;50% similarity are
-shown.
-
-If the risk database is empty, matching is silently skipped with a yellow
-warning in the logs.
