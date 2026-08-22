@@ -7,7 +7,7 @@ from x_ray.ftdc_analysis.framework import FTDC_CLASSES, Framework
 
 
 def test_empty_checkset_writes_reports(tmp_path, monkeypatch):
-    monkeypatch.setattr("x_ray.ftdc_analysis.framework.env", "development")
+    monkeypatch.setattr("x_ray.framework.env", "development")
     input_file = tmp_path / "metrics"
     input_file.write_bytes(b"")
     output_folder = tmp_path / "output"
@@ -45,7 +45,7 @@ def test_empty_checkset_writes_reports(tmp_path, monkeypatch):
 
 
 def test_pdf_format_writes_markdown_html_and_pdf(tmp_path, monkeypatch):
-    monkeypatch.setattr("x_ray.ftdc_analysis.framework.env", "development")
+    monkeypatch.setattr("x_ray.framework.env", "development")
     output_folder = tmp_path / "output"
     config = {
         "ftdcsets": {"default": {"items": []}},

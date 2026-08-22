@@ -11,20 +11,17 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 import logging
 import random
 import re
-import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TextIO
 
-import markdown
 from bson import json_util
 
-from x_ray.log_analysis.log_items.base_item import BaseItem
+from x_ray.framework import BaseFramework
 from x_ray.log_analysis.log_items.info_item import InfoItem
 from x_ray.log_analysis.log_items.state_trace_item import StateTraceItem
 from x_ray.shared import to_json
-from x_ray.table_width_extension import TableWidthExtension
-from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
+from x_ray.utils import bold, cyan, env, green, load_classes, yellow
 
 logger = logging.getLogger(__name__)
 LOG_CLASSES = load_classes("x_ray.log_analysis.log_items")
@@ -62,8 +59,8 @@ def _normalise_datetimes(obj: dict) -> None:
             obj[key] = value.replace(tzinfo=timezone.utc)
 
 
-class Framework:
-    _logset_name = ""
+class Framework(BaseFramework):
+    template_module = "log"
 
     def __init__(
         self,
@@ -72,28 +69,16 @@ class Framework:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
     ):
+        super().__init__(config)
         self._file_path = file_path
-        self._config = config
         self._start_time = start_time
         self._end_time = end_time
-        self._logger = logging.getLogger(__name__)
-        self._items: list[BaseItem] = []
-        now = str(datetime.now(tz=timezone.utc))
-        self._timestamp = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
         self._logger.debug(to_json(self._config))
         self._log_start: Optional[datetime] = None
         self._log_end: Optional[datetime] = None
         self._hostname: Optional[str] = None
         if env == "development":
             self._logger.info(yellow("Running in development mode."))
-
-    def _get_output_folder(self, output_folder: str):
-        if env == "development":
-            batch_folder = output_folder
-        else:
-            batch_folder = f"{output_folder}{self._logset_name}-{self._timestamp}/"
-        Path(batch_folder).mkdir(parents=True, exist_ok=True)
-        return batch_folder
 
     @property
     def hostname(self) -> Optional[str]:
@@ -182,7 +167,7 @@ class Framework:
         return False
 
     def run_logs_analysis(self, logset_name: str, *_args, **kwargs):
-        self._logset_name = logset_name
+        self._set_name = logset_name
         # Create output folder if it doesn't exist
         output_folder = kwargs.get("output_folder", "output/")
         batch_folder = self._get_output_folder(output_folder)
@@ -203,7 +188,7 @@ class Framework:
                 self._logger.warning(yellow(f"Log item '{item_name}' not found. Skipping."))
                 continue
             item_config = self._config.get("item_config", {}).get(item_name, {})
-            item = item_cls(batch_folder, item_config)
+            item = item_cls(str(batch_folder), item_config)
             self._items.append(item)
             self._logger.info("Log analyze item loaded: %s", bold(cyan(item_name)))
 
@@ -296,55 +281,25 @@ class Framework:
                 self._logger.warning(yellow(f"Log analysis item '{item.name}' finalize failed: {e}"))
                 continue
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True):
-        batch_folder = self._get_output_folder(output_folder)
-        output_file = f"{batch_folder}report.md"
-        template_file = get_script_path(f"templates/{self._config.get('template', 'log/full.html')}")
-        self._logger.info("Report saved to: %s", green(str(batch_folder)))
-
-        with open(output_file, "w", encoding="utf-8") as f:
-            assert (
-                self._log_start is not None and self._log_end is not None
-            ), "Log start and end time should be set after analysis."
-            f.write("# Log Analysis Report\n")
-            f.write(f"Generated at: `{str(datetime.now(tz=timezone.utc))} UTC`\n\n")
-            f.write(f"Log path: `{self._file_path}`\n\n")
-            if self._start_time or self._end_time:
-                start_str = self._start_time.isoformat() if self._start_time else "…"
-                end_str = self._end_time.isoformat() if self._end_time else "…"
-                f.write(f"Requested time range: `{start_str}` – `{end_str}`\n\n")
-            f.write(f"Log analysis period: `{self._log_start.isoformat()}` to `{self._log_end.isoformat()}`\n\n")
-            f.write("Histogram chart instructions:\n\n")
-            f.write("- **zoom in/out:** _ctrl+wheel, or pinch_\n")
-            f.write("- **pan:** _shift+drag_\n")
-            f.write("- **select time frame:** _drag_\n\n")
-            for item in self._items:
-                try:
-                    item.review_results_markdown(f)
-                except Exception as e:  # pylint: disable=broad-exception-caught
-                    self._logger.warning(yellow(f"Failed to generate markdown for log item '{item.name}': {e}"))
-                    continue
-
-        html_file = f"{batch_folder}report.html"
-        if fmt in {"html", "pdf"}:
-            self._logger.info("Converting markdown to HTML: %s", green(html_file))
-            with open(html_file, "w", encoding="utf-8") as f:
-                with open(output_file, "r", encoding="utf-8") as md_file:
-                    html_content = markdown.markdown(
-                        md_file.read(),
-                        extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
-                    )
-                # Load the template file
-                with open(template_file, "r", encoding="utf-8") as tf:
-                    template_content = inject_assets(tf.read(), "log")
-                    # Replace the placeholder with the generated HTML content
-                final_html = template_content.replace("{{ content }}", html_content)
-                f.write(final_html)
-
-        if fmt in {"html", "pdf"} and open_browser:
-            webbrowser.open(f"file://{Path(html_file).resolve()}")
-
-        if fmt == "pdf":
-            pdf_file = f"{batch_folder}report.pdf"
-            self._logger.info("Converting HTML report to: %s", green(pdf_file))
-            html_to_pdf(html_file, pdf_file)
+    def _render_markdown(self, output: TextIO) -> None:
+        assert (
+            self._log_start is not None and self._log_end is not None
+        ), "Log start and end time should be set after analysis."
+        output.write("# Log Analysis Report\n")
+        output.write(f"Generated at: `{str(datetime.now(tz=timezone.utc))} UTC`\n\n")
+        output.write(f"Log path: `{self._file_path}`\n\n")
+        if self._start_time or self._end_time:
+            start_str = self._start_time.isoformat() if self._start_time else "…"
+            end_str = self._end_time.isoformat() if self._end_time else "…"
+            output.write(f"Requested time range: `{start_str}` – `{end_str}`\n\n")
+        output.write(f"Log analysis period: `{self._log_start.isoformat()}` to `{self._log_end.isoformat()}`\n\n")
+        output.write("Histogram chart instructions:\n\n")
+        output.write("- **zoom in/out:** _ctrl+wheel, or pinch_\n")
+        output.write("- **pan:** _shift+drag_\n")
+        output.write("- **select time frame:** _drag_\n\n")
+        for item in self._items:
+            try:
+                item.review_results_markdown(output)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                self._logger.warning(yellow(f"Failed to generate markdown for log item '{item.name}': {e}"))
+                continue

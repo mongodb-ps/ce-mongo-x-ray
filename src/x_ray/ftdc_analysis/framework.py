@@ -1,27 +1,23 @@
 """Framework for MongoDB FTDC analysis."""
 
-import logging
 import re
-import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TextIO
 
-import markdown
 from bson import decode_file_iter
 from bson.errors import InvalidBSON
 
-from x_ray.ftdc_analysis.ftdc_items.base_item import BaseItem
-from x_ray.table_width_extension import TableWidthExtension
-from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
+from x_ray.framework import BaseFramework
+from x_ray.utils import bold, cyan, green, load_classes, yellow
 
 FTDC_CLASSES = load_classes("x_ray.ftdc_analysis.ftdc_items")
 
 
-class Framework:
+class Framework(BaseFramework):
     """Load configured FTDC analysis items and coordinate their lifecycle."""
 
-    _ftdcset_name = "default"
+    template_module = "ftdc"
 
     _FILE_TIME = re.compile(r"^metrics\.(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}[-:]\d{2}[-:]\d{2}Z)(?:-\d+)?$")
 
@@ -33,23 +29,11 @@ class Framework:
         end_time: Optional[datetime] = None,
         image_format: str = "png",
     ):
+        super().__init__(config)
         self._input_path = Path(input_path)
-        self._config = config
         self._start_time = start_time
         self._end_time = end_time
         self._image_format = image_format
-        self._logger = logging.getLogger(__name__)
-        self._items: list[BaseItem] = []
-        now = str(datetime.now(tz=timezone.utc))
-        self._timestamp = re.sub(r"[:\- ]", "", now.split(".", maxsplit=1)[0])
-
-    def _get_output_folder(self, output_folder: str) -> Path:
-        if env == "development":
-            batch_folder = Path(output_folder)
-        else:
-            batch_folder = Path(output_folder) / f"{self._ftdcset_name}-{self._timestamp}"
-        batch_folder.mkdir(parents=True, exist_ok=True)
-        return batch_folder
 
     @property
     def hostname(self) -> Optional[str]:
@@ -140,7 +124,7 @@ class Framework:
         if ftdcset_name not in ftdcsets:
             raise ValueError("Default FTDC checkset is missing from configuration.")
 
-        self._ftdcset_name = ftdcset_name
+        self._set_name = ftdcset_name
         batch_folder = self._get_output_folder(kwargs.get("output_folder", "output/"))
         self._logger.info("Running FTDC checkset: %s", bold(cyan(ftdcset_name)))
 
@@ -179,38 +163,15 @@ class Framework:
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 self._logger.warning(yellow(f"FTDC item '{item.name}' finalization failed: {exc}"))
 
-    def output_results(self, output_folder: str = "output/", fmt: str = "html", open_browser: bool = True) -> None:
-        """Write the FTDC analysis report."""
-        batch_folder = self._get_output_folder(output_folder)
-        markdown_file = batch_folder / "report.md"
-        self._logger.info("Report saved to: %s", green(str(batch_folder)))
-
-        with markdown_file.open("w", encoding="utf-8") as output:
-            output.write("# FTDC Analysis Report\n\n")
-            output.write(f"Generated at: `{datetime.now(tz=timezone.utc)} UTC`\n\n")
-            output.write(f"Input path: `{self._input_path}`\n\n")
-            if not self._items:
-                output.write("_No FTDC analysis items are configured._\n")
-            for section_number, item in enumerate(self._items, start=1):
-                try:
-                    item.review_results_markdown(output, section_number)
-                except Exception as exc:  # pylint: disable=broad-exception-caught
-                    self._logger.warning(yellow(f"Failed to render FTDC item '{item.name}': {exc}"))
-
-        html_file = batch_folder / "report.html"
-        if fmt in {"html", "pdf"}:
-            template_file = get_script_path(f"templates/{self._config.get('template', 'ftdc/full.html')}")
-            html_content = markdown.markdown(
-                markdown_file.read_text(encoding="utf-8"),
-                extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
-            )
-            template_content = inject_assets(Path(template_file).read_text(encoding="utf-8"), "ftdc")
-            html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
-
-        if fmt in {"html", "pdf"} and open_browser:
-            webbrowser.open(f"file://{html_file.resolve()}")
-
-        if fmt == "pdf":
-            pdf_file = batch_folder / "report.pdf"
-            self._logger.info("Converting HTML report to: %s", green(str(pdf_file)))
-            html_to_pdf(html_file, pdf_file)
+    def _render_markdown(self, output: TextIO) -> None:
+        """Write the FTDC analysis report body."""
+        output.write("# FTDC Analysis Report\n\n")
+        output.write(f"Generated at: `{datetime.now(tz=timezone.utc)} UTC`\n\n")
+        output.write(f"Input path: `{self._input_path}`\n\n")
+        if not self._items:
+            output.write("_No FTDC analysis items are configured._\n")
+        for section_number, item in enumerate(self._items, start=1):
+            try:
+                item.review_results_markdown(output, section_number)
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                self._logger.warning(yellow(f"Failed to render FTDC item '{item.name}': {exc}"))

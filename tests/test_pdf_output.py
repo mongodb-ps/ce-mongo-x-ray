@@ -22,8 +22,8 @@ def _assert_all_report_formats(output_folder):
 def test_healthcheck_pdf_format_writes_all_reports(tmp_path, monkeypatch):
     output_folder = tmp_path / "healthcheck"
     output_folder.mkdir()
-    monkeypatch.setattr("x_ray.healthcheck.framework.env", "development")
-    monkeypatch.setattr("x_ray.healthcheck.framework.html_to_pdf", _fake_pdf_conversion)
+    monkeypatch.setattr("x_ray.framework.env", "development")
+    monkeypatch.setattr("x_ray.framework.html_to_pdf", _fake_pdf_conversion)
     framework = HealthCheckFramework(
         {
             "checksets": {"default": {"items": []}},
@@ -39,8 +39,8 @@ def test_healthcheck_pdf_format_writes_all_reports(tmp_path, monkeypatch):
 
 def test_log_pdf_format_writes_all_reports(tmp_path, monkeypatch):
     output_folder = tmp_path / "log"
-    monkeypatch.setattr("x_ray.log_analysis.framework.env", "development")
-    monkeypatch.setattr("x_ray.log_analysis.framework.html_to_pdf", _fake_pdf_conversion)
+    monkeypatch.setattr("x_ray.framework.env", "development")
+    monkeypatch.setattr("x_ray.framework.html_to_pdf", _fake_pdf_conversion)
     framework = LogFramework(
         "/var/log/mongodb/mongod.log",
         {
@@ -59,8 +59,8 @@ def test_log_pdf_format_writes_all_reports(tmp_path, monkeypatch):
 
 def test_gmd_pdf_format_writes_all_reports(tmp_path, monkeypatch):
     output_folder = tmp_path / "gmd"
-    monkeypatch.setattr("x_ray.gmd_analysis.framework.env", "development")
-    monkeypatch.setattr("x_ray.gmd_analysis.framework.html_to_pdf", _fake_pdf_conversion)
+    monkeypatch.setattr("x_ray.framework.env", "development")
+    monkeypatch.setattr("x_ray.framework.html_to_pdf", _fake_pdf_conversion)
     framework = GMDFramework(
         "/tmp/getMongoData.json",
         {
