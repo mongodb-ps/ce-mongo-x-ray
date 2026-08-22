@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from datetime import datetime
 
-from x_ray.log_analysis.shared import to_json
+from x_ray.shared import to_json
 from x_ray.version import Version
 
 
@@ -17,7 +17,7 @@ def test_to_json():
     dt = datetime(2024, 6, 1, 12, 30, 45)
     v = Version.parse("1.2.3")
     obj = {"timestamp": dt, "message": "Test log", "version": v}
-    json_str = to_json(obj)
+    json_str = to_json(obj, indent=None)
     assert json_str == '{"timestamp": "2024-06-01T12:30:45", "message": "Test log", "version": "1.2.3"}'
     json_str_indented = to_json(obj, indent=2)
     expected_indented = """{

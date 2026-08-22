@@ -8,7 +8,7 @@ YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR 
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from x_ray.log_analysis.log_items.base_item import BaseItem
-from x_ray.log_analysis.shared import to_json
+from x_ray.shared import to_json
 
 
 class InfoItem(BaseItem):

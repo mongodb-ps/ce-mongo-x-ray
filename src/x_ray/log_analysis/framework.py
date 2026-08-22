@@ -19,10 +19,10 @@ from typing import Optional
 import markdown
 from bson import json_util
 
-from x_ray.healthcheck.shared import to_json
 from x_ray.log_analysis.log_items.base_item import BaseItem
 from x_ray.log_analysis.log_items.info_item import InfoItem
 from x_ray.log_analysis.log_items.state_trace_item import StateTraceItem
+from x_ray.shared import to_json
 from x_ray.table_width_extension import TableWidthExtension
 from x_ray.utils import bold, cyan, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 

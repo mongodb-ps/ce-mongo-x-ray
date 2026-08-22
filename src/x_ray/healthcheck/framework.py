@@ -19,7 +19,8 @@ from typing import Optional
 import markdown
 
 from x_ray.healthcheck.check_items.base_item import BaseItem
-from x_ray.healthcheck.shared import irresponsive_nodes, str_to_md_id
+from x_ray.healthcheck.shared import irresponsive_nodes
+from x_ray.shared import str_to_md_id
 from x_ray.table_width_extension import TableWidthExtension
 from x_ray.utils import bold, env, get_script_path, green, html_to_pdf, inject_assets, load_classes, yellow
 

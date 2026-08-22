@@ -11,7 +11,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 import enum
 from typing import Optional
 
-from x_ray.healthcheck.shared import SEVERITY
+from x_ray.shared import SEVERITY
 
 
 class ISSUE(enum.Enum):

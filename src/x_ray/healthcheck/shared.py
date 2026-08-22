@@ -9,16 +9,14 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 
 import logging
-import re
 import sys
 import urllib.parse
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pymongo import MongoClient
 
-from x_ray.utils import red, to_ejson
+from x_ray.utils import red
 
 logger = logging.getLogger(__name__)
 MEMBER_STATE = {
@@ -35,13 +33,6 @@ MEMBER_STATE = {
 }
 
 
-class SEVERITY(Enum):
-    HIGH = 4
-    MEDIUM = 3
-    LOW = 2
-    INFO = 1
-
-
 MAX_MONGOS_PING_LATENCY = 60  # seconds
 RESERVED_CONN_OPTIONS = [
     "tls",
@@ -56,23 +47,6 @@ RESERVED_CONN_OPTIONS = [
     "connectTimeoutMS",
     "socketTimeoutMS",
 ]
-
-
-def to_json(obj, indent: Optional[int] = 0):
-    cls_maps = [
-        {"class": SEVERITY, "func": lambda o: o.name},
-        {"class": datetime, "func": lambda o: o.isoformat()},
-    ]
-    return to_ejson(obj, indent=indent, cls_maps=cls_maps)
-
-
-def str_to_md_id(string: str) -> str:
-    md_id = string.lower()
-    md_id = md_id.replace(" ", "-")
-    md_id = re.sub(r"[^a-z0-9\-_]", "", md_id)
-    md_id = re.sub(r"\-+", "-", md_id)
-    md_id = md_id.strip("-")
-    return md_id
 
 
 active_nodes: dict[str, Any] = {}

@@ -10,7 +10,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from x_ray.healthcheck.rules.data_size_rule import DataSizeRule
-from x_ray.healthcheck.shared import SEVERITY
+from x_ray.shared import SEVERITY
 
 DATA_WITH_LARGE_SIZE = {
     "ns": "test.large_collection",

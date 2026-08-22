@@ -11,7 +11,7 @@ from bson import Timestamp
 
 from x_ray.healthcheck.issues import ISSUE, ISSUE_MSG_MAP
 from x_ray.healthcheck.rules.rs_status_rule import RSStatusRule
-from x_ray.healthcheck.shared import SEVERITY
+from x_ray.shared import SEVERITY
 
 RS_STATUS_NO_PRIMARY = {
     "set": "shard01",

@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from x_ray.healthcheck.issues import ISSUE
 from x_ray.healthcheck.rules.fs_type_rule import FSTypeRule
-from x_ray.healthcheck.shared import SEVERITY
+from x_ray.shared import SEVERITY
 
 
 def _data(db_path, mounts):

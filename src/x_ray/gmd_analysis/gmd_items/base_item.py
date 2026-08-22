@@ -9,7 +9,7 @@ from bson import json_util
 from x_ray.gmd_analysis.shared import GmdEvents
 from x_ray.healthcheck.check_items.base_item import colorize_severity
 from x_ray.healthcheck.rules.base_rule import BaseRule
-from x_ray.healthcheck.shared import SEVERITY
+from x_ray.shared import SEVERITY
 from x_ray.utils import bold, to_ejson, yellow
 from x_ray.version import Version
 
