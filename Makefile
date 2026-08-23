@@ -40,12 +40,12 @@ deps:
 build:
 	@echo "Building executable..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME) \
-		--add-data="src/x_ray/templates$(DELIMITER)x_ray/templates" \
-		--add-data="src/x_ray/config.json$(DELIMITER)x_ray" \
-		--add-data="src/x_ray/compatibility_matrix.json$(DELIMITER)x_ray" \
+		--add-data="src/mongo_x_ray/templates$(DELIMITER)mongo_x_ray/templates" \
+		--add-data="src/mongo_x_ray/config.json$(DELIMITER)mongo_x_ray" \
+		--add-data="src/mongo_x_ray/compatibility_matrix.json$(DELIMITER)mongo_x_ray" \
 		--additional-hooks-dir=hooks \
 		--icon="misc/x-ray.ico" \
-		src/x_ray/__main__.py
+		src/mongo_x_ray/__main__.py
 	@echo "\033[32m✓ Build complete: dist/x-ray\033[0m"
 
 # Run tests 
@@ -118,7 +118,7 @@ lint:
 # Minify templates
 minify:
 	@echo "Minifying templates..."
-	cd src/x_ray/templates && ./minify.sh
+	cd src/mongo_x_ray/templates && ./minify.sh
 	@echo "\033[32m✓ Templates minified!\033[0m"
 
 # Clean build artifacts

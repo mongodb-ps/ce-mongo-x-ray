@@ -4,9 +4,9 @@ set -euo pipefail
 _git_root=$(git rev-parse --show-toplevel)
 
 # Get changed raw files relative to templates dir
-changed=$(git -C "$_git_root" diff --name-only -- src/x_ray/templates/ \
+changed=$(git -C "$_git_root" diff --name-only -- src/mongo_x_ray/templates/ \
   | grep -E '\.raw\.(html|js|css)$' \
-  | sed 's|^src/x_ray/templates/||' \
+  | sed 's|^src/mongo_x_ray/templates/||' \
   || true)
 
 if [ -z "$changed" ]; then

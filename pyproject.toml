@@ -77,15 +77,15 @@ Issues = "https://github.com/mongodb-ps/ce-mongo-x-ray/issues"
 include-package-data = false
 
 [project.scripts]
-x-ray = "x_ray.__main__:main"
+x-ray = "mongo_x_ray.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["x_ray*"]
+include = ["mongo_x_ray*"]
 exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 
 [tool.setuptools.package-data]
-"x_ray" = [
+"mongo_x_ray" = [
   "config.json",
   "compatibility_matrix.json",
   "templates/**/full.html",

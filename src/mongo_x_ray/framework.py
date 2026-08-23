@@ -25,8 +25,8 @@ from typing import TextIO
 
 import markdown
 
-from x_ray.table_width_extension import TableWidthExtension
-from x_ray.utils import env, green, html_to_pdf, inject_assets
+from mongo_x_ray.table_width_extension import TableWidthExtension
+from mongo_x_ray.utils import env, green, html_to_pdf, inject_assets
 
 
 class BaseFramework(ABC):
@@ -35,13 +35,13 @@ class BaseFramework(ABC):
     Subclasses provide the module-specific parts:
     - ``template_module``: the template directory name (e.g. ``"ftdc"``).
     - ``template_package``: the package whose ``templates/`` directory holds
-      this module's templates (defaults to the core ``x_ray`` package).
+      this module's templates (defaults to the core ``mongo_x_ray`` package).
     - a ``run_*`` method that loads and runs the configured items.
     - :meth:`_render_markdown`: writes the markdown report body.
     """
 
     template_module: str = ""
-    template_package: str = "x_ray"
+    template_package: str = "mongo_x_ray"
 
     def __init__(self, config: dict):
         self._config: dict = config

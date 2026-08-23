@@ -14,7 +14,7 @@ import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 
-from x_ray.plugins import discover_plugins
+from mongo_x_ray.plugins import discover_plugins
 
 logger = logging.getLogger(__name__)
 

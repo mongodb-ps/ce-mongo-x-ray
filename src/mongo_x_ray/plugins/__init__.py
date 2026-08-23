@@ -1,7 +1,7 @@
 """Command plugin discovery.
 
 Command plugins are registered by ``mongo-x-ray-*`` distributions through the
-``x_ray.plugins`` entry-point group (e.g. ``mongo-x-ray-ftdc``,
+``mongo_x_ray.plugins`` entry-point group (e.g. ``mongo-x-ray-ftdc``,
 ``mongo-x-ray-healthcheck``, ``mongo-x-ray-log``, ``mongo-x-ray-gmd``). There
 are no built-in plugins in the core distribution; every command comes from an
 installed plugin package.
@@ -9,7 +9,7 @@ installed plugin package.
 
 from importlib.metadata import entry_points
 
-from x_ray.plugin import ENTRY_POINT_GROUP, Plugin
+from mongo_x_ray.plugin import ENTRY_POINT_GROUP, Plugin
 
 BUILTIN_PLUGINS: list[type[Plugin]] = []
 

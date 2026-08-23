@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Legacy wrapper preserved for backward compatibility.
-# Delegates execution to the Python module entry point `x_ray`.
+# Delegates execution to the Python module entry point `mongo_x_ray`.
 
 set -euo pipefail
 
@@ -19,4 +19,4 @@ else
   PY="python"
 fi
 
-exec "$PY" -m x_ray "$@"
+exec "$PY" -m mongo_x_ray "$@"

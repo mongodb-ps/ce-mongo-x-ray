@@ -7,14 +7,14 @@ test results, a ``str`` category), so they never depend on any analysis
 module's item types.
 """
 
-from x_ray.risk_register.db import (
+from mongo_x_ray.risk_register.db import (
     clear_risks,
     enrich_test_results,
     ingest_risks,
     match_risk,
     search_risks,
 )
-from x_ray.risk_register.shared import Risk, load_risks_from_csv
+from mongo_x_ray.risk_register.shared import Risk, load_risks_from_csv
 
 __all__ = [
     "Risk",

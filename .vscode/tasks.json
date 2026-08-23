@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
-                "src/x_ray/",
+                "src/mongo_x_ray/",
                 "--rcfile=${workspaceFolder}/.pylintrc"
             ],
             "problemMatcher": {
@@ -38,7 +38,7 @@
             "type": "shell",
             "command": "${workspaceFolder}/.venv/bin/pylint",
             "args": [
-                "src/x_ray/",
+                "src/mongo_x_ray/",
                 "--rcfile=${workspaceFolder}/.pylintrc",
                 "--errors-only"
             ],

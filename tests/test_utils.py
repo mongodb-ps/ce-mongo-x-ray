@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
 from importlib.resources import files
 
-from x_ray.utils import load_classes
+from mongo_x_ray.utils import load_classes
 
 # Each test imports the exact helper it exercises so the function under test is
 # explicit; the pattern is deliberate across this module.
@@ -17,16 +17,16 @@ from x_ray.utils import load_classes
 
 
 def test_load_config():
-    from x_ray.utils import load_config
+    from mongo_x_ray.utils import load_config
 
-    config_file = files("x_ray") / "config.json"
+    config_file = files("mongo_x_ray") / "config.json"
     config = load_config(config_file)
     assert "log" in config
     assert "healthcheck" in config
 
 
 def test_truncate_content():
-    from x_ray.utils import truncate_content
+    from mongo_x_ray.utils import truncate_content
 
     content = "This is a test log message for truncation."
     truncated = truncate_content(content, max_words=5)
@@ -34,7 +34,7 @@ def test_truncate_content():
 
 
 def test_tooltip_html():
-    from x_ray.utils import tooltip_html
+    from mongo_x_ray.utils import tooltip_html
 
     full = "This is the full content"
     truncated = "This is..."
@@ -44,12 +44,12 @@ def test_tooltip_html():
 
 
 def test_load_classes():
-    classes = load_classes("x_ray.parsers")
+    classes = load_classes("mongo_x_ray.parsers")
     assert "BaseParser" in classes
 
 
 def test_format_size():
-    from x_ray.utils import format_size
+    from mongo_x_ray.utils import format_size
 
     assert format_size(1023) == "1023.00 B"
     assert format_size(2048) == "2.00 KB"
@@ -60,7 +60,7 @@ def test_format_size():
 
 
 def test_escape_markdown():
-    from x_ray.utils import escape_markdown
+    from mongo_x_ray.utils import escape_markdown
 
     text = "This_is*some`markdown|text<with>special_chars"
     escaped = escape_markdown(text)
@@ -68,7 +68,7 @@ def test_escape_markdown():
 
 
 def test_escape_markdown_newlines():
-    from x_ray.utils import escape_markdown
+    from mongo_x_ray.utils import escape_markdown
 
     assert escape_markdown("line1\nline2") == "line1<br>line2"
     assert escape_markdown("line1\r\nline2\rline3") == "line1<br>line2<br>line3"
@@ -78,7 +78,7 @@ def test_escape_markdown_newlines():
 
 
 def test_format_json_md():
-    from x_ray.utils import format_json_md
+    from mongo_x_ray.utils import format_json_md
 
     data = {"key": "value", "number": 123}
     md = format_json_md(data)
@@ -91,7 +91,7 @@ def test_to_ejson():
     from datetime import datetime
     from enum import Enum
 
-    from x_ray.utils import to_ejson
+    from mongo_x_ray.utils import to_ejson
 
     class Color(Enum):
         RED = 1
@@ -116,7 +116,7 @@ def test_to_ejson():
 
 
 def test_json_hash():
-    from x_ray.utils import json_hash
+    from mongo_x_ray.utils import json_hash
 
     data = {"a": 1, "b": 2}
     hash1 = json_hash(data)
@@ -126,7 +126,7 @@ def test_json_hash():
 
 
 def test_inject_assets_injects_pie_label_settings():
-    from x_ray.utils import inject_assets
+    from mongo_x_ray.utils import inject_assets
 
     template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
     output = inject_assets(template, "hc")

@@ -11,8 +11,8 @@ from abc import ABC, abstractmethod
 from typing import Any
 from uuid import uuid4
 
-from x_ray.shared import to_json
-from x_ray.utils import get_script_path
+from mongo_x_ray.shared import to_json
+from mongo_x_ray.utils import get_script_path
 
 TABLE_ALIGNMENT = {
     "left": ":----------",
@@ -26,8 +26,8 @@ class BaseParser(ABC):
     # base class originated from; each module subclass overrides it.
     TEMPLATE_FOLDER = os.path.join("templates", "healthcheck", "snippets")
     # The package whose templates/ directory holds this parser's chart
-    # snippets. Core parsers resolve from ``x_ray``; plugins override it.
-    TEMPLATE_PACKAGE = "x_ray"
+    # snippets. Core parsers resolve from ``mongo_x_ray``; plugins override it.
+    TEMPLATE_PACKAGE = "mongo_x_ray"
 
     @abstractmethod
     def parse(self, data: Any, **kwargs) -> list:

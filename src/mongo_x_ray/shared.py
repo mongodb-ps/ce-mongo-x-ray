@@ -9,7 +9,7 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 Core shared utilities used by more than one analysis module. These helpers
 are generic (severity levels, JSON serialisation, markdown id slugs) and live
-in the core ``x_ray`` package so that the analysis modules (healthcheck, gmd,
+in the core ``mongo_x_ray`` package so that the analysis modules (healthcheck, gmd,
 log, ftdc) do not have to import from each other.
 """
 
@@ -18,7 +18,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from x_ray.utils import to_ejson
+from mongo_x_ray.utils import to_ejson
 
 
 class SEVERITY(Enum):

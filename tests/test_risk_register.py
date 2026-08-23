@@ -10,8 +10,8 @@ THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 
 import pytest
 
-from x_ray.risk_register import db
-from x_ray.risk_register.shared import (
+from mongo_x_ray.risk_register import db
+from mongo_x_ray.risk_register.shared import (
     CHROMA_COLLECTION,
     CHROMA_COLLECTION_DESCRIPTION,
     Risk,

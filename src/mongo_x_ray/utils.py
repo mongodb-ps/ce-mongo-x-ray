@@ -33,7 +33,7 @@ from typing import Optional, Union
 
 from bson import json_util
 
-from x_ray.version import Version
+from mongo_x_ray.version import Version
 
 # Load .env file before reading any environment variables
 try:
@@ -62,7 +62,7 @@ BUILDIN_CONFIG_PATH = "config.json"
 # The script can be started from other working folder. E.g. Invoked by a cron job.
 # This function gives you the base path of the script.
 # If `filename` is provided then the path include the file. Otherwise it's the folder.
-def get_script_path(filename=None, package: str = "x_ray"):
+def get_script_path(filename=None, package: str = "mongo_x_ray"):
     # Check if running in a PyInstaller bundle
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         # Running in a PyInstaller bundle
@@ -176,7 +176,7 @@ def _load_config():
         nonlocal config
         if config is None:
             if config_path is None:
-                resource = files("x_ray") / BUILDIN_CONFIG_PATH
+                resource = files("mongo_x_ray") / BUILDIN_CONFIG_PATH
                 config = json.loads(resource.read_text(encoding="utf-8"))
                 logger.info("Loaded built-in config: %s", BUILDIN_CONFIG_PATH)
             elif os.path.isfile(config_path):

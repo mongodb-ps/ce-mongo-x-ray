@@ -8,7 +8,7 @@
             "name": "App: X-Ray-HC",
             "type": "debugpy",
             "request": "launch",
-            "module": "x_ray",
+            "module": "mongo_x_ray",
             "console": "integratedTerminal",
             "justMyCode": true,
             "pathMappings": [
@@ -36,7 +36,7 @@
             "name": "App: X-Ray-LOG",
             "type": "debugpy",
             "request": "launch",
-            "module": "x_ray",
+            "module": "mongo_x_ray",
             "console": "integratedTerminal",
             "justMyCode": true,
             "pathMappings": [
@@ -47,7 +47,7 @@
             ],
             "args": [
                 "-c",
-                "src/x_ray/config.json",
+                "src/mongo_x_ray/config.json",
                 "log",
                 "misc/example-rs.log"
             ],
@@ -62,7 +62,7 @@
             "name": "App: X-Ray-GMD",
             "type": "debugpy",
             "request": "launch",
-            "module": "x_ray",
+            "module": "mongo_x_ray",
             "console": "integratedTerminal",
             "justMyCode": true,
             "pathMappings": [
@@ -73,7 +73,7 @@
             ],
             "args": [
                 "-c",
-                "src/x_ray/config.json",
+                "src/mongo_x_ray/config.json",
                 "gmd",
                 "misc/getMongoData-output.json"
             ],
@@ -88,7 +88,7 @@
             "name": "App: X-Ray-FTDC",
             "type": "debugpy",
             "request": "launch",
-            "module": "x_ray",
+            "module": "mongo_x_ray",
             "console": "integratedTerminal",
             "justMyCode": true,
             "pathMappings": [
@@ -99,7 +99,7 @@
             ],
             "args": [
                 "-c",
-                "src/x_ray/config.json",
+                "src/mongo_x_ray/config.json",
                 "ftdc",
                 "-f",
                 "html",

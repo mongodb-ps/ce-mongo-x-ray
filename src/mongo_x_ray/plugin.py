@@ -13,7 +13,7 @@ Each analysis module (log, ftdc, gmd, healthcheck, ...) is a *command
 plugin* that the CLI discovers at startup. Built-in plugins ship with the
 core and are registered explicitly (so the CLI works from a source
 checkout); additional ``mongo-x-ray-*`` distributions register through the
-``x_ray.plugins`` entry-point group.
+``mongo_x_ray.plugins`` entry-point group.
 """
 
 import argparse
@@ -26,11 +26,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
 
-from x_ray.utils import env, green
+from mongo_x_ray.utils import env, green
 
 logger = logging.getLogger(__name__)
 
-ENTRY_POINT_GROUP = "x_ray.plugins"
+ENTRY_POINT_GROUP = "mongo_x_ray.plugins"
 
 
 class Plugin(ABC):

@@ -1,6 +1,6 @@
-"""PyInstaller hook for the x_ray package.
+"""PyInstaller hook for the mongo_x_ray package.
 
-Collects the dynamically-imported modules of the core ``x_ray`` package.
+Collects the dynamically-imported modules of the core ``mongo_x_ray`` package.
 Analysis plugins (healthcheck, log, ftdc, gmd) ship as separate
 ``mongo-x-ray-*`` distributions and are not part of this package.
 """
@@ -11,9 +11,9 @@ Analysis plugins (healthcheck, log, ftdc, gmd) ship as separate
 # cannot discover them. Pin the concrete modules used by the embedded
 # PersistentClient so the packaged binary keeps working.
 hiddenimports = [
-    "x_ray.ai_client",
-    "x_ray.risk_register.db",
-    "x_ray.risk_register.shared",
+    "mongo_x_ray.ai_client",
+    "mongo_x_ray.risk_register.db",
+    "mongo_x_ray.risk_register.shared",
     "chromadb.api.rust",
     "chromadb.db.impl.sqlite",
     "chromadb.execution.executor.local",
