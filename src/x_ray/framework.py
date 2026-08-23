@@ -19,13 +19,14 @@ import re
 import webbrowser
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from importlib.resources import files
 from pathlib import Path
 from typing import TextIO
 
 import markdown
 
 from x_ray.table_width_extension import TableWidthExtension
-from x_ray.utils import env, get_script_path, green, html_to_pdf, inject_assets
+from x_ray.utils import env, green, html_to_pdf, inject_assets
 
 
 class BaseFramework(ABC):
@@ -33,11 +34,14 @@ class BaseFramework(ABC):
 
     Subclasses provide the module-specific parts:
     - ``template_module``: the template directory name (e.g. ``"ftdc"``).
+    - ``template_package``: the package whose ``templates/`` directory holds
+      this module's templates (defaults to the core ``x_ray`` package).
     - a ``run_*`` method that loads and runs the configured items.
     - :meth:`_render_markdown`: writes the markdown report body.
     """
 
     template_module: str = ""
+    template_package: str = "x_ray"
 
     def __init__(self, config: dict):
         self._config: dict = config
@@ -72,13 +76,18 @@ class BaseFramework(ABC):
 
         html_file = batch_folder / "report.html"
         if fmt in {"html", "pdf"}:
+            template_root = files(self.template_package) / "templates"
             default_template = f"{self.template_module}/full.html"
-            template_file = get_script_path(f"templates/{self._config.get('template', default_template)}")
+            template_file = template_root / self._config.get("template", default_template)
             html_content = markdown.markdown(
                 markdown_file.read_text(encoding="utf-8"),
                 extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
             )
-            template_content = inject_assets(Path(template_file).read_text(encoding="utf-8"), self.template_module)
+            template_content = inject_assets(
+                template_file.read_text(encoding="utf-8"),
+                self.template_module,
+                template_root=template_root,
+            )
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 
         if fmt in {"html", "pdf"} and open_browser:

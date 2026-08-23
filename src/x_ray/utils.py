@@ -29,7 +29,7 @@ from enum import Enum
 from importlib import import_module
 from importlib.resources import files
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from bson import json_util
 
@@ -94,7 +94,7 @@ def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None
     HTML(filename=str(html_path), base_url=str(html_path.parent)).write_pdf(str(pdf_file))
 
 
-def inject_assets(template: str, module: str) -> str:
+def inject_assets(template: str, module: str, template_root: Optional[Path] = None) -> str:
     """Inject CSS and JS assets into a template by replacing placeholders.
 
     The template must contain ``{{ style }}``, ``{{ script }}`` and
@@ -111,24 +111,28 @@ def inject_assets(template: str, module: str) -> str:
     Args:
         template: Raw HTML template with ``{{ style }}`` and ``{{ script }}`` placeholders.
         module: Template module name (``healthcheck``, ``ftdc``, ``log``, ``gmd``).
+        template_root: The root directory containing the module's templates
+            (``{module}/style.css``, ``{module}/script.js``). Defaults to the
+            core package's ``templates`` directory; plugins pass their own.
     """
-    template_dir = Path(get_script_path("templates"))
+    core_dir = Path(get_script_path("templates"))
+    module_dir = template_root if template_root is not None else core_dir
     is_dev = env == "development"
 
     # --- CSS ---
     if is_dev:
-        css_parts = [template_dir / "css" / "shared.raw.css"]
-        module_css = template_dir / module / "style.raw.css"
+        css_parts = [core_dir / "css" / "shared.raw.css"]
+        module_css = module_dir / module / "style.raw.css"
     else:
-        css_parts = [template_dir / "css" / "shared.css"]
-        module_css = template_dir / module / "style.css"
+        css_parts = [core_dir / "css" / "shared.css"]
+        module_css = module_dir / module / "style.css"
     if module_css.exists():
         css_parts.append(module_css)
     style_content = "\n".join(p.read_text(encoding="utf-8") for p in css_parts)
     template = template.replace("{{ style }}", f"<style>\n{style_content}\n</style>")
 
     # --- JS (pre-body) ---
-    js_dir = template_dir / "js"
+    js_dir = core_dir / "js"
     if is_dev:
         pre_parts = sorted(js_dir.glob("pre_*.raw.js"))
     else:
@@ -153,9 +157,9 @@ def inject_assets(template: str, module: str) -> str:
     if module == "gmd":
         post_parts = [p for p in post_parts if "outline" not in p.name]
     if is_dev:
-        module_js = template_dir / module / "script.raw.js"
+        module_js = module_dir / module / "script.raw.js"
     else:
-        module_js = template_dir / module / "script.js"
+        module_js = module_dir / module / "script.js"
     if module_js.exists():
         post_parts.append(module_js)
     script_content = "\n".join(p.read_text(encoding="utf-8") for p in post_parts)

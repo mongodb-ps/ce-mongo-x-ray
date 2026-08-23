@@ -1,1 +1,0 @@
-window.hljs&&("undefined"!=typeof CopyButtonPlugin&&hljs.addPlugin(new CopyButtonPlugin({autohide:!1,hook:(e,t)=>t.textContent,callback:function(){return!1}})),document.querySelectorAll(".metadata-code").forEach(e=>hljs.highlightElement(e)),document.querySelectorAll("pre code:not(.metadata-code)").forEach(e=>hljs.highlightElement(e))),addTableCopyButtons();
