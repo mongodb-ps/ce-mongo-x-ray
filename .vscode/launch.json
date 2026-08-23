@@ -10,11 +10,27 @@
             "request": "launch",
             "module": "mongo_x_ray",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/src",
                     "remoteRoot": "${workspaceFolder}/src"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-ftdc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-ftdc"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-log",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-log"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-gmd",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-gmd"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-hc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-hc"
                 }
             ],
             "args": [
@@ -38,11 +54,27 @@
             "request": "launch",
             "module": "mongo_x_ray",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/src",
                     "remoteRoot": "${workspaceFolder}/src"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-ftdc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-ftdc"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-log",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-log"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-gmd",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-gmd"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-hc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-hc"
                 }
             ],
             "args": [
@@ -64,11 +96,27 @@
             "request": "launch",
             "module": "mongo_x_ray",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/src",
                     "remoteRoot": "${workspaceFolder}/src"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-ftdc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-ftdc"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-log",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-log"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-gmd",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-gmd"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-hc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-hc"
                 }
             ],
             "args": [
@@ -90,11 +138,27 @@
             "request": "launch",
             "module": "mongo_x_ray",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "pathMappings": [
                 {
                     "localRoot": "${workspaceFolder}/src",
                     "remoteRoot": "${workspaceFolder}/src"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-ftdc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-ftdc"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-log",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-log"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-gmd",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-gmd"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/plugins/mongo-x-ray-hc",
+                    "remoteRoot": "${workspaceFolder}/../mongo-x-ray-hc"
                 }
             ],
             "args": [
@@ -120,6 +184,7 @@
             "request": "launch",
             "module": "pytest",
             "console": "integratedTerminal",
+            "justMyCode": false,
             "args": [
                 "-m",
                 "not integration"
@@ -134,6 +199,7 @@
             "request": "launch",
             "module": "pytest",
             "console": "integratedTerminal",
+            "justMyCode": false,
             "preLaunchTask": "prepare-test-cluster",
             "postDebugTask": "cluster-teardown",
             "env": {
@@ -150,6 +216,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
+            "justMyCode": false,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "LOG_LEVEL": "INFO",
