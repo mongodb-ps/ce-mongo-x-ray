@@ -74,6 +74,14 @@ def discover_plugins() -> dict[str, Plugin]:
 
     local_dir = _plugins_folder()
     if local_dir.is_dir():
+        # Put every local checkout's src/ on sys.path before importing any of
+        # them, so plugins can import sibling local plugins regardless of the
+        # folder scan order (e.g. gmd depends on hc but sorts before it).
+        for entry in sorted(local_dir.iterdir()):
+            if entry.is_dir():
+                src_dir = entry / "src"
+                if src_dir.is_dir() and str(src_dir) not in sys.path:
+                    sys.path.insert(0, str(src_dir))
         for entry in sorted(local_dir.iterdir()):
             if not entry.is_dir():
                 continue

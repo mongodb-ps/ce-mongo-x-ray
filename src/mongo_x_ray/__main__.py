@@ -35,6 +35,7 @@ def setup_parser():
     else:
         command_lines = "  (none - install a mongo-x-ray-* plugin)"
     parser = argparse.ArgumentParser(
+        prog="x-ray",
         description=(
             "MongoDB analysis and diagnostics. The available commands are provided "
             "by the mongo-x-ray-* plugins (installed, or local checkouts under "
