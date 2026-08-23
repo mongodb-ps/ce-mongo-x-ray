@@ -21,21 +21,24 @@ logger = logging.getLogger(__name__)
 
 def setup_parser():
     """Build the command-line parser from the discovered command plugins."""
+    plugins = discover_plugins()
+    if plugins:
+        command_lines = "\n".join(
+            f"  {name:<14} {plugin.help}" for name, plugin in sorted(plugins.items())
+        )
+    else:
+        command_lines = "  (none - install a mongo-x-ray-* plugin)"
     parser = argparse.ArgumentParser(
         description=(
             "MongoDB analysis and diagnostics. The available commands are provided "
             "by the mongo-x-ray-* plugins (installed, or local checkouts under "
             "plugins/)."
         ),
-        epilog="""
-Examples:
-  x-ray healthcheck
-  x-ray log /var/log/mongodb/mongod.log
-  x-ray gmd /path/to/getMongoData-output.json
-  x-ray ftdc /path/to/diagnostic.data
+        epilog=f"""
+Available commands (from the installed mongo-x-ray-* plugins):
+{command_lines}
 
-For more information on a specific command, use:
-  x-ray <command> --help
+Run 'x-ray <command> --help' for usage and examples of a specific command.
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -63,7 +66,7 @@ For more information on a specific command, use:
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute", required=False)
-    for plugin in discover_plugins().values():
+    for plugin in plugins.values():
         subparser = subparsers.add_parser(
             plugin.name,
             help=plugin.help,
