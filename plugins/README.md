@@ -8,9 +8,7 @@ tested from the core checkout alone (e.g. symlink each plugin repository in):
 ```sh
 # from the core repository root, with the plugin repos as siblings
 ln -s ../../mongo-x-ray-ftdc plugins/mongo-x-ray-ftdc
-ln -s ../../mongo-x-ray-hc  plugins/mongo-x-ray-hc
 ln -s ../../mongo-x-ray-log plugins/mongo-x-ray-log
-ln -s ../../mongo-x-ray-gmd plugins/mongo-x-ray-gmd
 ```
 
 Each entry must be a directory (or symlink to one) that contains a `src/`
