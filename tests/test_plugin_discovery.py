@@ -64,3 +64,15 @@ def test_falls_back_to_installed_when_plugins_folder_empty(monkeypatch, tmp_path
     monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(empty))
     plugins = discover_plugins()
     assert {"ftdc", "log", "gmd", "healthcheck"} <= set(plugins)
+
+
+def test_subcommand_alias_resolves_to_plugin():
+    from mongo_x_ray.__main__ import resolve_plugin
+
+    plugins = discover_plugins()
+    plugin = resolve_plugin(plugins, "hc")
+    assert plugin is not None
+    assert plugin.name == "healthcheck"
+    # canonical name and unknown names behave as expected
+    assert resolve_plugin(plugins, "healthcheck") is plugin
+    assert resolve_plugin(plugins, "does-not-exist") is None

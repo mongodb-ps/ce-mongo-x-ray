@@ -14,6 +14,7 @@ import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 
+from mongo_x_ray.plugin import Plugin
 from mongo_x_ray.plugins import discover_plugins
 
 logger = logging.getLogger(__name__)
@@ -22,9 +23,14 @@ logger = logging.getLogger(__name__)
 def setup_parser():
     """Build the command-line parser from the discovered command plugins."""
     plugins = discover_plugins()
+
+    def _command_line(name, plugin):
+        label = name if not plugin.aliases else f"{name} ({', '.join(plugin.aliases)})"
+        return f"  {label:<20} {plugin.help}"
+
     if plugins:
         command_lines = "\n".join(
-            f"  {name:<14} {plugin.help}" for name, plugin in sorted(plugins.items())
+            _command_line(name, plugin) for name, plugin in sorted(plugins.items())
         )
     else:
         command_lines = "  (none - install a mongo-x-ray-* plugin)"
@@ -69,6 +75,7 @@ Run 'x-ray <command> --help' for usage and examples of a specific command.
     for plugin in plugins.values():
         subparser = subparsers.add_parser(
             plugin.name,
+            aliases=plugin.aliases,
             help=plugin.help,
             description=plugin.description,
             epilog=plugin.epilog,
@@ -88,6 +95,14 @@ def version_command(_args):
         # Fallback for source tree without installed metadata
         print("development")
     return 0
+
+
+def resolve_plugin(plugins: dict[str, Plugin], command: str) -> Plugin | None:
+    """Return the plugin for *command*, following subcommand aliases."""
+    plugin = plugins.get(command)
+    if plugin is None:
+        plugin = next((p for p in plugins.values() if command in p.aliases), None)
+    return plugin
 
 
 def main():
@@ -116,7 +131,7 @@ def main():
         logger.setLevel(logging.FATAL)
 
     plugins = discover_plugins()
-    plugin = plugins.get(args.command)
+    plugin = resolve_plugin(plugins, args.command)
     if plugin is None:
         logger.error("Unknown command: %s", args.command)
         return 1

@@ -38,13 +38,15 @@ class Plugin(ABC):
 
     Subclasses set the ``name``/``help``/``description``/``epilog`` class
     attributes, optionally override :meth:`add_arguments` to declare their
-    CLI flags, and implement :meth:`run`.
+    CLI flags, and implement :meth:`run`. ``aliases`` lists extra subcommand
+    names that invoke the same plugin (e.g. ``["hc"]`` for ``healthcheck``).
     """
 
     name: str = ""
     help: str = ""
     description: str = ""
     epilog: str = ""
+    aliases: list[str] = []
 
     def add_arguments(self, parser: argparse.ArgumentParser) -> None:
         """Add this plugin's arguments to its subcommand parser."""
