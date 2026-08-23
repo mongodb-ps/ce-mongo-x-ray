@@ -79,7 +79,7 @@ def discover_plugins() -> dict[str, Plugin]:
                 continue
             plugin_cls = _load_local_plugin(entry)
             if plugin_cls is not None:
-                logger.info("Using local plugin %r from %s", plugin_cls.name, entry)
+                logger.debug("Using local plugin %r from %s", plugin_cls.name, entry)
                 plugins[plugin_cls.name] = plugin_cls()
 
     for ep in entry_points(group=ENTRY_POINT_GROUP):

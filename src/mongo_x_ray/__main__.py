@@ -22,15 +22,20 @@ logger = logging.getLogger(__name__)
 def setup_parser():
     """Build the command-line parser from the discovered command plugins."""
     parser = argparse.ArgumentParser(
-        description="X-Ray project for MongoDB analysis and diagnostics.",
+        description=(
+            "MongoDB analysis and diagnostics. The available commands are provided "
+            "by the mongo-x-ray-* plugins (installed, or local checkouts under "
+            "plugins/)."
+        ),
         epilog="""
 Examples:
+  x-ray healthcheck
   x-ray log /var/log/mongodb/mongod.log
+  x-ray gmd /path/to/getMongoData-output.json
   x-ray ftdc /path/to/diagnostic.data
 
-For more information on specific commands, use:
-  x-ray log --help
-  x-ray ftdc --help
+For more information on a specific command, use:
+  x-ray <command> --help
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
