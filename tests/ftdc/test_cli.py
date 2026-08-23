@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from x_ray.__main__ import _discover_paths, setup_parser
+from x_ray.__main__ import setup_parser
+from x_ray.plugin import discover_paths
+from x_ray.plugins import discover_plugins
 
 
 def test_ftdc_accepts_optional_utc_range():
@@ -62,7 +64,7 @@ def test_discover_paths_finds_log_files():
         (nested / "mongod.log").touch()
         (root / "other" / "empty").mkdir(parents=True)
 
-        result = _discover_paths(root, "*.log*")
+        result = discover_paths(root, "*.log*")
         assert result == [nested]
 
 
@@ -74,7 +76,7 @@ def test_discover_paths_finds_ftdc_files():
         (nested / "metrics.2024-01-01T00-00-00Z").touch()
         (root / "other").mkdir()
 
-        result = _discover_paths(root, "metrics.*")
+        result = discover_paths(root, "metrics.*")
         assert result == [nested]
 
 
@@ -83,7 +85,7 @@ def test_discover_paths_returns_empty_when_not_found():
         root = Path(tmp)
         (root / "empty").mkdir()
 
-        result = _discover_paths(root, "*.log*")
+        result = discover_paths(root, "*.log*")
         assert result == []
 
 
@@ -97,7 +99,7 @@ def test_discover_paths_returns_all_matches():
         (dir_a / "mongod.log").touch()
         (dir_b / "mongod.log").touch()
 
-        result = _discover_paths(root, "*.log*")
+        result = discover_paths(root, "*.log*")
         assert len(result) == 2
         assert dir_a in result
         assert dir_b in result
@@ -123,3 +125,15 @@ def test_log_and_ftdc_accept_pdf_format(arguments):
 def test_removed_commands_are_rejected(command):
     with pytest.raises(SystemExit):
         setup_parser().parse_args([command])
+
+
+def test_discover_plugins_registers_builtin_commands():
+    plugins = discover_plugins()
+    assert set(plugins) == {"log", "ftdc"}
+
+
+def test_discover_plugins_instances_are_plugins():
+    plugins = discover_plugins()
+    for name, plugin in plugins.items():
+        assert plugin.name == name
+        assert callable(plugin.run)
