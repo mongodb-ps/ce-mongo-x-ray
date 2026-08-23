@@ -79,7 +79,7 @@ class Framework(BaseFramework):
 
         # Enrich test results with matched risks from the risk register
         try:
-            from x_ray.risk_register.db import enrich_test_results  # pylint: disable=import-outside-toplevel
+            from x_ray.risk_register import enrich_test_results  # pylint: disable=import-outside-toplevel
 
             matched = enrich_test_results(all_test_result)
             if matched:

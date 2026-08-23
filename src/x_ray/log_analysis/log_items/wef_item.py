@@ -74,7 +74,7 @@ class WEFItem(BaseItem):
     def _match_risks(self) -> None:
         """Enrich cache entries with matched risk info via vector search."""
         try:
-            from x_ray.risk_register.db import match_risk  # pylint: disable=import-outside-toplevel
+            from x_ray.risk_register import match_risk  # pylint: disable=import-outside-toplevel
         except ImportError:
             return
         for entry in self._cache:
