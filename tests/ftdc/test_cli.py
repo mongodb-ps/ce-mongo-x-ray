@@ -121,7 +121,7 @@ def test_log_and_ftdc_accept_pdf_format(arguments):
     assert args.format == "pdf"
 
 
-@pytest.mark.parametrize("command", ["healthcheck", "hc", "gmd", "ingest"])
+@pytest.mark.parametrize("command", ["hc", "ingest", "unknown"])
 def test_removed_commands_are_rejected(command):
     with pytest.raises(SystemExit):
         setup_parser().parse_args([command])
@@ -129,7 +129,7 @@ def test_removed_commands_are_rejected(command):
 
 def test_discover_plugins_registers_builtin_commands():
     plugins = discover_plugins()
-    assert set(plugins) == {"log", "ftdc"}
+    assert set(plugins) == {"log", "ftdc", "gmd", "healthcheck"}
 
 
 def test_discover_plugins_instances_are_plugins():

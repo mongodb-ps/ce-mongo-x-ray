@@ -2,17 +2,19 @@
 
 The ``x_ray.plugins`` entry-point group lets additional ``x-ray-*``
 distributions register their own command plugins; the built-in plugins
-(log, ftdc) are registered here explicitly so the CLI also works from a
-source checkout without installed metadata.
+(log, ftdc, gmd, healthcheck) are registered here explicitly so the CLI
+also works from a source checkout without installed metadata.
 """
 
 from importlib.metadata import entry_points
 
 from x_ray.plugin import ENTRY_POINT_GROUP, Plugin
 from x_ray.plugins.ftdc import FtdcPlugin
+from x_ray.plugins.gmd import GmdPlugin
+from x_ray.plugins.healthcheck import HealthcheckPlugin
 from x_ray.plugins.log import LogPlugin
 
-BUILTIN_PLUGINS = [LogPlugin, FtdcPlugin]
+BUILTIN_PLUGINS = [LogPlugin, FtdcPlugin, GmdPlugin, HealthcheckPlugin]
 
 
 def discover_plugins() -> dict[str, Plugin]:
