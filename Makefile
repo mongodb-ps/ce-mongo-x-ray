@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
+.PHONY: build clean deps test unit-test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
@@ -48,11 +48,22 @@ build:
 		src/mongo_x_ray/__main__.py
 	@echo "\033[32m✓ Build complete: dist/x-ray\033[0m"
 
-# Run tests 
-test:
-	@echo "Running tests..."
+# Run unit tests in the core and in every local plugin checkout under plugins/.
+unit-test:
+	@echo "Running core unit tests..."
 	$(PYTHON) -m pytest -m "not integration"
-	@echo "\033[32m✓ All tests passed!\033[0m"
+	@echo "\033[32m✓ Core unit tests passed!\033[0m"
+	@if [ -d plugins ]; then \
+		for d in plugins/*; do \
+			if [ -d "$$d" ] && [ -f "$$d/Makefile" ]; then \
+				echo "=== unit-test: $$d ==="; \
+				$(MAKE) -C "$$d" unit-test || exit 1; \
+			fi; \
+		done; \
+	fi
+
+# Alias matching the core convention.
+test: unit-test
 
 # Prepare the test cluster: stop any existing cluster, start a fresh replica
 # set, seed it, and generate the getMongoData report.
@@ -115,11 +126,19 @@ lint:
 	$(PYTHON) -m pylint src tests
 	@echo "\033[32m✓ No lint errors found!\033[0m"
 
-# Minify templates
+# Minify templates in the core and in every local plugin checkout under plugins/.
 minify:
 	@echo "Minifying templates..."
 	cd src/mongo_x_ray/templates && ./minify.sh
 	@echo "\033[32m✓ Templates minified!\033[0m"
+	@if [ -d plugins ]; then \
+		for d in plugins/*; do \
+			if [ -d "$$d" ] && [ -f "$$d/Makefile" ]; then \
+				echo "=== minify: $$d ==="; \
+				$(MAKE) -C "$$d" minify || exit 1; \
+			fi; \
+		done; \
+	fi
 
 # Clean build artifacts
 clean:
@@ -147,8 +166,9 @@ help:
 	@echo "Available commands:"
 	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
 	@echo "  make build        - Build executable"
-	@echo "  make minify       - Minify HTML/JS templates"
-	@echo "  make test         - Run non-integration tests"
+	@echo "  make minify       - Minify HTML/JS templates (core + plugins/)"
+	@echo "  make unit-test    - Run unit tests (core + plugins/)"
+	@echo "  make test         - Alias for unit-test"
 	@echo "  make cluster-setup - Start and seed a test cluster"
 	@echo "  make cluster-teardown - Stop and clean up a test cluster"
 	@echo "  make integration-test - Test all installed MongoDB versions (rs + sh)"
