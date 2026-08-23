@@ -1,10 +1,10 @@
 """Built-in command plugins and plugin discovery.
 
-The ``x_ray.plugins`` entry-point group lets additional ``x-ray-*``
+The ``x_ray.plugins`` entry-point group lets additional ``mongo-x-ray-*``
 distributions register their own command plugins; the built-in plugins
 (log, gmd, healthcheck) are registered here explicitly so the CLI also
 works from a source checkout without installed metadata. Other plugins
-(e.g. ``x-ray-ftdc``) are discovered through the entry-point group.
+(e.g. ``mongo-x-ray-ftdc``) are discovered through the entry-point group.
 """
 
 from importlib.metadata import entry_points

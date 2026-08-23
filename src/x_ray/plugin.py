@@ -12,7 +12,7 @@ Plugin discovery and shared command-line infrastructure.
 Each analysis module (log, ftdc, gmd, healthcheck, ...) is a *command
 plugin* that the CLI discovers at startup. Built-in plugins ship with the
 core and are registered explicitly (so the CLI works from a source
-checkout); additional ``x-ray-*`` distributions register through the
+checkout); additional ``mongo-x-ray-*`` distributions register through the
 ``x_ray.plugins`` entry-point group.
 """
 
