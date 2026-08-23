@@ -12,9 +12,9 @@ from typing import Optional
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GmdEvents
-from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.security_parser import SecurityParser
 from x_ray.healthcheck.rules.security_rule import SecurityRule
+from x_ray.parsers.base_parser import BaseParser
 
 
 class SecurityItem(BaseItem):

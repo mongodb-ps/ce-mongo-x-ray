@@ -2,9 +2,9 @@ from typing import Any
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GmdEvents
-from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.build_info_parser import BuildInfoParser
 from x_ray.healthcheck.rules.version_eol_rule import VersionEOLRule
+from x_ray.parsers.base_parser import BaseParser
 
 
 class BuildInfoItem(BaseItem):

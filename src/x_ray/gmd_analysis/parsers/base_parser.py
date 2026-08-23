@@ -1,6 +1,6 @@
 import os
 
-from x_ray.healthcheck.parsers.base_parser import BaseParser as HCBaseParser
+from x_ray.parsers.base_parser import BaseParser as HCBaseParser
 
 
 class BaseParser(HCBaseParser):

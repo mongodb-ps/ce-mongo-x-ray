@@ -18,6 +18,7 @@ from typing import Optional, Union
 from bson import json_util
 
 from x_ray.healthcheck.rules.base_rule import BaseRule
+from x_ray.parsers.base_parser import TABLE_ALIGNMENT
 from x_ray.shared import SEVERITY, to_json
 from x_ray.utils import env, get_script_path, to_ejson
 
@@ -30,13 +31,6 @@ def colorize_severity(severity: SEVERITY) -> str:
         SEVERITY.INFO.name: "gray",
     }
     return mapping.get(severity.name, "black")
-
-
-TABLE_ALIGNMENT = {
-    "left": ":----------",
-    "right": "----------:",
-    "center": ":----------:",
-}
 
 
 class BaseItem(ABC):

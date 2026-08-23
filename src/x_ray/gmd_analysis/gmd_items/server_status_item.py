@@ -2,13 +2,13 @@ from typing import Any, Optional
 
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.shared import GmdEvents
-from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.cache_parser import CacheParser
 from x_ray.healthcheck.parsers.conn_parser import ConnParser
 from x_ray.healthcheck.parsers.query_targeting_parser import QueryTargetingParser
 from x_ray.healthcheck.rules.cache_rule import CacheRule
 from x_ray.healthcheck.rules.connections_rule import ConnectionsRule
 from x_ray.healthcheck.rules.query_targeting_rule import QueryTargetingRule
+from x_ray.parsers.base_parser import BaseParser
 
 
 class ServerStatusItem(BaseItem):

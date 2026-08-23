@@ -13,9 +13,9 @@ from typing import Optional, TextIO
 from x_ray.gmd_analysis.gmd_items.base_item import BaseItem
 from x_ray.gmd_analysis.parsers.sh_details_parser import SHDetailsParser
 from x_ray.gmd_analysis.shared import GmdEvents
-from x_ray.healthcheck.parsers.base_parser import BaseParser
 from x_ray.healthcheck.parsers.sh_overview_parser import SHOverviewParser
 from x_ray.healthcheck.rules.shard_mongos_rule import ShardMongosRule
+from x_ray.parsers.base_parser import BaseParser
 
 
 class SHInfoItem(BaseItem):

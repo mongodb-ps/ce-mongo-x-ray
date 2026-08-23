@@ -1,4 +1,4 @@
-from x_ray.healthcheck.parsers.base_parser import BaseParser
+from x_ray.parsers.base_parser import BaseParser
 
 
 class SHDetailsParser(BaseParser):
