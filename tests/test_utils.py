@@ -44,9 +44,8 @@ def test_tooltip_html():
 
 
 def test_load_classes():
-    classes = load_classes("x_ray.log_analysis.log_items")
-    assert "SlowChartItem" in classes
-    assert "WEFItem" in classes
+    classes = load_classes("x_ray.parsers")
+    assert "BaseParser" in classes
 
 
 def test_format_size():

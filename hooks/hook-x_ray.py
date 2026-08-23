@@ -1,31 +1,19 @@
-"""PyInstaller hook for x_ray package.
+"""PyInstaller hook for the x_ray package.
 
-This hook collects all dynamically imported modules from:
-- x_ray.healthcheck.check_items (which imports x_ray.healthcheck.rules)
-- x_ray.log_analysis.log_items
-- x_ray.ftdc_analysis.ftdc_items
-- x_ray.risk_register (ChromaDB vector search)
-- x_ray.ai_client (OpenAI API analysis)
+Collects the dynamically-imported modules of the core ``x_ray`` package.
+Analysis plugins (healthcheck, log, ftdc, gmd) ship as separate
+``mongo-x-ray-*`` distributions and are not part of this package.
 """
-
-from PyInstaller.utils.hooks import collect_submodules
-
-# Collect all submodules from dynamically loaded packages
-hiddenimports = []
-hiddenimports += collect_submodules("x_ray.healthcheck.check_items")
-hiddenimports += collect_submodules("x_ray.log_analysis.log_items")
-hiddenimports += collect_submodules("x_ray.ftdc_analysis.ftdc_items")
-hiddenimports += collect_submodules("pyftdc")
-hiddenimports.append("x_ray.ai_client")
-hiddenimports.append("x_ray.risk_register.db")
-hiddenimports.append("x_ray.risk_register.shared")
 
 # chromadb resolves its implementation classes by fully-qualified name at
 # runtime (see chromadb.config._abstract_type_keys and the SegmentType mapping
 # in chromadb.segment.impl.manager.local), so PyInstaller's static analysis
 # cannot discover them. Pin the concrete modules used by the embedded
 # PersistentClient so the packaged binary keeps working.
-hiddenimports += [
+hiddenimports = [
+    "x_ray.ai_client",
+    "x_ray.risk_register.db",
+    "x_ray.risk_register.shared",
     "chromadb.api.rust",
     "chromadb.db.impl.sqlite",
     "chromadb.execution.executor.local",

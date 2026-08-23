@@ -1,20 +1,17 @@
-"""Built-in command plugins and plugin discovery.
+"""Command plugin discovery.
 
-The ``x_ray.plugins`` entry-point group lets additional ``mongo-x-ray-*``
-distributions register their own command plugins; the built-in plugins
-(log, gmd, healthcheck) are registered here explicitly so the CLI also
-works from a source checkout without installed metadata. Other plugins
-(e.g. ``mongo-x-ray-ftdc``) are discovered through the entry-point group.
+Command plugins are registered by ``mongo-x-ray-*`` distributions through the
+``x_ray.plugins`` entry-point group (e.g. ``mongo-x-ray-ftdc``,
+``mongo-x-ray-healthcheck``, ``mongo-x-ray-log``, ``mongo-x-ray-gmd``). There
+are no built-in plugins in the core distribution; every command comes from an
+installed plugin package.
 """
 
 from importlib.metadata import entry_points
 
 from x_ray.plugin import ENTRY_POINT_GROUP, Plugin
-from x_ray.plugins.gmd import GmdPlugin
-from x_ray.plugins.healthcheck import HealthcheckPlugin
-from x_ray.plugins.log import LogPlugin
 
-BUILTIN_PLUGINS = [LogPlugin, GmdPlugin, HealthcheckPlugin]
+BUILTIN_PLUGINS: list[type[Plugin]] = []
 
 
 def discover_plugins() -> dict[str, Plugin]:

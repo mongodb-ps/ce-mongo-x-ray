@@ -25,6 +25,9 @@ class BaseParser(ABC):
     # The default snippet folder matches the healthcheck module, which this
     # base class originated from; each module subclass overrides it.
     TEMPLATE_FOLDER = os.path.join("templates", "healthcheck", "snippets")
+    # The package whose templates/ directory holds this parser's chart
+    # snippets. Core parsers resolve from ``x_ray``; plugins override it.
+    TEMPLATE_PACKAGE = "x_ray"
 
     @abstractmethod
     def parse(self, data: Any, **kwargs) -> list:
@@ -120,7 +123,7 @@ class BaseParser(ABC):
         output += f"let data = {to_json(item.get('data'))};\n"
         file_name = f"{self.__class__.__name__}_{i}.js"
         file_path = os.path.join(self.TEMPLATE_FOLDER, file_name)
-        file_path = get_script_path(file_path)
+        file_path = get_script_path(file_path, package=self.TEMPLATE_PACKAGE)
         if os.path.exists(file_path):
             with open(file_path, "r", encoding="utf-8") as js_file:
                 for line in js_file:

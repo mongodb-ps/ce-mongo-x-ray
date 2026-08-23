@@ -1,1 +1,0 @@
-var cmd_options=document.getElementById("cmd_options"),code=cmd_options.getElementsByTagName("code")[0];hljs.highlightElement(code);

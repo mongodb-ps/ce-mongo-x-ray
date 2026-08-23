@@ -62,23 +62,23 @@ BUILDIN_CONFIG_PATH = "config.json"
 # The script can be started from other working folder. E.g. Invoked by a cron job.
 # This function gives you the base path of the script.
 # If `filename` is provided then the path include the file. Otherwise it's the folder.
-def get_script_path(filename=None):
+def get_script_path(filename=None, package: str = "x_ray"):
     # Check if running in a PyInstaller bundle
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         # Running in a PyInstaller bundle
         base_path = getattr(sys, "_MEIPASS")
         if filename is None:
             return base_path
-        # In PyInstaller, resources are under x_ray/ subdirectory
-        return str(Path(base_path) / "x_ray" / filename)
+        # In PyInstaller, resources are under the package's subdirectory
+        return str(Path(base_path) / package / filename)
 
     # Running in normal Python environment - use importlib.resources
     if filename is None:
         # Return package directory
-        return str(files("x_ray"))
+        return str(files(package))
 
     # Return specific file path
-    resource_path = files("x_ray") / filename
+    resource_path = files(package) / filename
     return str(resource_path)
 
 

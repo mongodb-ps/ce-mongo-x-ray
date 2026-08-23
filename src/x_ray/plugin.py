@@ -86,7 +86,7 @@ def rename_with_hostname(batch_folder: str, framework) -> str:
     """
     if env == "development":
         return batch_folder
-    hostname = framework.hostname
+    hostname = getattr(framework, "hostname", None)
     if hostname is None:
         return batch_folder
     batch_path = Path(batch_folder)
