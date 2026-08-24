@@ -32,7 +32,7 @@ dependencies = [
   "types-Markdown==3.10.2.20260712",
   "MarkupSafe==3.0.3",
   "packaging==26.3",
-  "Pygments==2.20.0",
+  "Pygments==2.21.0",
   "PyYAML==6.0.3",
   "requests==2.34.2",
   "urllib3==2.7.0",
