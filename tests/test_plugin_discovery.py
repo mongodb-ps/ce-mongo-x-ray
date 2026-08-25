@@ -89,3 +89,24 @@ def test_plugin_version_requested_and_version():
     assert _plugin_version_requested(["x-ray", "--version"]) is None
     # --version must come after the subcommand
     assert _plugin_version_requested(["x-ray", "ftdc", "/tmp/data"]) is None
+
+
+def test_local_library_package_is_detected_and_importable(monkeypatch, tmp_path):
+    from mongo_x_ray.plugins import _local_import_packages
+
+    # A library checkout with no plugin.py (like the risk register).
+    pkg = tmp_path / "plugins" / "mongo-x-ray-lib" / "src" / "mongo_x_ray_lib"
+    pkg.mkdir(parents=True)
+    (pkg / "__init__.py").write_text("VALUE = 42\n", encoding="utf-8")
+
+    checkout = tmp_path / "plugins" / "mongo-x-ray-lib"
+    assert [p.name for p in _local_import_packages(checkout)] == ["mongo_x_ray_lib"]
+
+    # discover_plugins() must put the library src on sys.path so other plugins
+    # import the local checkout.
+    monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(tmp_path / "plugins"))
+    discover_plugins()
+
+    import mongo_x_ray_lib  # type: ignore[import-not-found]  # created at runtime in tmp_path
+
+    assert mongo_x_ray_lib.VALUE == 42
