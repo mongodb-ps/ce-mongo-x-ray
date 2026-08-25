@@ -75,3 +75,17 @@ def test_subcommand_alias_resolves_to_plugin():
     # canonical name and unknown names behave as expected
     assert resolve_plugin(plugins, "healthcheck") is plugin
     assert resolve_plugin(plugins, "does-not-exist") is None
+
+
+def test_plugin_version_requested_and_version():
+    from importlib.metadata import version as pkg_version
+
+    from mongo_x_ray.__main__ import _plugin_version_requested
+
+    plugin = _plugin_version_requested(["x-ray", "ftdc", "--version"])
+    assert plugin is not None
+    assert plugin.version() == pkg_version(plugin.distribution)
+    # a bare --version is the core version, not a plugin's
+    assert _plugin_version_requested(["x-ray", "--version"]) is None
+    # --version must come after the subcommand
+    assert _plugin_version_requested(["x-ray", "ftdc", "/tmp/data"]) is None

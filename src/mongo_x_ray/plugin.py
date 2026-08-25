@@ -24,6 +24,8 @@ import shutil
 import webbrowser
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from pathlib import Path
 
 from mongo_x_ray.utils import env, green
@@ -40,6 +42,8 @@ class Plugin(ABC):
     attributes, optionally override :meth:`add_arguments` to declare their
     CLI flags, and implement :meth:`run`. ``aliases`` lists extra subcommand
     names that invoke the same plugin (e.g. ``["hc"]`` for ``healthcheck``).
+    ``distribution`` is the plugin's installed distribution name, used to
+    report its own version via ``x-ray <name> --version``.
     """
 
     name: str = ""
@@ -47,6 +51,7 @@ class Plugin(ABC):
     description: str = ""
     epilog: str = ""
     aliases: list[str] = []
+    distribution: str = ""
 
     def add_arguments(self, parser: argparse.ArgumentParser) -> None:
         """Add this plugin's arguments to its subcommand parser."""
@@ -54,6 +59,13 @@ class Plugin(ABC):
     @abstractmethod
     def run(self, args: argparse.Namespace) -> int:
         """Execute the plugin command and return the process exit code."""
+
+    def version(self) -> str:
+        """Return the installed version of this plugin's distribution."""
+        try:
+            return pkg_version(self.distribution)
+        except PackageNotFoundError:
+            return "development"
 
 
 # --- shared command helpers -------------------------------------------------

@@ -81,6 +81,12 @@ Run 'x-ray <command> --help' for usage and examples of a specific command.
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         plugin.add_arguments(subparser)
+        subparser.add_argument(
+            "--version",
+            dest="plugin_version",
+            action="store_true",
+            help=f"Show the {plugin.name} plugin version and exit.",
+        )
 
     return parser
 
@@ -104,6 +110,33 @@ def resolve_plugin(plugins: dict[str, Plugin], command: str) -> Plugin | None:
     return plugin
 
 
+def _plugin_version_requested(argv: list[str]) -> Plugin | None:
+    """Return the plugin for an ``x-ray <command> ... --version`` invocation.
+
+    This runs before argparse so commands with required positional arguments
+    (e.g. ``ftdc_path``) can still report their version. The ``--version`` flag
+    only counts when it appears *after* the subcommand; a top-level
+    ``-v``/``--version`` before the subcommand still reports the core version.
+    """
+    if "--version" not in argv:
+        return None
+    command: str | None = None
+    i = 1
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-c", "--config"):
+            i += 2
+            continue
+        if arg.startswith("-"):
+            i += 1
+            continue
+        command = arg
+        break
+    if command is None or "--version" not in argv[i + 1 :]:
+        return None
+    return resolve_plugin(discover_plugins(), command)
+
+
 def main():
     _original_excepthook = sys.excepthook
 
@@ -115,26 +148,35 @@ def main():
 
     sys.excepthook = _quiet_excepthook
 
+    # Handle `x-ray <command> --version` before argparse validates the
+    # command's required positional arguments.
+    version_plugin = _plugin_version_requested(sys.argv)
+    if version_plugin is not None:
+        print(version_plugin.version())
+        return 0
+
     parser = setup_parser()
     args = parser.parse_args()
 
-    # Handle --version flag
+    if args.command:
+        plugins = discover_plugins()
+        plugin = resolve_plugin(plugins, args.command)
+        if plugin is None:
+            logger.error("Unknown command: %s", args.command)
+            return 1
+        # x-ray <command> --version shows the plugin's own version.
+        if args.plugin_version:
+            print(plugin.version())
+            return 0
+        if args.quiet:
+            logger.setLevel(logging.FATAL)
+        return plugin.run(args)
+
+    # --version without a command shows the core version.
     if args.version:
         return version_command(args)
 
-    # Require command if --version not specified
-    if not args.command:
-        parser.error("the following arguments are required: command")
-
-    if args.quiet:
-        logger.setLevel(logging.FATAL)
-
-    plugins = discover_plugins()
-    plugin = resolve_plugin(plugins, args.command)
-    if plugin is None:
-        logger.error("Unknown command: %s", args.command)
-        return 1
-    return plugin.run(args)
+    parser.error("the following arguments are required: command")
 
 
 if __name__ == "__main__":
