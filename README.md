@@ -6,39 +6,21 @@
 
 This project aims to create tools for MongoDB analysis and diagnosis.
 
-The core package provides the `x-ray` command-line tool and the shared
-infrastructure (report rendering, plugin discovery, risk register, AI
-client). Every analysis command is provided by an installed plugin:
-
-- [mongo-x-ray-log](https://github.com/zhangyaoxing/mongo-x-ray-log) — MongoDB log analysis (`x-ray log`)
-- [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc) — FTDC analysis (`x-ray ftdc`)
-- [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc) — deployment health check (`x-ray healthcheck` / `x-ray hc`)
-- [mongo-x-ray-gmd](https://github.com/zhangyaoxing/mongo-x-ray-gmd) — getMongoData analysis (`x-ray gmd`)
-
-Install the core together with the plugins you need:
-
-```bash
-pip install mongo-x-ray mongo-x-ray-log mongo-x-ray-ftdc mongo-x-ray-hc mongo-x-ray-gmd
-```
-
-For development, local plugin checkouts can be symlinked under the core's
-`plugins/` folder; a plugin found there takes precedence over the installed
-one, so all components can be developed and tested from a single core
-checkout (see [`plugins/README.md`](plugins/README.md)).
+See [How to Install](#2-how-to-install) below.
 
 ## 1 Compatibility Matrix
 ### 1.1 Log Analysis
-Log analysis requires JSON format logs, which is supported since 4.4.
+Log analysis requires JSON format logs, supported on MongoDB 5.0 and above.
 |  Replica Set  | Sharded Cluster |  Standalone   |
 | :-----------: | :-------------: | :-----------: |
-| >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
+| >=5.0 &check; |  >=5.0 &check;  | >=5.0 &check; |
 
 
 ### 1.2 FTDC Analysis
-Run a basic FTDC analysis.
+Run a basic FTDC analysis, supported on MongoDB 5.0 and above.
 |  Replica Set  | Sharded Cluster |  Standalone   |
 | :-----------: | :-------------: | :-----------: |
-| >=4.4 &check; |  >=4.4 &check;  | >=4.4 &check; |
+| >=5.0 &check; |  >=5.0 &check;  | >=5.0 &check; |
 
 ## 2 How to Install
 ### 2.1 PyPi
@@ -110,14 +92,13 @@ Useful development targets (see `make help`):
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,ftdc}
 ```
-The available subcommands come from the installed `mongo-x-ray-*` plugins;
-run `x-ray --help` to see the exact list in your environment.
+Run `x-ray --help` to see the commands available in your environment.
 | Argument         | Description                                                                                                                                                                                                                                     |        Default         |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |
 | `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                                                                 |          n/a           |
 | `-c`, `--config` | Path to configuration file.                                                                                                                                                                                                                     | Built-in `config.json` |
-| `command`        | Command to run (provided by installed plugins):<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `healthcheck` (`hc`): deployment health check. |          None          |
+| `command`        | Command to run:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `healthcheck` (`hc`): deployment health check. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
