@@ -4,9 +4,27 @@
 [![PyPI](https://img.shields.io/pypi/v/mongo-x-ray.svg)](https://pypi.org/project/mongo-x-ray/)
 
 
-This project aims to create tools for MongoDB analysis and diagnosis. So far the following modules are being built:
-- Log analysis module.
-- FTDC analysis module.
+This project aims to create tools for MongoDB analysis and diagnosis.
+
+The core package provides the `x-ray` command-line tool and the shared
+infrastructure (report rendering, plugin discovery, risk register, AI
+client). Every analysis command is provided by an installed plugin:
+
+- [mongo-x-ray-log](https://github.com/zhangyaoxing/mongo-x-ray-log) — MongoDB log analysis (`x-ray log`)
+- [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc) — FTDC analysis (`x-ray ftdc`)
+- [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc) — deployment health check (`x-ray healthcheck` / `x-ray hc`)
+- [mongo-x-ray-gmd](https://github.com/zhangyaoxing/mongo-x-ray-gmd) — getMongoData analysis (`x-ray gmd`)
+
+Install the core together with the plugins you need:
+
+```bash
+pip install mongo-x-ray mongo-x-ray-log mongo-x-ray-ftdc mongo-x-ray-hc mongo-x-ray-gmd
+```
+
+For development, local plugin checkouts can be symlinked under the core's
+`plugins/` folder; a plugin found there takes precedence over the installed
+one, so all components can be developed and tested from a single core
+checkout (see [`plugins/README.md`](plugins/README.md)).
 
 ## 1 Compatibility Matrix
 ### 1.1 Log Analysis
@@ -83,16 +101,23 @@ python3 -m pip install --upgrade pip
 python3 -m pip install -e ".[dev]"
 ```
 
+Useful development targets (see `make help`):
+- `make unit-test` — run the unit tests in the core and every local plugin checkout under `plugins/`.
+- `make lint` — ruff check + ruff format --check.
+- `make minify` — minify the HTML/JS/CSS templates.
+
 ## 3 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {log,ftdc}
+x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,ftdc}
 ```
+The available subcommands come from the installed `mongo-x-ray-*` plugins;
+run `x-ray --help` to see the exact list in your environment.
 | Argument         | Description                                                                                                                                                                                                                                     |        Default         |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |
 | `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                                                                 |          n/a           |
 | `-c`, `--config` | Path to configuration file.                                                                                                                                                                                                                     | Built-in `config.json` |
-| `command`        | Command to run. Include:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `version`: Show version info. |          None          |
+| `command`        | Command to run (provided by installed plugins):<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `healthcheck` (`hc`): deployment health check. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
