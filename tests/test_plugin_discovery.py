@@ -110,3 +110,13 @@ def test_local_library_package_is_detected_and_importable(monkeypatch, tmp_path)
     import mongo_x_ray_lib  # type: ignore[import-not-found]  # created at runtime in tmp_path
 
     assert mongo_x_ray_lib.VALUE == 42
+
+
+def test_discover_library_plugins_finds_installed_library():
+    from mongo_x_ray.plugins import discover_library_plugins
+
+    library = discover_library_plugins()
+    assert "risk" in library
+    assert "Known-risks" in library["risk"]
+    # command plugins are not library plugins
+    assert not {"ftdc", "log", "gmd", "healthcheck"} & set(library)

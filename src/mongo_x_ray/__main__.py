@@ -15,7 +15,7 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 
 from mongo_x_ray.plugin import Plugin
-from mongo_x_ray.plugins import discover_plugins
+from mongo_x_ray.plugins import discover_library_plugins, discover_plugins
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,12 @@ def setup_parser():
         command_lines = "\n".join(_command_line(name, plugin) for name, plugin in sorted(plugins.items()))
     else:
         command_lines = "  (none - install a mongo-x-ray-* plugin)"
+    epilog = f"Available commands (from the installed mongo-x-ray-* plugins):\n{command_lines}\n"
+    library = discover_library_plugins()
+    if library:
+        library_lines = "\n".join(f"  {name:<14} {description}" for name, description in sorted(library.items()))
+        epilog += f"\nLibrary plugins (no CLI command):\n{library_lines}\n"
+    epilog += "\nRun 'x-ray <command> --help' for usage and examples of a specific command."
     parser = argparse.ArgumentParser(
         prog="x-ray",
         description=(
@@ -39,12 +45,7 @@ def setup_parser():
             "by the mongo-x-ray-* plugins (installed, or local checkouts under "
             "plugins/)."
         ),
-        epilog=f"""
-Available commands (from the installed mongo-x-ray-* plugins):
-{command_lines}
-
-Run 'x-ray <command> --help' for usage and examples of a specific command.
-        """,
+        epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 

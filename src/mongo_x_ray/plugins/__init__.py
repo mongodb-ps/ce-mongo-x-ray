@@ -18,8 +18,9 @@ plugins import the local checkout instead of the installed one.
 import importlib
 import logging
 import os
+import re
 import sys
-from importlib.metadata import entry_points
+from importlib.metadata import Distribution, distributions, entry_points
 from pathlib import Path
 
 from mongo_x_ray.plugin import ENTRY_POINT_GROUP, Plugin
@@ -111,3 +112,58 @@ def discover_plugins() -> dict[str, Plugin]:
         if plugin_cls.name not in plugins:
             plugins[plugin_cls.name] = plugin_cls()
     return plugins
+
+
+def _local_checkout_description(checkout: Path, short: str) -> str:
+    """Best-effort description from a local checkout's pyproject.toml."""
+    pyproject = checkout / "pyproject.toml"
+    if pyproject.is_file():
+        match = re.search(
+            r'^description\s*=\s*"([^"]+)"',
+            pyproject.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        if match:
+            return match.group(1)
+    return short
+
+
+def _dist_metadata(dist: Distribution, key: str, default: str = "") -> str:
+    """Read one ``email.message.Message`` header from a distribution's metadata.
+
+    ``dist.metadata`` is typed as ``PackageMetadata`` which does not declare
+    ``.get()``, so fall back to subscript access and tolerate a missing header.
+    """
+    try:
+        value = dist.metadata[key]
+    except KeyError:
+        return default
+    return value if isinstance(value, str) else default
+
+
+def discover_library_plugins() -> dict[str, str]:
+    """Return library plugins (no CLI command): ``{short_name: description}``.
+
+    Library plugins are ``mongo-x-ray-*`` packages that register no command
+    (e.g. the ``mongo-x-ray-risk`` knowledge base). They are found either
+    installed or as a local checkout under ``plugins/``.
+    """
+    library: dict[str, str] = {}
+    for dist in distributions():
+        name = _dist_metadata(dist, "Name")
+        if not name.startswith("mongo-x-ray-") or name == "mongo-x-ray":
+            continue
+        if any(ep.group == ENTRY_POINT_GROUP for ep in dist.entry_points):
+            continue
+        library[name[len("mongo-x-ray-") :]] = _dist_metadata(dist, "Summary", name)
+
+    local_dir = _plugins_folder()
+    if local_dir.is_dir():
+        for entry in sorted(p for p in local_dir.iterdir() if p.is_dir()):
+            for pkg in _local_import_packages(entry):
+                if (pkg / "plugin.py").is_file():
+                    continue
+                short = pkg.name[len("mongo_x_ray_") :]
+                if short not in library:
+                    library[short] = _local_checkout_description(entry, short)
+    return library
