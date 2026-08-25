@@ -6,39 +6,25 @@
 
 This project aims to create tools for MongoDB analysis and diagnosis.
 
-See [How to Install](#2-how-to-install) below.
+See [How to Install](#1-how-to-install) below.
 
-## 1 Compatibility Matrix
-### 1.1 Log Analysis
-Log analysis requires JSON format logs, supported on MongoDB 5.0 and above.
-|  Replica Set  | Sharded Cluster |  Standalone   |
-| :-----------: | :-------------: | :-----------: |
-| >=5.0 &check; |  >=5.0 &check;  | >=5.0 &check; |
-
-
-### 1.2 FTDC Analysis
-Run a basic FTDC analysis, supported on MongoDB 5.0 and above.
-|  Replica Set  | Sharded Cluster |  Standalone   |
-| :-----------: | :-------------: | :-----------: |
-| >=5.0 &check; |  >=5.0 &check;  | >=5.0 &check; |
-
-## 2 How to Install
-### 2.1 PyPi
-#### 2.1.1 Install with Pip
+## 1 How to Install
+### 1.1 PyPi
+#### 1.1.1 Install with Pip
 The easiest and recommended way to install x-ray is to use `pip`:
 ```bash
 pip install mongo-x-ray
 ```
 
-#### 2.1.2 Build from Source
+#### 1.1.2 Build from Source
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd ce-mongo-x-ray
 pip install .
 ```
 
-### 2.2 PyInstaller
-#### 2.2.1 Prebuilt Binaries
+### 1.2 PyInstaller
+#### 1.2.1 Prebuilt Binaries
 Currently the prebuilt binaries are available on 3 platforms:
 - Ubuntu 22.04 (AMD64)
 - MacOS 14 (ARM64)
@@ -46,7 +32,7 @@ Currently the prebuilt binaries are available on 3 platforms:
 
 Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/releases).
 
-#### 2.2.2 Build from Source
+#### 1.2.2 Build from Source
 x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
@@ -71,7 +57,7 @@ python.exe -m venv .venv
   x-ray
 ```
 
-#### 2.3 For Developers
+#### 1.3 For Developers
 For developers, use `make deps` to prepare venv and dependencies
 ```bash
 make deps
@@ -88,7 +74,7 @@ Useful development targets (see `make help`):
 - `make lint` — ruff check + ruff format --check.
 - `make minify` — minify the HTML/JS/CSS templates.
 
-## 3 Using the Tool
+## 2 Using the Tool
 ```bash
 x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,ftdc}
 ```
