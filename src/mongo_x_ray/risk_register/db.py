@@ -104,14 +104,16 @@ def search_risks(
     for i, doc_id in enumerate(results["ids"][0]):
         meta = results["metadatas"][0][i] if results["metadatas"] else {}
         distance = results["distances"][0][i] if results["distances"] else None
-        entries.append({
-            "id": meta.get("id", doc_id),
-            "risk_level": meta.get("risk_level", ""),
-            "impact": meta.get("impact", ""),
-            "name": meta.get("name", ""),
-            "description": meta.get("description", ""),
-            "distance": distance,
-        })
+        entries.append(
+            {
+                "id": meta.get("id", doc_id),
+                "risk_level": meta.get("risk_level", ""),
+                "impact": meta.get("impact", ""),
+                "name": meta.get("name", ""),
+                "description": meta.get("description", ""),
+                "distance": distance,
+            }
+        )
     return entries
 
 
@@ -173,9 +175,7 @@ def enrich_test_results(test_results: list[dict], max_distance: float = 0.9) -> 
         Number of results that were successfully matched to a risk.
     """
     if _collection_count() == 0:
-        _logger.warning(
-            "\033[33mRisk register is empty — run `x-ray ingest <csv>` first\033[0m"
-        )
+        _logger.warning("\033[33mRisk register is empty — run `x-ray ingest <csv>` first\033[0m")
         return 0
     matched = 0
     for result in test_results:

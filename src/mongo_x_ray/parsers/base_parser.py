@@ -93,9 +93,7 @@ class BaseParser(ABC):
                 if isinstance(cell, tuple):
                     display, sort_value = cell
                     escaped_sort = html_mod.escape(str(sort_value), quote=True)
-                    row_text.append(
-                        f'<span data-sort-value="{escaped_sort}">{display}</span>'
-                    )
+                    row_text.append(f'<span data-sort-value="{escaped_sort}">{display}</span>')
                 else:
                     row_text.append(str(cell))
             output += f"|{'|'.join(row_text)}|\n"

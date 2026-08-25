@@ -29,9 +29,7 @@ def setup_parser():
         return f"  {label:<20} {plugin.help}"
 
     if plugins:
-        command_lines = "\n".join(
-            _command_line(name, plugin) for name, plugin in sorted(plugins.items())
-        )
+        command_lines = "\n".join(_command_line(name, plugin) for name, plugin in sorted(plugins.items()))
     else:
         command_lines = "  (none - install a mongo-x-ray-* plugin)"
     parser = argparse.ArgumentParser(

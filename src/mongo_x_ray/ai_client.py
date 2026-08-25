@@ -159,16 +159,18 @@ def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
         prompt_parts.append(f"- Values: {json.dumps(values)}")
         prompt_parts.append("")
 
-    prompt_parts.extend([
-        "Look across ALL the above metrics and provide a brief overview " +
-        "(2-3 sentences) of any correlations or relationships between " +
-        "metrics from different sections. For example:",
-        "- Does high workload correlate with increased latency?",
-        "- Does CPU or memory pressure coincide with cache changes?",
-        "- Are there any cascading effects visible across sections?",
-        "",
-        "If no notable cross-section patterns are found, simply state that.",
-    ])
+    prompt_parts.extend(
+        [
+            "Look across ALL the above metrics and provide a brief overview "
+            + "(2-3 sentences) of any correlations or relationships between "
+            + "metrics from different sections. For example:",
+            "- Does high workload correlate with increased latency?",
+            "- Does CPU or memory pressure coincide with cache changes?",
+            "- Are there any cascading effects visible across sections?",
+            "",
+            "If no notable cross-section patterns are found, simply state that.",
+        ]
+    )
 
     prompt = "\n".join(prompt_parts)
     _logger.info(

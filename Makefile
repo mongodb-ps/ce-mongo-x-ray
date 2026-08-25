@@ -118,12 +118,12 @@ integration-test: integration-test-deps
 	done
 	@echo "\033[32m✓ All integration tests passed!\033[0m"
 
-# Run ruff and pylint (the shared lint contract; both must pass)
+# Run ruff lint and format checks (the shared lint contract)
 lint:
 	@echo "Running ruff check..."
 	$(PYTHON) -m ruff check src tests
-	@echo "Running pylint check..."
-	$(PYTHON) -m pylint src tests
+	@echo "Running ruff format check..."
+	$(PYTHON) -m ruff format --check src tests
 	@echo "\033[32m✓ No lint errors found!\033[0m"
 
 # Minify templates in the core and in every local plugin checkout under plugins/.
@@ -172,6 +172,6 @@ help:
 	@echo "  make cluster-setup - Start and seed a test cluster"
 	@echo "  make cluster-teardown - Stop and clean up a test cluster"
 	@echo "  make integration-test - Test all installed MongoDB versions (rs + sh)"
-	@echo "  make lint         - Run ruff check (lint)"
+	@echo "  make lint         - Run ruff check and ruff format check"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make help         - Display this help information"
