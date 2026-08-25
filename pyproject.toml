@@ -111,6 +111,13 @@ ignore = ["E501"]
 pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
+extraPaths = [
+  "src",
+  "plugins/mongo-x-ray-ftdc/src",
+  "plugins/mongo-x-ray-log/src",
+  "plugins/mongo-x-ray-gmd/src",
+  "plugins/mongo-x-ray-hc/src",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

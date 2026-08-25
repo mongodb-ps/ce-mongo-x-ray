@@ -1,13 +1,6 @@
 {
     "makefile.configureOnOpen": false,
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/src",
-        "${workspaceFolder}/plugins/mongo-x-ray-ftdc/src",
-        "${workspaceFolder}/plugins/mongo-x-ray-log/src",
-        "${workspaceFolder}/plugins/mongo-x-ray-gmd/src",
-        "${workspaceFolder}/plugins/mongo-x-ray-hc/src"
-    ],
     "ruff.format": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
