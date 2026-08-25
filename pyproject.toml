@@ -110,6 +110,7 @@ ignore = ["E501"]
 pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
+typeCheckingMode = "basic"
 extraPaths = [
   "src",
   "plugins/mongo-x-ray-ftdc/src",

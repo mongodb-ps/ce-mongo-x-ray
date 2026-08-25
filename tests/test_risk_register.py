@@ -136,8 +136,12 @@ def test_ingest_and_two_stage_search(tmp_path, monkeypatch):
     assert desc_col.count() == 2  # R3 has no Risk Description
 
     # Stage 1: title matches risk Name.
-    assert db.match_risk("Replication Lag")["id"] == "R1"
-    assert db.match_risk("Missing Index")["id"] == "R2"
+    title_risk = db.match_risk("Replication Lag")
+    assert title_risk is not None
+    assert title_risk["id"] == "R1"
+    index_risk = db.match_risk("Missing Index")
+    assert index_risk is not None
+    assert index_risk["id"] == "R2"
 
     # Stage 2: Name misses, the same title matches Risk Description.
     risk = db.match_risk("the secondary's oplog application falls behind the primary")

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import Any, Mapping, Optional
 
 from mongo_x_ray.risk_register.shared import (
     CHROMA_COLLECTION,
@@ -51,10 +51,10 @@ def ingest_risks(risks: list[Risk]) -> int:
 
     name_ids: list[str] = []
     name_documents: list[str] = []
-    name_metadatas: list[dict] = []
+    name_metadatas: list[Mapping[str, Any]] = []
     desc_ids: list[str] = []
     desc_documents: list[str] = []
-    desc_metadatas: list[dict] = []
+    desc_metadatas: list[Mapping[str, Any]] = []
 
     for risk in risks:
         metadata = {

@@ -76,7 +76,7 @@ class BaseFramework(ABC):
 
         html_file = batch_folder / "report.html"
         if fmt in {"html", "pdf"}:
-            template_root = files(self.template_package) / "templates"
+            template_root = Path(str(files(self.template_package) / "templates"))
             default_template = f"{self.template_module}/full.html"
             template_file = template_root / self._config.get("template", default_template)
             html_content = markdown.markdown(

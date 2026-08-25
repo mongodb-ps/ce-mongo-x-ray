@@ -5,18 +5,10 @@ from __future__ import annotations
 import json
 import logging
 import os
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openai import OpenAI
-
-
-class _MetricData(TypedDict):
-    metric: str
-    unit: str
-    peak: float
-    average: float
-    values: list[float]
 
 
 _logger = logging.getLogger(__name__)
@@ -24,27 +16,24 @@ _logger = logging.getLogger(__name__)
 _AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")
 
 
-def _get_client() -> tuple[OpenAI | None, str | None]:
+def _get_client() -> tuple[OpenAI | None, str]:
     """Return an OpenAI client if the API key is configured, or None."""
     api_key = os.getenv("OPENAI_API_KEY", "")
     if not api_key:
         _logger.warning("OPENAI_API_KEY not set; AI analysis disabled")
-        return None, None
+        return None, _AI_MODEL
     base_url = os.getenv("OPENAI_BASE_URL", "")
     try:
         from openai import OpenAI
     except ImportError:
         _logger.warning("openai package not installed; AI analysis disabled")
-        return None, None
-    kwargs = {"api_key": api_key}
-    if base_url:
-        kwargs["base_url"] = base_url
-    return OpenAI(**kwargs), _AI_MODEL
+        return None, _AI_MODEL
+    return OpenAI(api_key=api_key, base_url=base_url or None), _AI_MODEL
 
 
 def analyze_ftdc_section(
     section_title: str,
-    metrics_data: list[_MetricData],
+    metrics_data: list[dict[str, object]],
 ) -> str | None:
     """Send a section's FTDC metrics to the AI for analysis.
 
@@ -82,7 +71,7 @@ def analyze_ftdc_section(
         return None
 
 
-def _build_section_prompt(section_title: str, metrics_data: list[_MetricData]) -> str:
+def _build_section_prompt(section_title: str, metrics_data: list[dict[str, object]]) -> str:
     """Build the prompt for a single FTDC section."""
     parts = [
         "You are analyzing MongoDB FTDC (Full-Time Diagnostic Data Capture) "
@@ -121,7 +110,7 @@ def _build_section_prompt(section_title: str, metrics_data: list[_MetricData]) -
     return "\n".join(parts)
 
 
-def analyze_ftdc_overview(metrics_data: list[_MetricData]) -> str | None:
+def analyze_ftdc_overview(metrics_data: list[dict[str, object]]) -> str | None:
     """Send all metrics from all sections to AI for cross-section correlation analysis.
 
     Args:
