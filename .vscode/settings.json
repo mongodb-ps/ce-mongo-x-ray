@@ -8,9 +8,12 @@
         "${workspaceFolder}/plugins/mongo-x-ray-gmd/src",
         "${workspaceFolder}/plugins/mongo-x-ray-hc/src"
     ],
-    "ruff.lint.run": "onSave",
     "ruff.format": true,
     "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.ruff": "explicit",
+        "source.organizeImports.ruff": "explicit"
+    },
     "python.testing.pytestEnabled": true,
     "python.testing.pytestPath": "${workspaceFolder}/.venv/bin/pytest",
     "python.testing.pytestArgs": [
