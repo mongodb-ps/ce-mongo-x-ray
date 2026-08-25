@@ -10,9 +10,11 @@ For development a ``plugins/`` folder next to the core package can hold local
 checkouts (symlinks or clones of the plugin repositories). Plugins found there
 are preferred over installed entry-point plugins with the same name, so all
 components can be developed and tested from a single core checkout. Library
-plugins without a CLI command (e.g. the ``mongo-x-ray-risk`` knowledge base)
-are detected the same way: their ``src/`` is put on ``sys.path`` so the other
-plugins import the local checkout instead of the installed one.
+plugins without a CLI command are detected the same way: their ``src/`` is put
+on ``sys.path`` so the other plugins import the local checkout instead of the
+installed one. (``mongo-x-ray-risk`` is a hybrid: it ships the ``ingest``
+command while the analysis plugins still import it as a library for risk
+enrichment.)
 """
 
 import importlib
@@ -79,7 +81,7 @@ def discover_plugins() -> dict[str, Plugin]:
 
     Local checkouts under ``plugins/`` take precedence over installed
     entry-point plugins with the same name. Library packages without a CLI
-    command (e.g. the risk register) are detected and put on ``sys.path`` too.
+    command (e.g. a knowledge base) are detected and put on ``sys.path`` too.
     """
     plugins: dict[str, Plugin] = {}
     for plugin_cls in BUILTIN_PLUGINS:
@@ -145,7 +147,7 @@ def discover_library_plugins() -> dict[str, str]:
     """Return library plugins (no CLI command): ``{short_name: description}``.
 
     Library plugins are ``mongo-x-ray-*`` packages that register no command
-    (e.g. the ``mongo-x-ray-risk`` knowledge base). They are found either
+    in the ``mongo_x_ray.plugins`` entry-point group. They are found either
     installed or as a local checkout under ``plugins/``.
     """
     library: dict[str, str] = {}

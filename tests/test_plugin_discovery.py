@@ -1,5 +1,7 @@
 """Tests for command plugin discovery and the dev plugins/ override."""
 
+import pytest
+
 from mongo_x_ray.plugins import _load_local_plugin, _plugins_folder, discover_plugins
 
 # The fake plugin modules created in tmp folders are dynamic by design.
@@ -112,11 +114,42 @@ def test_local_library_package_is_detected_and_importable(monkeypatch, tmp_path)
     assert mongo_x_ray_lib.VALUE == 42
 
 
-def test_discover_library_plugins_finds_installed_library():
-    from mongo_x_ray.plugins import discover_library_plugins
+def test_discover_library_plugins_lists_only_commandless_packages(monkeypatch, tmp_path):
+    from types import SimpleNamespace
 
-    library = discover_library_plugins()
-    assert "risk" in library
-    assert "Known-risks" in library["risk"]
-    # command plugins are not library plugins
-    assert not {"ftdc", "log", "gmd", "healthcheck"} & set(library)
+    from mongo_x_ray import plugins as plugins_mod
+    from mongo_x_ray.plugin import ENTRY_POINT_GROUP
+
+    class FakeDist:
+        def __init__(self, name, summary, has_command=False):
+            self.metadata = {"Name": name, "Summary": summary}
+            self.entry_points = [SimpleNamespace(group=ENTRY_POINT_GROUP)] if has_command else []
+
+    fake_dists = [
+        FakeDist("mongo-x-ray", "MongoDB analysis and diagnostics"),
+        FakeDist("mongo-x-ray-ftdc", "FTDC analysis plugin for x-ray", has_command=True),
+        FakeDist(
+            "mongo-x-ray-risk",
+            "Known-risks knowledge base (ChromaDB vector search) for x-ray",
+            has_command=True,  # the risk register ships the ingest command
+        ),
+        FakeDist("mongo-x-ray-lib", "A pure library plugin"),
+        FakeDist("unrelated-pkg", "Not an x-ray plugin"),
+    ]
+    monkeypatch.setattr(plugins_mod, "distributions", lambda: fake_dists)
+    monkeypatch.setattr(plugins_mod, "_plugins_folder", lambda: tmp_path)
+
+    library = plugins_mod.discover_library_plugins()
+    # command plugins (including the risk register's ingest) are not library plugins
+    assert library == {"lib": "A pure library plugin"}
+
+
+def test_risk_ingest_command_is_discovered():
+    pytest.importorskip("mongo_x_ray_risk")
+
+    from mongo_x_ray.plugins import discover_plugins
+
+    plugins = discover_plugins()
+    assert "ingest" in plugins
+    assert plugins["ingest"].distribution == "mongo-x-ray-risk"
+    assert "CSV" in plugins["ingest"].help
