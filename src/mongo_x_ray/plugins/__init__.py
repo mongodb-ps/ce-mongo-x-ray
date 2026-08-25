@@ -52,7 +52,7 @@ def _load_local_plugin(package_dir: Path) -> type[Plugin] | None:
             sys.path.insert(0, str(src_dir))
         try:
             module = importlib.import_module(f"{candidate.name}.plugin")
-        except Exception as exc:  # pylint: disable=broad-exception-caught
+        except Exception as exc:
             logger.warning("Skipping plugin checkout %s: %s", candidate, exc)
             continue
         for attr in dir(module):

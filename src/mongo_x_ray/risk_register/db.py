@@ -22,8 +22,8 @@ def _collection(collection_name: str = CHROMA_COLLECTION):
     """Return an initialized ChromaDB collection (lazy singleton)."""
     # Import chromadb lazily so importing this module stays cheap and the risk
     # register remains an optional best-effort enrichment.
-    import chromadb  # pylint: disable=import-outside-toplevel
-    from chromadb.config import Settings  # pylint: disable=import-outside-toplevel
+    import chromadb
+    from chromadb.config import Settings
 
     db_path = get_db_path() / "chroma"
     db_path.mkdir(parents=True, exist_ok=True)

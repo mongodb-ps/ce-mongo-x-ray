@@ -128,7 +128,7 @@ def sample_rate(value: str) -> float:
 
 def open_report(framework, output_folder: str, fmt: str, no_browser: bool) -> None:
     """Rename the batch folder with the hostname and open the report in a browser."""
-    batch_folder = str(framework._get_output_folder(output_folder))  # pylint: disable=protected-access
+    batch_folder = str(framework._get_output_folder(output_folder))
     final_folder = rename_with_hostname(batch_folder, framework)
     if fmt in {"html", "pdf"} and not no_browser:
         html_file = Path(final_folder) / "report.html"

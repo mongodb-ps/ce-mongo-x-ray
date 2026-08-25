@@ -3,7 +3,6 @@
 from mongo_x_ray.plugins import _load_local_plugin, _plugins_folder, discover_plugins
 
 # The fake plugin modules created in tmp folders are dynamic by design.
-# pylint: disable=import-outside-toplevel
 
 
 def _make_local_plugin(root, checkout_name, plugin_name):

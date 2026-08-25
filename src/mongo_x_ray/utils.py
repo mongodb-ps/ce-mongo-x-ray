@@ -16,7 +16,6 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 
 # The env-var guard above must run before the heavy imports below, so this
 # import block is intentionally not at the top of the module.
-# pylint: disable=wrong-import-position
 import hashlib
 import json
 import logging
@@ -45,7 +44,7 @@ try:
 except ImportError:
     pass  # python-dotenv is optional; .env loading is skipped if unavailable
 
-levels = logging._nameToLevel  # pylint: disable=protected-access
+levels = logging._nameToLevel
 level = os.getenv("LOG_LEVEL", "INFO")
 env = os.getenv("ENV", "production")
 ai_key = os.getenv("OPENAI_API_KEY", "")
@@ -88,7 +87,7 @@ def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None
     # dependencies.
     logging.getLogger("weasyprint").setLevel(logging.ERROR)
     logging.getLogger("fontTools.subset").setLevel(logging.WARNING)
-    from weasyprint import HTML  # pylint: disable=import-outside-toplevel
+    from weasyprint import HTML
 
     html_path = Path(html_file)
     HTML(filename=str(html_path), base_url=str(html_path.parent)).write_pdf(str(pdf_file))

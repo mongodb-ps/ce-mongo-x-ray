@@ -164,5 +164,5 @@ class TableWidthExtension(TableExtension):
 
 
 # markdown's Extension API requires this exact method name.
-def makeExtension(**kwargs):  # pylint: disable=invalid-name
+def makeExtension(**kwargs):
     return TableWidthExtension(**kwargs)
