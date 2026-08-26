@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test unit-test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
+.PHONY: build clean deps plugin-deps test unit-test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
@@ -35,6 +35,18 @@ deps:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install -e ".[dev]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
+
+# Install the mongo-x-ray-* plugins into the venv so the PyInstaller build
+# bundles them into the binary (a frozen app cannot see site-packages).
+plugin-deps:
+	@echo "Installing mongo-x-ray-* plugins..."
+	$(PYTHON) -m pip install \
+		mongo-x-ray-ftdc@git+https://github.com/zhangyaoxing/mongo-x-ray-ftdc.git@main \
+		mongo-x-ray-log@git+https://github.com/zhangyaoxing/mongo-x-ray-log.git@main \
+		mongo-x-ray-gmd@git+https://github.com/zhangyaoxing/mongo-x-ray-gmd.git@main \
+		mongo-x-ray-hc@git+https://github.com/zhangyaoxing/mongo-x-ray-hc.git@main \
+		mongo-x-ray-risk@git+https://github.com/zhangyaoxing/mongo-x-ray-risk.git@main
+	@echo "\033[32m✓ Plugins installed\033[0m"
 
 # Build executable
 build:
@@ -165,7 +177,8 @@ help:
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
-	@echo "  make build        - Build executable"
+	@echo "  make plugin-deps  - Install the mongo-x-ray-* plugins (from git) for the build"
+	@echo "  make build        - Build executable (bundles installed plugins)"
 	@echo "  make minify       - Minify HTML/JS templates (core + plugins/)"
 	@echo "  make unit-test    - Run unit tests (core + plugins/)"
 	@echo "  make test         - Alias for unit-test"
