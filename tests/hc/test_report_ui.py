@@ -178,4 +178,3 @@ def test_charts_rendered(page):
         ".every(c => c.clientWidth > 0)"
     )
     assert page.locator("canvas").count() >= 1
-

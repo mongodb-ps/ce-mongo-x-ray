@@ -212,4 +212,3 @@ def test_architecture_sections_differ(report_html, page):
             assert count >= 1, f"{title} should contain a table"
         else:
             assert count == 0, f"{title} should be empty"
-

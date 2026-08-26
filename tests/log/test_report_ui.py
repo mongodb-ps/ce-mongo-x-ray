@@ -193,4 +193,3 @@ def test_wef_anchor_reveals_sample(page):
     after = sample_code.inner_text()
     assert after != before
     assert '"id"' in after and '"msg"' in after
-

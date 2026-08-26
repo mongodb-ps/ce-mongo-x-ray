@@ -175,4 +175,3 @@ def test_code_highlighting_applied(page):
     # so wait for the highlight class to be attached rather than visible.
     page.wait_for_selector("code.hljs", state="attached")
     assert page.locator("code.hljs").count() >= 1
-
