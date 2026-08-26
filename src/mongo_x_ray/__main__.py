@@ -24,20 +24,17 @@ def setup_parser():
     """Build the command-line parser from the discovered command plugins."""
     plugins = discover_plugins()
 
-    def _command_line(name, plugin):
-        label = name if not plugin.aliases else f"{name} ({', '.join(plugin.aliases)})"
-        return f"  {label:<20} {plugin.help}"
-
-    if plugins:
-        command_lines = "\n".join(_command_line(name, plugin) for name, plugin in sorted(plugins.items()))
-    else:
-        command_lines = "  (none - install a mongo-x-ray-* plugin)"
-    epilog = f"Available commands (from the installed mongo-x-ray-* plugins):\n{command_lines}\n"
+    # The subcommands (and their names/aliases) are already listed by argparse
+    # in the positional arguments section, so the epilog only adds the library
+    # plugins and a pointer to per-command help.
+    epilog = ""
+    if not plugins:
+        epilog += "No plugins installed. Install a mongo-x-ray-* plugin to enable commands.\n"
     library = discover_library_plugins()
     if library:
         library_lines = "\n".join(f"  {name:<14} {description}" for name, description in sorted(library.items()))
-        epilog += f"\nLibrary plugins (no CLI command):\n{library_lines}\n"
-    epilog += "\nRun 'x-ray <command> --help' for usage and examples of a specific command."
+        epilog += f"Library plugins (no CLI command):\n{library_lines}\n"
+    epilog += "Run 'x-ray <command> --help' for usage and examples of a specific command."
     parser = argparse.ArgumentParser(
         prog="x-ray",
         description=(
