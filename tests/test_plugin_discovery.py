@@ -297,3 +297,76 @@ def test_local_checkout_egg_info_dist_is_ignored(monkeypatch, tmp_path, caplog):
     # trust warning: it is the same code as the (trusted) local checkout.
     assert "ftdc" not in plugins
     assert "Skipping untrusted" not in caplog.text
+
+
+def test_frozen_discovery_skips_local_scan_and_trust_gate(monkeypatch, tmp_path, caplog):
+    import sys
+    from types import SimpleNamespace
+
+    from mongo_x_ray import plugins as plugins_mod
+    from mongo_x_ray.plugin import ENTRY_POINT_GROUP, Plugin
+
+    class EvilPlugin(Plugin):
+        name = "evil"
+        help = "bundled"
+
+        def run(self, args):
+            return 0
+
+    class FakeDist:
+        def __init__(self, name):
+            self.metadata = {"Name": name, "Summary": "x"}
+            self.entry_points = [SimpleNamespace(group=ENTRY_POINT_GROUP, name="evil", load=lambda: EvilPlugin)]
+
+        def read_text(self, filename):
+            raise FileNotFoundError(filename)
+
+    # A local checkout that must NOT be scanned when frozen.
+    checkout = tmp_path / "plugins" / "mongo-x-ray-demo"
+    pkg = checkout / "src" / "mongo_x_ray_demo"
+    pkg.mkdir(parents=True)
+    (pkg / "plugin.py").write_text(
+        "from mongo_x_ray.plugin import Plugin\n"
+        "class LocalPlugin(Plugin):\n"
+        "    name = 'local'\n"
+        "    def run(self, args):\n"
+        "        return 0\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(plugins_mod, "_distributions", lambda: [FakeDist("mongo-x-ray-evil")])
+    monkeypatch.setattr(plugins_mod, "_plugins_folder", lambda: tmp_path / "plugins")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+
+    plugins = plugins_mod.discover_plugins()
+    # Bundled entry points are trusted without an origin check...
+    assert "evil" in plugins
+    # ...and the local checkout scan is skipped entirely.
+    assert "local" not in plugins
+    assert "Skipping untrusted" not in caplog.text
+
+
+def test_frozen_library_discovery_trusts_bundled(monkeypatch, tmp_path, caplog):
+    import sys
+
+    from mongo_x_ray import plugins as plugins_mod
+
+    class FakeDist:
+        def __init__(self, name, summary):
+            self.metadata = {"Name": name, "Summary": summary}
+            self.entry_points = []
+
+        def read_text(self, filename):
+            raise FileNotFoundError(filename)
+
+    monkeypatch.setattr(
+        plugins_mod,
+        "_distributions",
+        lambda: [FakeDist("mongo-x-ray-lib", "A pure library plugin")],
+    )
+    monkeypatch.setattr(plugins_mod, "_plugins_folder", lambda: tmp_path)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+
+    library = plugins_mod.discover_library_plugins()
+    assert library == {"lib": "A pure library plugin"}
+    assert "Untrusted library plugin" not in caplog.text

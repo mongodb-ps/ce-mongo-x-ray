@@ -180,6 +180,22 @@ def _dist_from_local_checkout(dist: Distribution, checkout_srcs: list[Path]) -> 
     return any(located == src or located.is_relative_to(src) for src in checkout_srcs)
 
 
+def _distributions() -> list[Distribution]:
+    """Return the distributions to scan for plugins.
+
+    Outside a frozen binary this scans ``sys.path`` (installed packages). In a
+    frozen binary only the bundle directory (``sys._MEIPASS``) is scanned, so
+    external site-packages and PYTHONPATH entries are never consulted — the
+    binary only ever uses the plugins that were bundled at build time.
+    """
+    if getattr(sys, "frozen", False):
+        bundle = getattr(sys, "_MEIPASS", None)
+        if not bundle:
+            return []
+        return list(distributions(path=[bundle]))
+    return list(distributions())
+
+
 def discover_plugins() -> dict[str, Plugin]:
     """Return the command plugins keyed by subcommand name.
 
@@ -188,47 +204,55 @@ def discover_plugins() -> dict[str, Plugin]:
     command (e.g. a knowledge base) are detected and put on ``sys.path`` too.
     Installed entry points are gated on a trusted install origin *before*
     import, so untrusted distributions are skipped without executing them.
+
+    In a frozen binary (PyInstaller) the local checkout scan and the trust
+    gate are skipped: the binary cannot see site-packages, so discovery only
+    ever sees the plugins that were bundled at build time, and whatever was
+    bundled is trusted by definition.
     """
+    frozen = bool(getattr(sys, "frozen", False))
     plugins: dict[str, Plugin] = {}
     for plugin_cls in BUILTIN_PLUGINS:
         plugins[plugin_cls.name] = plugin_cls()
 
-    local_dir = _plugins_folder()
-    if local_dir.is_dir():
-        checkouts = sorted(entry for entry in local_dir.iterdir() if entry.is_dir())
-        # Put every local checkout's src/ on sys.path before importing any of
-        # them, so plugins can import sibling local plugins (including library
-        # plugins such as the risk register) regardless of the folder scan
-        # order (e.g. gmd depends on hc but sorts before it).
-        for entry in checkouts:
-            src_dir = entry / "src"
-            if src_dir.is_dir() and str(src_dir) not in sys.path:
-                sys.path.insert(0, str(src_dir))
-        # Report detected library packages (no plugin.py) as local checkouts too.
-        for entry in checkouts:
-            for pkg in _local_import_packages(entry):
-                if not (pkg / "plugin.py").is_file():
-                    logger.debug("Using local library package %r from %s", pkg.name, entry)
-        for entry in checkouts:
-            plugin_cls = _load_local_plugin(entry)
-            if plugin_cls is not None:
-                logger.debug("Using local plugin %r from %s", plugin_cls.name, entry)
-                plugins[plugin_cls.name] = plugin_cls()
+    if not frozen:
+        local_dir = _plugins_folder()
+        if local_dir.is_dir():
+            checkouts = sorted(entry for entry in local_dir.iterdir() if entry.is_dir())
+            # Put every local checkout's src/ on sys.path before importing any of
+            # them, so plugins can import sibling local plugins (including library
+            # plugins such as the risk register) regardless of the folder scan
+            # order (e.g. gmd depends on hc but sorts before it).
+            for entry in checkouts:
+                src_dir = entry / "src"
+                if src_dir.is_dir() and str(src_dir) not in sys.path:
+                    sys.path.insert(0, str(src_dir))
+            # Report detected library packages (no plugin.py) as local checkouts too.
+            for entry in checkouts:
+                for pkg in _local_import_packages(entry):
+                    if not (pkg / "plugin.py").is_file():
+                        logger.debug("Using local library package %r from %s", pkg.name, entry)
+            for entry in checkouts:
+                plugin_cls = _load_local_plugin(entry)
+                if plugin_cls is not None:
+                    logger.debug("Using local plugin %r from %s", plugin_cls.name, entry)
+                    plugins[plugin_cls.name] = plugin_cls()
 
     # Installed entry-point plugins, gated on a trusted install origin so that
     # untrusted code is never imported. Build artifacts of the local checkouts
     # (src/*.egg-info) are ignored — they are the same code, already loaded
-    # through the trusted local path above.
-    checkout_srcs = _local_checkout_srcs()
-    for dist in distributions():
-        if _dist_from_local_checkout(dist, checkout_srcs):
+    # through the trusted local path above. In a frozen binary the gate is
+    # skipped: only bundled plugins are visible and they are trusted.
+    checkout_srcs = [] if frozen else _local_checkout_srcs()
+    for dist in _distributions():
+        if not frozen and _dist_from_local_checkout(dist, checkout_srcs):
             continue
         dist_name = _dist_metadata(dist, "Name")
         origin = _dist_origin(dist)
         for ep in dist.entry_points:
             if ep.group != ENTRY_POINT_GROUP:
                 continue
-            if not _is_trusted(dist_name, origin):
+            if not frozen and not _is_trusted(dist_name, origin):
                 logger.warning(
                     yellow("Skipping untrusted plugin %r (%s from %s) — set %s=1 to allow"),
                     ep.name,
@@ -275,35 +299,39 @@ def discover_library_plugins() -> dict[str, str]:
 
     Library plugins are ``mongo-x-ray-*`` packages that register no command
     in the ``mongo_x_ray.plugins`` entry-point group. They are found either
-    installed or as a local checkout under ``plugins/``.
+    installed or as a local checkout under ``plugins/``. In a frozen binary
+    only bundled plugins are visible and the trust/local scans are skipped.
     """
     library: dict[str, str] = {}
-    checkout_srcs = _local_checkout_srcs()
-    for dist in distributions():
-        if _dist_from_local_checkout(dist, checkout_srcs):
+    frozen = bool(getattr(sys, "frozen", False))
+    checkout_srcs = [] if frozen else _local_checkout_srcs()
+    for dist in _distributions():
+        if not frozen and _dist_from_local_checkout(dist, checkout_srcs):
             continue
         name = _dist_metadata(dist, "Name")
         if not name.startswith("mongo-x-ray-") or name == "mongo-x-ray":
             continue
         if any(ep.group == ENTRY_POINT_GROUP for ep in dist.entry_points):
             continue
-        origin = _dist_origin(dist)
-        if not _is_trusted(name, origin):
-            logger.warning(
-                yellow("Untrusted library plugin %r (%s) — set %s=1 to allow"),
-                name,
-                origin,
-                TRUST_ALL_ENV,
-            )
+        if not frozen:
+            origin = _dist_origin(dist)
+            if not _is_trusted(name, origin):
+                logger.warning(
+                    yellow("Untrusted library plugin %r (%s) — set %s=1 to allow"),
+                    name,
+                    origin,
+                    TRUST_ALL_ENV,
+                )
         library[name[len("mongo-x-ray-") :]] = _dist_metadata(dist, "Summary", name)
 
-    local_dir = _plugins_folder()
-    if local_dir.is_dir():
-        for entry in sorted(p for p in local_dir.iterdir() if p.is_dir()):
-            for pkg in _local_import_packages(entry):
-                if (pkg / "plugin.py").is_file():
-                    continue
-                short = pkg.name[len("mongo_x_ray_") :]
-                if short not in library:
-                    library[short] = _local_checkout_description(entry, short)
+    if not frozen:
+        local_dir = _plugins_folder()
+        if local_dir.is_dir():
+            for entry in sorted(p for p in local_dir.iterdir() if p.is_dir()):
+                for pkg in _local_import_packages(entry):
+                    if (pkg / "plugin.py").is_file():
+                        continue
+                    short = pkg.name[len("mongo_x_ray_") :]
+                    if short not in library:
+                        library[short] = _local_checkout_description(entry, short)
     return library
