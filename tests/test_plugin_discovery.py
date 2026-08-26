@@ -2,7 +2,7 @@
 
 import pytest
 
-from mongo_x_ray.plugins import _load_local_plugin, _plugins_folder, discover_plugins
+from mongo_x_ray.plugins import _load_local_plugins, _plugins_folder, discover_plugins
 
 # The fake plugin modules created in tmp folders are dynamic by design.
 
@@ -38,7 +38,7 @@ def test_plugins_folder_defaults_to_core_repo_plugins():
 def test_load_local_plugin_skips_dirs_without_src(tmp_path):
     root = tmp_path / "plugins"
     (root / "not-a-plugin").mkdir(parents=True)
-    assert _load_local_plugin(root / "not-a-plugin") is None
+    assert _load_local_plugins(root / "not-a-plugin") == []
 
 
 def test_local_plugin_is_discovered(monkeypatch, tmp_path):
@@ -46,6 +46,27 @@ def test_local_plugin_is_discovered(monkeypatch, tmp_path):
     monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(tmp_path / "plugins"))
     plugins = discover_plugins()
     assert plugins["demo"].name == "demo"
+
+
+def test_local_checkout_with_multiple_plugins_registers_all(monkeypatch, tmp_path):
+    checkout = tmp_path / "plugins" / "mongo-x-ray-multi"
+    pkg = checkout / "src" / "mongo_x_ray_multi"
+    pkg.mkdir(parents=True)
+    (pkg / "plugin.py").write_text(
+        "from mongo_x_ray.plugin import Plugin\n"
+        "class FirstPlugin(Plugin):\n"
+        "    name = 'first'\n"
+        "    def run(self, args):\n"
+        "        return 0\n"
+        "class SecondPlugin(Plugin):\n"
+        "    name = 'second'\n"
+        "    def run(self, args):\n"
+        "        return 0\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(tmp_path / "plugins"))
+    plugins = discover_plugins()
+    assert {"first", "second"} <= set(plugins)
 
 
 def test_local_plugin_overrides_installed(monkeypatch, tmp_path):

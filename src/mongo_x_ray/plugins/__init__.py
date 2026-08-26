@@ -83,8 +83,14 @@ def _local_import_packages(package_dir: Path) -> list[Path]:
     ]
 
 
-def _load_local_plugin(package_dir: Path) -> type[Plugin] | None:
-    """Import a command plugin from a local checkout and return its Plugin class."""
+def _load_local_plugins(package_dir: Path) -> list[type[Plugin]]:
+    """Import the command plugins from a local checkout.
+
+    Returns every ``Plugin`` subclass found in the checkout's ``plugin.py``
+    module(s) — a checkout may ship several commands (e.g. the risk
+    register's ``ingest`` and ``search``).
+    """
+    found: list[type[Plugin]] = []
     for candidate in _local_import_packages(package_dir):
         if not (candidate / "plugin.py").is_file():
             continue
@@ -99,8 +105,8 @@ def _load_local_plugin(package_dir: Path) -> type[Plugin] | None:
         for attr in dir(module):
             obj = getattr(module, attr)
             if isinstance(obj, type) and issubclass(obj, Plugin) and obj is not Plugin:
-                return obj
-    return None
+                found.append(obj)
+    return found
 
 
 def _dist_origin(dist: Distribution) -> str:
@@ -233,8 +239,7 @@ def discover_plugins() -> dict[str, Plugin]:
                     if not (pkg / "plugin.py").is_file():
                         logger.debug("Using local library package %r from %s", pkg.name, entry)
             for entry in checkouts:
-                plugin_cls = _load_local_plugin(entry)
-                if plugin_cls is not None:
+                for plugin_cls in _load_local_plugins(entry):
                     logger.debug("Using local plugin %r from %s", plugin_cls.name, entry)
                     plugins[plugin_cls.name] = plugin_cls()
 
