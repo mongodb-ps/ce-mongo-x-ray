@@ -82,6 +82,7 @@ def browser():
             browser = p.chromium.launch()
         except Exception as exc:  # pylint: disable=broad-exception-caught
             pytest.skip(f"Chromium is not installed for Playwright: {exc}")
+            return  # unreachable — pytest.skip raises; keeps CodeQL's dataflow happy
         yield browser
         browser.close()
 
@@ -192,3 +193,4 @@ def test_wef_anchor_reveals_sample(page):
     after = sample_code.inner_text()
     assert after != before
     assert '"id"' in after and '"msg"' in after
+

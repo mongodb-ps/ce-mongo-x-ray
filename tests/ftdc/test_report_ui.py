@@ -82,6 +82,7 @@ def browser():
             browser = p.chromium.launch()
         except Exception as exc:  # pylint: disable=broad-exception-caught
             pytest.skip(f"Chromium is not installed for Playwright: {exc}")
+            return  # unreachable — pytest.skip raises; keeps CodeQL's dataflow happy
         yield browser
         browser.close()
 
@@ -174,3 +175,4 @@ def test_code_highlighting_applied(page):
     # so wait for the highlight class to be attached rather than visible.
     page.wait_for_selector("code.hljs", state="attached")
     assert page.locator("code.hljs").count() >= 1
+

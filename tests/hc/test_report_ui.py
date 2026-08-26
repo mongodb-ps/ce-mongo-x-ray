@@ -88,6 +88,7 @@ def browser():
             browser = p.chromium.launch()
         except Exception as exc:  # pylint: disable=broad-exception-caught
             pytest.skip(f"Chromium is not installed for Playwright: {exc}")
+            return  # unreachable — pytest.skip raises; keeps CodeQL's dataflow happy
         yield browser
         browser.close()
 
@@ -177,3 +178,4 @@ def test_charts_rendered(page):
         ".every(c => c.clientWidth > 0)"
     )
     assert page.locator("canvas").count() >= 1
+

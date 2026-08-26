@@ -110,6 +110,7 @@ def browser():
             browser = p.chromium.launch()
         except Exception as exc:  # pylint: disable=broad-exception-caught
             pytest.skip(f"Chromium is not installed for Playwright: {exc}")
+            return  # unreachable — pytest.skip raises; keeps CodeQL's dataflow happy
         yield browser
         browser.close()
 
@@ -211,3 +212,4 @@ def test_architecture_sections_differ(report_html, page):
             assert count >= 1, f"{title} should contain a table"
         else:
             assert count == 0, f"{title} should be empty"
+
