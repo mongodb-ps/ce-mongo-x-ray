@@ -153,3 +153,132 @@ def test_risk_ingest_command_is_discovered():
     assert "ingest" in plugins
     assert plugins["ingest"].distribution == "mongo-x-ray-risk"
     assert "CSV" in plugins["ingest"].help
+
+
+# --- trust gating for installed plugins -------------------------------------
+
+
+def test_is_trusted_accepts_editable_and_trusted_git(monkeypatch):
+    from mongo_x_ray import plugins as plugins_mod
+
+    monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
+    assert plugins_mod._is_trusted("mongo-x-ray-ftdc", "local editable: file:///home/dev/mongo-x-ray-ftdc")
+    assert plugins_mod._is_trusted(
+        "mongo-x-ray-search", "vcs(git): https://github.com/zhangyaoxing/mongo-x-ray-search.git"
+    )
+    assert plugins_mod._is_trusted("mongo-x-ray-ftdc", "vcs(git): git@github.com:mongodb-ps/ce-mongo-x-ray.git")
+
+
+def test_is_trusted_rejects_unknown_origins(monkeypatch):
+    from mongo_x_ray import plugins as plugins_mod
+
+    monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
+    assert not plugins_mod._is_trusted("mongo-x-ray-ftdc", "unknown (no direct_url.json)")
+    assert not plugins_mod._is_trusted(
+        "mongo-x-ray-ftdc", "archive: https://files.pythonhosted.org/packages/.../mongo_x_ray_ftdc.whl"
+    )
+    assert not plugins_mod._is_trusted(
+        "mongo-x-ray-ftdc", "vcs(git): https://github.com/evil-user/mongo-x-ray-ftdc.git"
+    )
+
+
+def test_is_trusted_env_bypass(monkeypatch):
+    from mongo_x_ray import plugins as plugins_mod
+
+    monkeypatch.setenv(plugins_mod.TRUST_ALL_ENV, "1")
+    assert plugins_mod._is_trusted("mongo-x-ray-evil", "unknown (no direct_url.json)")
+
+
+def test_dist_origin_parses_direct_url(tmp_path, monkeypatch):
+    import json
+    from importlib.metadata import Distribution
+    from typing import cast
+
+    from mongo_x_ray import plugins as plugins_mod
+
+    def origin_of(dist: object) -> str:
+        return plugins_mod._dist_origin(cast(Distribution, dist))
+
+    class FakeDist:
+        def __init__(self, direct_url):
+            self._direct_url = direct_url
+
+        def read_text(self, filename):
+            if filename != "direct_url.json" or self._direct_url is None:
+                raise FileNotFoundError(filename)
+            return self._direct_url
+
+    editable = FakeDist(json.dumps({"url": "file:///home/dev/x", "dir_info": {"editable": True}}))
+    assert origin_of(editable).startswith("local editable")
+
+    git = FakeDist(
+        json.dumps({"url": "https://github.com/zhangyaoxing/mongo-x-ray-risk.git", "vcs_info": {"vcs": "git"}})
+    )
+    assert origin_of(git).startswith("vcs(git)")
+
+    archive = FakeDist(json.dumps({"url": "https://files.pythonhosted.org/pkg.whl", "archive_info": {"hash": "x"}}))
+    assert origin_of(archive).startswith("archive")
+
+    assert origin_of(FakeDist(None)) == "unknown (no direct_url.json)"
+
+
+def test_untrusted_entry_point_command_is_skipped_without_import(monkeypatch, tmp_path, caplog):
+    from types import SimpleNamespace
+
+    from mongo_x_ray import plugins as plugins_mod
+    from mongo_x_ray.plugin import ENTRY_POINT_GROUP
+
+    def never_loaded():
+        raise AssertionError("entry point must not be imported")
+
+    class FakeDist:
+        def __init__(self, name):
+            self.metadata = {"Name": name, "Summary": "x"}
+            self.entry_points = [
+                SimpleNamespace(group=ENTRY_POINT_GROUP, name="evil", load=never_loaded),
+            ]
+
+        def read_text(self, filename):
+            raise FileNotFoundError(filename)
+
+    monkeypatch.setattr(plugins_mod, "distributions", lambda: [FakeDist("mongo-x-ray-evil")])
+    monkeypatch.setattr(plugins_mod, "_plugins_folder", lambda: tmp_path)
+    monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
+
+    plugins = plugins_mod.discover_plugins()
+    assert "evil" not in plugins
+    assert "Skipping untrusted plugin" in caplog.text
+
+
+def test_local_checkout_egg_info_dist_is_ignored(monkeypatch, tmp_path, caplog):
+    from types import SimpleNamespace
+
+    from mongo_x_ray import plugins as plugins_mod
+    from mongo_x_ray.plugin import ENTRY_POINT_GROUP
+
+    checkout = tmp_path / "plugins" / "mongo-x-ray-ftdc"
+    (checkout / "src").mkdir(parents=True)
+
+    def never_loaded():
+        raise AssertionError("entry point must not be imported")
+
+    class FakeDist:
+        def __init__(self, name):
+            self.metadata = {"Name": name, "Summary": "x"}
+            self.entry_points = [SimpleNamespace(group=ENTRY_POINT_GROUP, name="ftdc", load=never_loaded)]
+
+        def locate_file(self, name):
+            return checkout / "src"
+
+        def read_text(self, filename):
+            raise FileNotFoundError(filename)
+
+    monkeypatch.setattr(plugins_mod, "distributions", lambda: [FakeDist("mongo-x-ray-ftdc")])
+    monkeypatch.setattr(plugins_mod, "_plugins_folder", lambda: tmp_path / "plugins")
+    monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
+
+    plugins = plugins_mod.discover_plugins()
+    # The egg-info build artifact of a local checkout is ignored without a
+    # trust warning: it is the same code as the (trusted) local checkout.
+    assert "ftdc" not in plugins
+    assert "Skipping untrusted" not in caplog.text
