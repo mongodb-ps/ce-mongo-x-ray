@@ -8,6 +8,7 @@
                     "BuildInfoItem",
                     "ClusterItem",
                     "ServerStatusItem",
+                    "ServerParametersItem",
                     "ShardKeyItem",
                     "HostInfoItem",
                     "SecurityItem",
