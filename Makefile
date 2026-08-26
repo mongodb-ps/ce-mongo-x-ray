@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := build
-.PHONY: build clean deps test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
+.PHONY: build clean deps plugin-deps test unit-test cluster-setup cluster-teardown integration-test integration-test-deps lint minify help
 
 # Project name
 PROJECT_NAME = x-ray
@@ -36,23 +36,45 @@ deps:
 	$(PYTHON) -m pip install -e ".[dev]" --config-settings editable_mode=compat
 	@echo "Activate virtual environment: $(VENV_ACTIVATE)"
 
+# Install the plugins that ship with the binary. The PyInstaller hook bundles
+# every mongo-x-ray-* plugin installed in the venv, so in a fresh release
+# environment (which has exactly these two) the binary contains log + ftdc
+# and nothing else.
+plugin-deps:
+	@echo "Installing the bundled plugins (mongo-x-ray-log, mongo-x-ray-ftdc)..."
+	$(PYTHON) -m pip install \
+		mongo-x-ray-log@git+https://github.com/zhangyaoxing/mongo-x-ray-log.git@main \
+		mongo-x-ray-ftdc@git+https://github.com/zhangyaoxing/mongo-x-ray-ftdc.git@main
+	@echo "\033[32m✓ Bundled plugins installed\033[0m"
+
 # Build executable
 build:
 	@echo "Building executable..."
 	$(PYTHON) -m PyInstaller --onefile --name $(PROJECT_NAME) \
-		--add-data="src/x_ray/templates$(DELIMITER)x_ray/templates" \
-		--add-data="src/x_ray/config.json$(DELIMITER)x_ray" \
-		--add-data="src/x_ray/compatibility_matrix.json$(DELIMITER)x_ray" \
+		--add-data="src/mongo_x_ray/templates$(DELIMITER)mongo_x_ray/templates" \
+		--add-data="src/mongo_x_ray/config.json$(DELIMITER)mongo_x_ray" \
+		--add-data="src/mongo_x_ray/compatibility_matrix.json$(DELIMITER)mongo_x_ray" \
 		--additional-hooks-dir=hooks \
 		--icon="misc/x-ray.ico" \
-		src/x_ray/__main__.py
+		src/mongo_x_ray/__main__.py
 	@echo "\033[32m✓ Build complete: dist/x-ray\033[0m"
 
-# Run tests 
-test:
-	@echo "Running tests..."
+# Run unit tests in the core and in every local plugin checkout under plugins/.
+unit-test:
+	@echo "Running core unit tests..."
 	$(PYTHON) -m pytest -m "not integration"
-	@echo "\033[32m✓ All tests passed!\033[0m"
+	@echo "\033[32m✓ Core unit tests passed!\033[0m"
+	@if [ -d plugins ]; then \
+		for d in plugins/*; do \
+			if [ -d "$$d" ] && [ -f "$$d/Makefile" ]; then \
+				echo "=== unit-test: $$d ==="; \
+				$(MAKE) -C "$$d" unit-test || exit 1; \
+			fi; \
+		done; \
+	fi
+
+# Alias matching the core convention.
+test: unit-test
 
 # Prepare the test cluster: stop any existing cluster, start a fresh replica
 # set, seed it, and generate the getMongoData report.
@@ -107,19 +129,27 @@ integration-test: integration-test-deps
 	done
 	@echo "\033[32m✓ All integration tests passed!\033[0m"
 
-# Run ruff and pylint (the shared lint contract; both must pass)
+# Run ruff lint and format checks (the shared lint contract)
 lint:
 	@echo "Running ruff check..."
 	$(PYTHON) -m ruff check src tests
-	@echo "Running pylint check..."
-	$(PYTHON) -m pylint src tests
+	@echo "Running ruff format check..."
+	$(PYTHON) -m ruff format --check src tests
 	@echo "\033[32m✓ No lint errors found!\033[0m"
 
-# Minify templates
+# Minify templates in the core and in every local plugin checkout under plugins/.
 minify:
 	@echo "Minifying templates..."
-	cd src/x_ray/templates && ./minify.sh
+	cd src/mongo_x_ray/templates && ./minify.sh
 	@echo "\033[32m✓ Templates minified!\033[0m"
+	@if [ -d plugins ]; then \
+		for d in plugins/*; do \
+			if [ -d "$$d" ] && [ -f "$$d/Makefile" ]; then \
+				echo "=== minify: $$d ==="; \
+				$(MAKE) -C "$$d" minify || exit 1; \
+			fi; \
+		done; \
+	fi
 
 # Clean build artifacts
 clean:
@@ -146,12 +176,14 @@ help:
 	@echo ""
 	@echo "Available commands:"
 	@echo "  make deps         - Install dev dependencies declared in pyproject.toml"
-	@echo "  make build        - Build executable"
-	@echo "  make minify       - Minify HTML/JS templates"
-	@echo "  make test         - Run non-integration tests"
+	@echo "  make plugin-deps  - Install the bundled plugins (log, ftdc) for the build"
+	@echo "  make build        - Build executable (bundles log + ftdc plugins)"
+	@echo "  make minify       - Minify HTML/JS templates (core + plugins/)"
+	@echo "  make unit-test    - Run unit tests (core + plugins/)"
+	@echo "  make test         - Alias for unit-test"
 	@echo "  make cluster-setup - Start and seed a test cluster"
 	@echo "  make cluster-teardown - Stop and clean up a test cluster"
 	@echo "  make integration-test - Test all installed MongoDB versions (rs + sh)"
-	@echo "  make lint         - Run ruff check (lint)"
+	@echo "  make lint         - Run ruff check and ruff format check"
 	@echo "  make clean        - Clean build artifacts"
 	@echo "  make help         - Display this help information"

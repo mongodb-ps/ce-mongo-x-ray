@@ -54,6 +54,9 @@ jobs:
       - name: Install dependencies
         run: make deps
 
+      - name: Install plugins
+        run: make plugin-deps
+
       - name: Build executable
         run: make build
 

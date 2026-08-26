@@ -2,7 +2,7 @@
 
 import markdown
 
-from x_ray.table_width_extension import TableWidthExtension
+from mongo_x_ray.table_width_extension import TableWidthExtension
 
 
 def render(text: str) -> str:

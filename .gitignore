@@ -219,3 +219,7 @@ misc/ftdc*
 .qwen
 getMongoData*
 risks.csv
+
+# Dev plugin checkouts (symlinks into plugins/ are local; keep the README)
+plugins/*
+!plugins/README.md

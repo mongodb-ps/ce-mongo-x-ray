@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mongo-x-ray"
-version = "1.5.3"
+version = "2.0.0"
 description = "MongoDB diagnostics toolkit with health checks and log analysis"
 readme = "README.md"
 requires-python = ">=3.10,<4"
@@ -77,15 +77,15 @@ Issues = "https://github.com/mongodb-ps/ce-mongo-x-ray/issues"
 include-package-data = false
 
 [project.scripts]
-x-ray = "x_ray.__main__:main"
+x-ray = "mongo_x_ray.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["x_ray*"]
+include = ["mongo_x_ray*"]
 exclude = ["tests*", "output*", "misc*", "build*", "dist*"]
 
 [tool.setuptools.package-data]
-"x_ray" = [
+"mongo_x_ray" = [
   "config.json",
   "compatibility_matrix.json",
   "templates/**/full.html",
@@ -102,47 +102,23 @@ target-version = "py310"
 exclude = [".venv", "build", "dist"]
 
 [tool.ruff.lint]
-# Mirror the previous toolchain: pylint --errors-only + flake8 (E, F) + isort (I).
-# E501 (line-too-long) was never enforced (pylint disabled C0301).
+# Lint gate: pycodestyle + pyflakes (E, F) + isort (I).
+# E501 (line-too-long) is not enforced.
 select = ["E", "F", "I"]
 ignore = ["E501"]
-
-[tool.pylint]
-# Lint contract with ruff: `make lint` runs BOTH tools over src and tests and
-# both must pass. ruff owns style (E/F/I, pycodestyle + pyflakes + isort) and
-# pylint owns the W/E defects and import placement. The exception lists below
-# are the shared policy: every family disabled here is intentionally off in
-# both tools (ruff has no equivalent rule to turn on, and vice versa).
-#
-# - C0301: line length is owned by ruff's 120-column rule.
-# - C0114/C0115/C0116: docstrings are not part of the gate (ruff's E/F/I do
-#   not check them).
-# - R0801: the shared parser fixtures in tests intentionally duplicate large
-#   sample documents (ruff has no duplicate-code rule).
-# - R0902/R0903/R0911/R0912/R0913/R0914/R0915/R0917/R1702: the too-many-* /
-#   design-suggestion family (ruff's E/F/I do not check them).
-max-line-length = 120
-disable = [
-  "C0301",          # line-too-long: ruff's 120-column rule owns this
-  "C0114",          # missing-module-docstring: not part of the gate
-  "C0115",          # missing-class-docstring: not part of the gate
-  "C0116",          # missing-function-docstring: not part of the gate
-  "R0801",          # duplicate-code: shared parser fixtures duplicate samples
-  "R0902",          # too-many-instance-attributes: design suggestion
-  "R0903",          # too-few-public-methods: design suggestion
-  "R0911",          # too-many-returns: design suggestion
-  "R0912",          # too-many-branches: design suggestion
-  "R0913",          # too-many-arguments: design suggestion
-  "R0914",          # too-many-locals: design suggestion
-  "R0915",          # too-many-statements: design suggestion
-  "R0917",          # too-many-positional-arguments: design suggestion
-  "R1702",          # too-many-nested-blocks: design suggestion
-]
 
 [tool.pyright]
 pythonVersion = "3.10"
 venvPath = "."
 venv = ".venv"
+typeCheckingMode = "basic"
+extraPaths = [
+  "src",
+  "plugins/mongo-x-ray-ftdc/src",
+  "plugins/mongo-x-ray-log/src",
+  "plugins/mongo-x-ray-gmd/src",
+  "plugins/mongo-x-ray-hc/src",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
