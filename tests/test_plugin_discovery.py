@@ -169,14 +169,29 @@ def test_is_trusted_accepts_editable_and_trusted_git(monkeypatch):
     assert plugins_mod._is_trusted("mongo-x-ray-ftdc", "vcs(git): git@github.com:mongodb-ps/ce-mongo-x-ray.git")
 
 
-def test_is_trusted_rejects_unknown_origins(monkeypatch):
+def test_is_trusted_allowlisted_names_trusted_from_pypi(monkeypatch):
     from mongo_x_ray import plugins as plugins_mod
 
     monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
-    assert not plugins_mod._is_trusted("mongo-x-ray-ftdc", "unknown (no direct_url.json)")
-    assert not plugins_mod._is_trusted(
+    # pip index installs have no direct_url.json; archive/unknown origins of
+    # canonical names are trusted once the official package owns the name.
+    assert plugins_mod._is_trusted("mongo-x-ray-ftdc", "unknown (no direct_url.json)")
+    assert plugins_mod._is_trusted(
         "mongo-x-ray-ftdc", "archive: https://files.pythonhosted.org/packages/.../mongo_x_ray_ftdc.whl"
     )
+    assert plugins_mod._is_trusted("mongo-x-ray-risk", "unknown (unparsable direct_url.json)")
+
+
+def test_is_trusted_rejects_non_allowlisted_and_evil_origins(monkeypatch):
+    from mongo_x_ray import plugins as plugins_mod
+
+    monkeypatch.delenv(plugins_mod.TRUST_ALL_ENV, raising=False)
+    # typosquat names outside the allowlist are refused even from PyPI
+    assert not plugins_mod._is_trusted("mongo-x-ray-evil", "unknown (no direct_url.json)")
+    assert not plugins_mod._is_trusted(
+        "mongo-x-ray-evil", "archive: https://files.pythonhosted.org/packages/.../mongo_x_ray_evil.whl"
+    )
+    # a git fork of a canonical name from an untrusted owner is refused
     assert not plugins_mod._is_trusted(
         "mongo-x-ray-ftdc", "vcs(git): https://github.com/evil-user/mongo-x-ray-ftdc.git"
     )

@@ -20,7 +20,8 @@ Installed plugins are gated on a trusted install origin: the ``mongo_x_ray.plugi
 entry-point group is an open namespace, so any package (even one not named
 ``mongo-x-ray-*``) could register a command. Origins are checked *before* the
 entry point is imported, so untrusted code is never executed: local editable
-installs and git checkouts under ``TRUSTED_GIT_OWNERS`` are trusted, everything
+installs, git checkouts under ``TRUSTED_GIT_OWNERS``, and PyPI/archive
+installs of allowlisted names (``KNOWN_PLUGINS``) are trusted; everything
 else is skipped with a warning unless ``MONGO_X_RAY_TRUST_ALL_PLUGINS=1``.
 """
 
@@ -131,12 +132,16 @@ def _dist_origin(dist: Distribution) -> str:
 def _is_trusted(dist_name: str, origin: str) -> bool:
     """Whether an installed distribution is an allowed plugin source.
 
-    Trusted sources: local editable installs (an explicit developer action),
-    and git checkouts hosted under ``TRUSTED_GIT_OWNERS`` (the owner is the
-    trust anchor). PyPI archives and unknown origins are refused — the
-    official plugins are distributed from git, so an archive install of a
-    ``mongo-x-ray-*`` name is a likely typosquat. Set ``TRUST_ALL_ENV`` to
-    bypass the check.
+    Trusted sources:
+    - local editable installs (an explicit developer action);
+    - git checkouts hosted under ``TRUSTED_GIT_OWNERS`` (the owner is the
+      trust anchor — a GitHub URL cannot be squatted);
+    - archive/index installs (e.g. from PyPI) of names in ``KNOWN_PLUGINS``.
+      PyPI names are globally unique, so once the official plugin occupies
+      the name, an index install of that name is the official package; the
+      allowlist keeps typosquats under look-alike names out.
+
+    Anything else is refused. Set ``TRUST_ALL_ENV`` to bypass the check.
     """
     if os.environ.get(TRUST_ALL_ENV):
         return True
@@ -145,6 +150,8 @@ def _is_trusted(dist_name: str, origin: str) -> bool:
     match = re.search(r"github\.com[/:]([^/]+)/([^/#?]+)", origin)
     if match and match.group(1) in TRUSTED_GIT_OWNERS:
         return True
+    if origin.startswith(("archive:", "unknown (")):
+        return dist_name in KNOWN_PLUGINS
     return False
 
 
