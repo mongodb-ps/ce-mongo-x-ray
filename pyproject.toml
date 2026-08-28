@@ -88,6 +88,9 @@ exclude = [".venv", "build", "dist"]
 select = ["E", "F", "I"]
 ignore = ["E501"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["mongo_x_ray", "mongo_x_ray_ftdc", "mongo_x_ray_gmd", "mongo_x_ray_hc", "mongo_x_ray_log", "mongo_x_ray_risk"]
+
 [tool.pyright]
 pythonVersion = "3.10"
 venvPath = "."
