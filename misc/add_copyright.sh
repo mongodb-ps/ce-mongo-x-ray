@@ -85,6 +85,13 @@ if new_text != orig:
 else:
     print(f"Skipping (already current): {path}")
 PYEOF
+    # Normalize blank lines around the header (ruff format wants one blank
+    # before imports but two before top-level defs/classes).
+    if [ -x .venv/bin/ruff ]; then
+        .venv/bin/ruff format -q "$file"
+    elif command -v ruff >/dev/null 2>&1; then
+        ruff format -q "$file"
+    fi
 done
 
 echo "All done!"
