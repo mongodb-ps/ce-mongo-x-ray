@@ -85,10 +85,7 @@ def _installed_command_names():
     from mongo_x_ray.plugin import ENTRY_POINT_GROUP
 
     return {
-        ep.name
-        for dist in plugins_mod._distributions()
-        for ep in dist.entry_points
-        if ep.group == ENTRY_POINT_GROUP
+        ep.name for dist in plugins_mod._distributions() for ep in dist.entry_points if ep.group == ENTRY_POINT_GROUP
     }
 
 
