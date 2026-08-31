@@ -79,6 +79,19 @@ def test_local_checkout_with_multiple_plugins_registers_all(monkeypatch, tmp_pat
     assert {"first", "second"} <= set(plugins)
 
 
+def _installed_command_names():
+    """Command names contributed by the installed mongo-x-ray-* plugins."""
+    from mongo_x_ray import plugins as plugins_mod
+    from mongo_x_ray.plugin import ENTRY_POINT_GROUP
+
+    return {
+        ep.name
+        for dist in plugins_mod._distributions()
+        for ep in dist.entry_points
+        if ep.group == ENTRY_POINT_GROUP
+    }
+
+
 def test_local_plugin_overrides_installed(monkeypatch, tmp_path):
     # A local checkout claiming the name "ftdc" wins over the installed one.
     _make_local_plugin(tmp_path, "fake-ftdc", "ftdc")
@@ -87,7 +100,7 @@ def test_local_plugin_overrides_installed(monkeypatch, tmp_path):
     assert type(plugins["ftdc"]).__module__ == "mongo_x_ray_fake_ftdc.plugin"
     assert plugins["ftdc"].help == "local"
     # other installed plugins are still discovered from entry points
-    assert {"log", "gmd", "healthcheck"} <= set(plugins)
+    assert _installed_command_names() <= set(plugins)
 
 
 def test_falls_back_to_installed_when_plugins_folder_empty(monkeypatch, tmp_path):
@@ -95,10 +108,13 @@ def test_falls_back_to_installed_when_plugins_folder_empty(monkeypatch, tmp_path
     empty.mkdir()
     monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(empty))
     plugins = discover_plugins()
-    assert {"ftdc", "log", "gmd", "healthcheck"} <= set(plugins)
+    # with no local checkouts the command set is exactly the installed plugins
+    assert set(plugins) == _installed_command_names()
 
 
 def test_subcommand_alias_resolves_to_plugin():
+    pytest.importorskip("mongo_x_ray_hc")
+
     from mongo_x_ray.__main__ import resolve_plugin
 
     plugins = discover_plugins()
@@ -110,7 +126,14 @@ def test_subcommand_alias_resolves_to_plugin():
     assert resolve_plugin(plugins, "does-not-exist") is None
 
 
-def test_plugin_version_requested_and_version():
+def test_plugin_version_requested_and_version(monkeypatch, tmp_path):
+    pytest.importorskip("mongo_x_ray_ftdc")
+
+    # Isolate from the real plugins/ checkouts: only installed entry points.
+    empty = tmp_path / "plugins"
+    empty.mkdir()
+    monkeypatch.setenv("MONGO_X_RAY_PLUGINS", str(empty))
+
     from importlib.metadata import version as pkg_version
 
     from mongo_x_ray.__main__ import _plugin_version_requested
