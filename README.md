@@ -7,7 +7,7 @@
 This project aims to create tools for MongoDB analysis and diagnosis.
 
 The `mongo-x-ray` package provides the CLI and the report framework. The
-analysis commands (`log`, `gmd`, `healthcheck`, `ftdc`, ...) are provided by
+analysis commands (`log`, `ftdc`, ...) are provided by
 separate `mongo-x-ray-*` plugin packages — install the ones you need
 alongside the core, and run `x-ray --help` to see which commands are
 available in your environment.
@@ -19,26 +19,22 @@ See [How to Install](#1-how-to-install) below.
 #### 1.1.1 Install with Pip
 The easiest and recommended way to install x-ray is to use `pip`:
 ```bash
-pip install mongo-x-ray mongo-x-ray-ftdc mongo-x-ray-log mongo-x-ray-gmd mongo-x-ray-hc mongo-x-ray-risk
+pip install mongo-x-ray mongo-x-ray-log mongo-x-ray-ftdc
 ```
 
 Only the plugins you actually use are required — the core alone has no
 commands. Available plugins:
 
-| Plugin | Command(s) | Description |
-| --- | --- | --- |
-| `mongo-x-ray-ftdc` | `ftdc` | Analyze MongoDB FTDC files |
-| `mongo-x-ray-log` | `log` | Analyze MongoDB log files |
-| `mongo-x-ray-gmd` | `gmd` | Analyze a getMongoData output file |
-| `mongo-x-ray-hc` | `healthcheck` (`hc`) | Run a MongoDB deployment health check |
-| `mongo-x-ray-risk` | `ingest`, `search` | Optional known-risks knowledge base |
+| Plugin             | Command(s) | Description                |
+| ------------------ | ---------- | -------------------------- |
+| `mongo-x-ray-ftdc` | `ftdc`     | Analyze MongoDB FTDC files |
+| `mongo-x-ray-log`  | `log`      | Analyze MongoDB log files  |
 
 #### 1.1.2 Build from Source
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd ce-mongo-x-ray
 pip install .
-pip install mongo-x-ray-ftdc mongo-x-ray-log mongo-x-ray-gmd mongo-x-ray-hc mongo-x-ray-risk
 ```
 
 ### 1.2 PyInstaller
@@ -102,17 +98,17 @@ Useful development targets (see `make help`):
 
 ## 2 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,hc,ftdc,ingest,search}
+x-ray [-h] [-q] [-c CONFIG] {log,ftdc}
 ```
 The available commands come from the installed `mongo-x-ray-*` plugins.
 Run `x-ray --help` to see the commands available in your environment, and
 `x-ray <command> --help` for usage and examples of a specific command.
-| Argument         | Description                                                                                                                                                                                                                                     |        Default         |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |
-| `-h`, `--help`   | Show the help message and exit.                                                                                                                                                                                                                 |          n/a           |
-| `-c`, `--config` | Path to configuration file.                                                                                                                                                                                                                     | Built-in `config.json` |
-| `command`        | Command to run:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis.<br/>- `gmd`: getMongoData analysis.<br/>- `healthcheck` (`hc`): deployment health check. |          None          |
+| Argument         | Description                                                             |        Default         |
+| ---------------- | ----------------------------------------------------------------------- | :--------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                             |        `false`         |
+| `-h`, `--help`   | Show the help message and exit.                                         |          n/a           |
+| `-c`, `--config` | Path to configuration file.                                             | Built-in `config.json` |
+| `command`        | Command to run:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
