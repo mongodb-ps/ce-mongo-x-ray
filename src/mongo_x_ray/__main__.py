@@ -175,6 +175,7 @@ def main():
         return version_command(args)
 
     parser.error("the following arguments are required: command")
+    return 2  # unreachable: parser.error() raises SystemExit(2)
 
 
 if __name__ == "__main__":
