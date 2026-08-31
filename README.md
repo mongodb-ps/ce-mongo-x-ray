@@ -6,6 +6,12 @@
 
 This project aims to create tools for MongoDB analysis and diagnosis.
 
+The `mongo-x-ray` package provides the CLI and the report framework. The
+analysis commands (`log`, `gmd`, `healthcheck`, `ftdc`, ...) are provided by
+separate `mongo-x-ray-*` plugin packages — install the ones you need
+alongside the core, and run `x-ray --help` to see which commands are
+available in your environment.
+
 See [How to Install](#1-how-to-install) below.
 
 ## 1 How to Install
@@ -13,14 +19,26 @@ See [How to Install](#1-how-to-install) below.
 #### 1.1.1 Install with Pip
 The easiest and recommended way to install x-ray is to use `pip`:
 ```bash
-pip install mongo-x-ray
+pip install mongo-x-ray mongo-x-ray-ftdc mongo-x-ray-log mongo-x-ray-gmd mongo-x-ray-hc mongo-x-ray-risk
 ```
+
+Only the plugins you actually use are required — the core alone has no
+commands. Available plugins:
+
+| Plugin | Command(s) | Description |
+| --- | --- | --- |
+| `mongo-x-ray-ftdc` | `ftdc` | Analyze MongoDB FTDC files |
+| `mongo-x-ray-log` | `log` | Analyze MongoDB log files |
+| `mongo-x-ray-gmd` | `gmd` | Analyze a getMongoData output file |
+| `mongo-x-ray-hc` | `healthcheck` (`hc`) | Run a MongoDB deployment health check |
+| `mongo-x-ray-risk` | `ingest`, `search` | Optional known-risks knowledge base |
 
 #### 1.1.2 Build from Source
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd ce-mongo-x-ray
 pip install .
+pip install mongo-x-ray-ftdc mongo-x-ray-log mongo-x-ray-gmd mongo-x-ray-hc mongo-x-ray-risk
 ```
 
 ### 1.2 PyInstaller
@@ -32,14 +50,22 @@ Currently the prebuilt binaries are available on 3 platforms:
 
 Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/releases).
 
+The prebuilt binaries bundle the `ftdc` and `log` plugins, so those commands
+work out of the box; the other plugins are not included in the binary.
+
 #### 1.2.2 Build from Source
 x-ray is tested on `Python 3.9.22`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
 ```bash
 git clone https://github.com/mongodb-ps/ce-mongo-x-ray
 cd ce-mongo-x-ray
 make deps # if it's the first time you build the project
+make plugin-deps # installs the plugins that ship in the binary (log, ftdc)
 make # equal to `make build`
 ```
+
+The binary bundles every `mongo-x-ray-*` plugin installed in the build
+environment — `make plugin-deps` installs `log` and `ftdc`; install more
+plugins in the venv if you want them bundled too.
 
 There are other make targets. Use `make help` to find out.
 
@@ -76,9 +102,11 @@ Useful development targets (see `make help`):
 
 ## 2 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,ftdc}
+x-ray [-h] [-q] [-c CONFIG] {log,gmd,healthcheck,hc,ftdc,ingest,search}
 ```
-Run `x-ray --help` to see the commands available in your environment.
+The available commands come from the installed `mongo-x-ray-*` plugins.
+Run `x-ray --help` to see the commands available in your environment, and
+`x-ray <command> --help` for usage and examples of a specific command.
 | Argument         | Description                                                                                                                                                                                                                                     |        Default         |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------: |
 | `-q`, `--quiet`  | Quiet mode.                                                                                                                                                                                                                                     |        `false`         |

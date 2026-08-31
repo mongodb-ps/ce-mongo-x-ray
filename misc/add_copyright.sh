@@ -85,13 +85,20 @@ if new_text != orig:
 else:
     print(f"Skipping (already current): {path}")
 PYEOF
-    # Normalize blank lines around the header (ruff format wants one blank
-    # before imports but two before top-level defs/classes).
-    if [ -x .venv/bin/ruff ]; then
-        .venv/bin/ruff format -q "$file"
-    elif command -v ruff >/dev/null 2>&1; then
-        ruff format -q "$file"
-    fi
 done
+
+# Normalize formatting (blank lines around the header, etc.) over the whole
+# scanned tree, exactly like the lint gate would.
+targets=""
+for d in src tests plugins/*/src plugins/*/tests; do
+    [ -d "$d" ] && targets="$targets $d"
+done
+if [ -n "$targets" ]; then
+    if [ -x .venv/bin/ruff ]; then
+        .venv/bin/ruff format $targets
+    elif command -v ruff >/dev/null 2>&1; then
+        ruff format $targets
+    fi
+fi
 
 echo "All done!"
