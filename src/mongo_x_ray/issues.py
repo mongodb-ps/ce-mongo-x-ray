@@ -88,7 +88,6 @@ class ISSUE(enum.Enum):
     # Host Issues
     HOSTS_DIFFERENT_HARDWARE = 1500
     NUMA_ENABLED = 1501
-    NUMA_DISABLED = 1502
     FS_TYPE = 1503
     FS_TYPE_EXT4 = 1504
     FS_TYPE_EXT4_NOATIME = 1505
@@ -449,13 +448,7 @@ ISSUE_MSG_MAP = {
         "id": ISSUE.NUMA_ENABLED,
         "severity": SEVERITY.HIGH,
         "title": "NUMA Enabled",
-        "description": "NUMA is enabled on host `{host}` (MongoDB `{version}`). It is recommended to disable NUMA for database servers running MongoDB <= 7.0 to avoid potential performance issues.",
-    },
-    ISSUE.NUMA_DISABLED: {
-        "id": ISSUE.NUMA_DISABLED,
-        "severity": SEVERITY.LOW,
-        "title": "NUMA Disabled",
-        "description": "NUMA is disabled on host `{host}` (MongoDB `{version}`). It is recommended to enable NUMA for database servers running MongoDB >= 8.0 to improve performance.",
+        "description": "NUMA is enabled on host `{host}` (MongoDB `{version}`). It is recommended to disable NUMA (interleave=all) on database servers to avoid potential performance issues.",
     },
     ISSUE.FS_TYPE: {
         "id": ISSUE.FS_TYPE,
