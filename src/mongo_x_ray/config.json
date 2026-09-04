@@ -92,7 +92,9 @@
                 "ai_support": "none"
             },
             "TopSlowItem": {
-                "top": 10
+                "top": 10,
+                "query_targeting": 1000,
+                "query_targeting_obj": 1000
             },
             "LogRateItem": {
                 "WhiteListIDs": [
