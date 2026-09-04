@@ -94,7 +94,8 @@
             "TopSlowItem": {
                 "top": 10,
                 "query_targeting": 1000,
-                "query_targeting_obj": 1000
+                "query_targeting_obj": 1000,
+                "query_targeting_high": 5000
             },
             "LogRateItem": {
                 "WhiteListIDs": [
