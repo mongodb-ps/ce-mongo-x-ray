@@ -79,8 +79,7 @@
                     "LogRateItem",
                     "SlowRateItem",
                     "ClientMetaItem",
-                    "TopSlowItem",
-                    "SlowChartItem",
+                    "SlowItem",
                     "StateTraceItem",
                     "WEFItem",
                     "InfoItem"
@@ -95,7 +94,7 @@
             "WEFItem": {
                 "ai_support": "none"
             },
-            "TopSlowItem": {
+            "SlowItem": {
                 "top": 10,
                 "query_targeting": 1000,
                 "query_targeting_obj": 1000,
