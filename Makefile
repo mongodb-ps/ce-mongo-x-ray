@@ -41,17 +41,16 @@ deps:
 # environment (which has exactly these) the binary contains log + ftdc + hc
 # and nothing else.
 #
-# mongo-x-ray-hc is installed from source as well, even though the binary does
-# not expose it as a command: log depends on it, and the 2.0.0 release on PyPI
-# still does `from mongo_x_ray.issues import ...`, a module core 2.1.0 no longer
-# provides. Installing an older hc would break plugin discovery (and the frozen
-# binary). Switch this line to `mongo-x-ray-hc>=2.1.0` once hc 2.1.0 is on PyPI.
+# mongo-x-ray-hc comes from PyPI, not from git: the binary does not expose it as
+# a separate command, but log depends on it, and hc 2.0.0 imports
+# `mongo_x_ray.issues`, a module core 2.1.0 no longer provides. Installing an
+# older hc would break plugin discovery (and the frozen binary).
 plugin-deps:
 	@echo "Installing the bundled plugins (mongo-x-ray-log, mongo-x-ray-ftdc, mongo-x-ray-hc)..."
 	$(PYTHON) -m pip install \
 		mongo-x-ray-log@git+https://github.com/zhangyaoxing/mongo-x-ray-log.git@main \
 		mongo-x-ray-ftdc@git+https://github.com/zhangyaoxing/mongo-x-ray-ftdc.git@main \
-		mongo-x-ray-hc@git+https://github.com/zhangyaoxing/mongo-x-ray-hc.git@main
+		"mongo-x-ray-hc>=2.1.0"
 	@echo "\033[32m✓ Bundled plugins installed\033[0m"
 
 # Build executable
