@@ -64,6 +64,9 @@
                     0.95
                 ]
             },
+            "ServerParametersItem": {
+                "min_snapshot_history_window_seconds": 5
+            },
             "ShardKeyItem": {
                 "sharding_imbalance_percentage": 0.1
             }
@@ -159,7 +162,8 @@
                 "cache_fill_ratio": [
                     0.9,
                     0.95
-                ]
+                ],
+                "min_snapshot_history_window_seconds": 5
             },
             "CollInfoItem": {
                 "obj_size_kb": 32,
