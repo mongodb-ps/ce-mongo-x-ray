@@ -19,7 +19,8 @@ See [How to Install](#1-how-to-install) below.
 #### 1.1.1 Install with Pip
 The easiest and recommended way to install x-ray is to use `pip`:
 ```bash
-pip install mongo-x-ray mongo-x-ray-log mongo-x-ray-ftdc
+# Install the framework and health check, log analysis, and basic ftdc analysis.
+pip install mongo-x-ray mongo-x-ray-hc mongo-x-ray-log mongo-x-ray-ftdc
 ```
 
 Only the plugins you actually use are required — the core alone has no
@@ -27,6 +28,7 @@ commands. Available plugins:
 
 | Plugin             | Command(s) | Description                |
 | ------------------ | ---------- | -------------------------- |
+| `mongo-x-ray-hc`   | `hc`       | MongoDB health check.      |
 | `mongo-x-ray-ftdc` | `ftdc`     | Analyze MongoDB FTDC files |
 | `mongo-x-ray-log`  | `log`      | Analyze MongoDB log files  |
 
@@ -47,7 +49,11 @@ Currently the prebuilt binaries are available on 3 platforms:
 Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/releases).
 
 The prebuilt binaries bundle the `ftdc`, `log` and `hc` plugins, so those
-commands work out of the box; the other plugins are not included in the binary.
+commands work out of the box; the other plugins are not included in the binary.  
+For information about using each plugin, please refer to their Github repos:
+- [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc)
+- [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc)
+- [mongo-x-ray-log](https://github.com/zhangyaoxing/mongo-x-ray-log)
 
 #### 1.2.2 Build from Source
 x-ray requires `Python >= 3.10` and is tested on `Python 3.10`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
@@ -103,16 +109,15 @@ x-ray [-h] [-q] [-c CONFIG] {log,ftdc}
 The available commands come from the installed `mongo-x-ray-*` plugins.
 Run `x-ray --help` to see the commands available in your environment, and
 `x-ray <command> --help` for usage and examples of a specific command.
-| Argument         | Description                                                             |        Default         |
-| ---------------- | ----------------------------------------------------------------------- | :--------------------: |
-| `-q`, `--quiet`  | Quiet mode.                                                             |        `false`         |
-| `-h`, `--help`   | Show the help message and exit.                                         |          n/a           |
-| `-c`, `--config` | Path to configuration file.                                             | Built-in `config.json` |
-| `command`        | Command to run:<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis. |          None          |
+| Argument         | Description                                                                                       |        Default         |
+| ---------------- | ------------------------------------------------------------------------------------------------- | :--------------------: |
+| `-q`, `--quiet`  | Quiet mode.                                                                                       |        `false`         |
+| `-h`, `--help`   | Show the help message and exit.                                                                   |          n/a           |
+| `-c`, `--config` | Path to configuration file.                                                                       | Built-in `config.json` |
+| `command`        | Command to run:<br/>- `hc`: Health check.<br/>- `log`: Log analysis.<br/>- `ftdc`: FTDC analysis. |          None          |
 
 Besides, you can use environment variables to control some behaviors:
 - `ENV=development` For developing. It will change the following behaviors:
   - Formatted the output JSON for for easier reading.
   - The output will not create a new folder for each run but overwrite the same files.
 - `LOG_LEVEL`: Can be `DEBUG`, `ERROR` or `INFO` (default).
-
