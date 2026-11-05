@@ -19,7 +19,7 @@ See [How to Install](#1-how-to-install) below.
 #### 1.1.1 Install with Pip
 The easiest and recommended way to install x-ray is to use `pip`:
 ```bash
-# Install the framework and health check, log analysis, and basic ftdc analysis.
+# Install the framework and 3 plugins: health check, log analysis, and basic ftdc analysis.
 pip install mongo-x-ray mongo-x-ray-hc mongo-x-ray-log mongo-x-ray-ftdc
 ```
 
@@ -49,11 +49,7 @@ Currently the prebuilt binaries are available on 3 platforms:
 Download them from [Releases](https://github.com/mongodb-ps/ce-mongo-x-ray/releases).
 
 The prebuilt binaries bundle the `ftdc`, `log` and `hc` plugins, so those
-commands work out of the box; the other plugins are not included in the binary.  
-For information about using each plugin, please refer to their Github repos:
-- [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc)
-- [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc)
-- [mongo-x-ray-log](https://github.com/zhangyaoxing/mongo-x-ray-log)
+commands work out of the box; the other plugins are not included in the binary.
 
 #### 1.2.2 Build from Source
 x-ray requires `Python >= 3.10` and is tested on `Python 3.10`. On MacOS or Linux distributions, you can use the `make` command to build the binary:
@@ -104,7 +100,7 @@ Useful development targets (see `make help`):
 
 ## 2 Using the Tool
 ```bash
-x-ray [-h] [-q] [-c CONFIG] {log,ftdc}
+x-ray [-h] [-q] [-c CONFIG] {hc,log,ftdc}
 ```
 The available commands come from the installed `mongo-x-ray-*` plugins.
 Run `x-ray --help` to see the commands available in your environment, and
@@ -121,3 +117,8 @@ Besides, you can use environment variables to control some behaviors:
   - Formatted the output JSON for for easier reading.
   - The output will not create a new folder for each run but overwrite the same files.
 - `LOG_LEVEL`: Can be `DEBUG`, `ERROR` or `INFO` (default).
+
+For information about using each plugin, please refer to their Github repos:
+- [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc)
+- [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc)
+- [mongo-x-ray-log](https://github.com/zhangyaoxing/mongo-x-ray-log)
