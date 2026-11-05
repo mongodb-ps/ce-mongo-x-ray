@@ -17,8 +17,12 @@ jobs:
         if: github.event.pull_request.user.login == 'dependabot[bot]'
 
         steps:
+            # Dependabot signs its own commits; a branch that a human rebased or
+            # amended makes this step fail, which must not turn the run red - the
+            # policy below then simply keeps the pull request for a human to merge.
             - name: Fetch Dependabot metadata
               id: metadata
+              continue-on-error: true
               uses: dependabot/fetch-metadata@v3
               with:
                   github-token: "${{ secrets.GITHUB_TOKEN }}"
