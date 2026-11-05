@@ -76,10 +76,23 @@ jobs:
 
             - name: Merge the pull request
               if: steps.policy.outputs.merge == 'true'
-              run: |
-                  gh pr merge "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --squash
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+              run: |
+                  for attempt in 1 2 3; do
+                      if gh pr merge "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --squash; then
+                          echo "merged on attempt ${attempt}"
+                          exit 0
+                      fi
+                      echo "attempt ${attempt} failed - usually a concurrent merge left this branch stale"
+                      sleep 20
+                  done
+                  # Sibling Dependabot pull requests edit the same manifests, so a
+                  # merged neighbour can leave this branch conflicted. Ask Dependabot
+                  # to rebase: the resulting synchronize event reruns this workflow.
+                  gh pr comment "${PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --body "@dependabot rebase"
+                  echo "::notice::Requested a Dependabot rebase; the next run merges the pull request."
 
             - name: Comment on updates that need a human
               if: steps.policy.outputs.merge == 'false'
