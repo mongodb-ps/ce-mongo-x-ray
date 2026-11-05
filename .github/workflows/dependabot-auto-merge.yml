@@ -11,7 +11,10 @@ permissions:
 jobs:
     auto-merge:
         runs-on: ubuntu-latest
-        if: github.actor == 'dependabot[bot]'
+        # Keyed on the pull request author, not on the event actor: GitHub reports
+        # the actor as whoever reopened or pushed last, but the update policy
+        # only depends on who opened the pull request.
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
 
         steps:
             - name: Fetch Dependabot metadata
@@ -43,17 +46,25 @@ jobs:
             # These branches have no required status checks, so `gh pr merge
             # --auto` would merge immediately. Poll the checks instead, and only
             # merge a green pull request; anything else stays open for a human.
+            # This job's own check ("auto-merge") is excluded: it stays
+            # in progress until the job ends, so waiting on it never finishes.
             - name: Wait for every check to pass
               if: steps.policy.outputs.merge == 'true'
+              env:
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   for attempt in $(seq 1 60); do
-                      states="$(gh pr checks "${PR_URL}" --json state --jq '.[].state' 2>/dev/null | sort -u | tr '\n' ' ')"
-                      echo "attempt ${attempt}: checks=[${states}]"
-                      if [ -z "${states}" ] || echo "${states}" | grep -Eq 'PENDING|QUEUED|IN_PROGRESS|WAITING|EXPECTED'; then
+                      response="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/check-runs?per_page=100" 2>/dev/null || echo '{"check_runs":[]}')"
+                      total="$(printf '%s' "${response}" | jq '[.check_runs[] | select(.name != "auto-merge")] | length' 2>/dev/null || echo 0)"
+                      pending="$(printf '%s' "${response}" | jq '[.check_runs[] | select(.name != "auto-merge") | select(.status != "completed")] | length' 2>/dev/null || echo 0)"
+                      failed="$(printf '%s' "${response}" | jq '[.check_runs[] | select(.name != "auto-merge") | select(.status == "completed") | select(.conclusion as $c | (["success", "neutral", "skipped"] | index($c)) == null)] | length' 2>/dev/null || echo 0)"
+                      echo "attempt ${attempt}: checks=${total} pending=${pending} not-green=${failed}"
+                      if [ "${total}" -eq 0 ] || [ "${pending}" -gt 0 ]; then
                           sleep 20
                           continue
                       fi
-                      if echo "${states}" | grep -Eq 'FAILURE|ERROR|CANCELLED|TIMED_OUT|ACTION_REQUIRED|STARTUP_FAILURE'; then
+                      if [ "${failed}" -gt 0 ]; then
                           echo "::error::Checks are not green - leaving the pull request open for review."
                           exit 1
                       fi
@@ -62,22 +73,17 @@ jobs:
                   done
                   echo "::error::Timed out waiting for checks - leaving the pull request open for review."
                   exit 1
-              env:
-                  PR_URL: ${{github.event.pull_request.html_url}}
-                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
             - name: Merge the pull request
               if: steps.policy.outputs.merge == 'true'
               run: |
-                  gh pr merge --squash "${PR_URL}"
+                  gh pr merge "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --squash
               env:
-                  PR_URL: ${{github.event.pull_request.html_url}}
-                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Comment on updates that need a human
               if: steps.policy.outputs.merge == 'false'
               run: |
-                  gh pr comment "${PR_URL}" --body "⚠️ This is a **major version update** of a runtime dependency. Please review carefully before merging."
+                  gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body "⚠️ This is a **major version update** of a runtime dependency. Please review carefully before merging."
               env:
-                  PR_URL: ${{github.event.pull_request.html_url}}
-                  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
