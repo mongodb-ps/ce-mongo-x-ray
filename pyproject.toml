@@ -48,7 +48,7 @@ dev = [
   "macholib==1.16.4",
   "altgraph==0.17.5",
   "playwright==1.65.1",
-  "types-Markdown==3.11.2.20261029",
+  "types-Markdown==3.11.3.20261108",
 ]
 [project.urls]
 Homepage = "https://github.com/mongodb-ps/ce-mongo-x-ray"
