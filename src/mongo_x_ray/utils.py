@@ -32,17 +32,11 @@ from typing import Optional, Union
 
 from bson import json_util
 
+from mongo_x_ray.env import load_env_file
 from mongo_x_ray.version import Version
 
-# Load .env file before reading any environment variables
-try:
-    from dotenv import find_dotenv, load_dotenv
-
-    env_path = find_dotenv(usecwd=True)
-    if env_path:
-        load_dotenv(env_path)
-except ImportError:
-    pass  # python-dotenv is optional; .env loading is skipped if unavailable
+# Load .env before reading any environment variable (see `mongo_x_ray.env`).
+load_env_file()
 
 levels = logging._nameToLevel
 level = os.getenv("LOG_LEVEL", "INFO")

@@ -20,12 +20,18 @@ import logging
 import os
 from typing import TYPE_CHECKING
 
+from mongo_x_ray.env import load_env_file
+
 if TYPE_CHECKING:
     from openai import OpenAI
     from openai.types.chat import ChatCompletionMessageParam
 
 
 _logger = logging.getLogger(__name__)
+
+# `.env` has to be loaded before the model name is snapshotted, otherwise a run
+# started outside VS Code would silently fall back to the default model.
+load_env_file()
 
 _AI_MODEL = os.getenv("AI_MODEL", "gpt-4o")
 

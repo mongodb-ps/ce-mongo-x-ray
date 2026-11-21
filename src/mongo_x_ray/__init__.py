@@ -7,3 +7,10 @@ THEY ARE NOT PRODUCTION-READY AND MAY LACK THE SECURITY HARDENING, ERROR HANDLIN
 YOU ARE RESPONSIBLE FOR TESTING, VALIDATING, AND SECURING THIS CODE WITHIN YOUR OWN ENVIRONMENT BEFORE IMPLEMENTATION.
 THIS MATERIAL IS PROVIDED "AS IS" WITHOUT WARRANTY OR LIABILITY.
 """
+
+from mongo_x_ray.env import load_env_file
+
+# Load `.env` as soon as the package is imported, so every entry point (debugger,
+# terminal, VS Code task, test runner) sees the same variables. VS Code's
+# `envFile` and exported variables still win over the file.
+load_env_file()

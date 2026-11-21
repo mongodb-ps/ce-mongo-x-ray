@@ -249,3 +249,72 @@ def test_table_copy_button_carries_the_table_icon():
     css = (templates / "css" / "shared.raw.css").read_text(encoding="utf-8")
     assert ".table-copy-button svg {" in css
     assert "width: 14px;" in css
+
+
+def test_env_file_is_loaded_without_overriding_the_environment(monkeypatch, tmp_path):
+    import os
+
+    from mongo_x_ray.env import load_env_file
+
+    (tmp_path / ".env").write_text("XRAY_TEST_FROM_FILE=from-file\nXRAY_TEST_FROM_SHELL=from-file\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("XRAY_TEST_FROM_SHELL", "from-shell")
+    monkeypatch.delenv("XRAY_TEST_FROM_FILE", raising=False)
+
+    loaded = load_env_file()
+
+    assert loaded == tmp_path / ".env"
+    assert os.environ["XRAY_TEST_FROM_FILE"] == "from-file"
+    # Values already in the environment win (VS Code `envFile`, CI, `export`).
+    assert os.environ["XRAY_TEST_FROM_SHELL"] == "from-shell"
+
+
+def test_env_file_search_walks_up_from_the_working_directory(monkeypatch, tmp_path):
+    import os
+
+    from mongo_x_ray.env import load_env_file
+
+    (tmp_path / ".env").write_text("XRAY_TEST_WALK_UP=1\n", encoding="utf-8")
+    nested = tmp_path / "reports" / "2026-11-21"
+    nested.mkdir(parents=True)
+    monkeypatch.chdir(nested)
+    monkeypatch.delenv("XRAY_TEST_WALK_UP", raising=False)
+
+    assert load_env_file() == tmp_path / ".env"
+    assert os.environ["XRAY_TEST_WALK_UP"] == "1"
+
+
+def test_importing_the_package_loads_the_env_file(tmp_path):
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    import mongo_x_ray
+
+    (tmp_path / ".env").write_text("XRAY_TEST_IMPORT=loaded\n", encoding="utf-8")
+    package_parent = str(Path(mongo_x_ray.__file__).resolve().parent.parent)
+
+    result = subprocess.run(
+        [sys.executable, "-c", "import mongo_x_ray, os; print(os.environ.get('XRAY_TEST_IMPORT'))"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PYTHONPATH": package_parent},
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "loaded"
+
+
+def test_ai_client_loads_the_env_before_it_snapshots_the_model():
+    from pathlib import Path
+
+    import mongo_x_ray.ai_client as ai_client
+
+    # A run outside VS Code has no `envFile`: the module must load `.env` itself,
+    # before `_AI_MODEL` is read (it is a module-level snapshot).
+    source = Path(ai_client.__file__).read_text(encoding="utf-8")
+    assert "load_env_file()" in source
+    assert source.index("load_env_file()") < source.index("_AI_MODEL = os.getenv")
+    assert ai_client.GPT_MODEL == ai_client._AI_MODEL

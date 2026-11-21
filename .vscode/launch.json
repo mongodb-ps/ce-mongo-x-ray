@@ -42,11 +42,14 @@
                 // "mongodb+srv://cluster0.wy1z6.mongodb.net/?appName=Cluster0"
             ],
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
+                // LOG_LEVEL and ENV come from .env: this block used to override
+                // them, which made edits to .env look like they were ignored.
+                "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "envFile": "${workspaceFolder}/.env"
+            // `envFile` and `cwd` together mean the .env lookup also succeeds when
+            // VS Code starts the debuggee from a different directory.
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "App: X-Ray-LOG",
@@ -84,11 +87,14 @@
                 "misc/mongodb.log"
             ],
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
+                // LOG_LEVEL and ENV come from .env: this block used to override
+                // them, which made edits to .env look like they were ignored.
+                "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "envFile": "${workspaceFolder}/.env"
+            // `envFile` and `cwd` together mean the .env lookup also succeeds when
+            // VS Code starts the debuggee from a different directory.
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "App: X-Ray-GMD",
@@ -126,11 +132,14 @@
                 "misc/getMongoData-rs.json"
             ],
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
+                // LOG_LEVEL and ENV come from .env: this block used to override
+                // them, which made edits to .env look like they were ignored.
+                "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "envFile": "${workspaceFolder}/.env"
+            // `envFile` and `cwd` together mean the .env lookup also succeeds when
+            // VS Code starts the debuggee from a different directory.
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "App: X-Ray-FTDC",
@@ -172,11 +181,14 @@
                 "2026-08-06T06:00:00"
             ],
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
+                // LOG_LEVEL and ENV come from .env: this block used to override
+                // them, which made edits to .env look like they were ignored.
+                "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "envFile": "${workspaceFolder}/.env"
+            // `envFile` and `cwd` together mean the .env lookup also succeeds when
+            // VS Code starts the debuggee from a different directory.
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Unit Test",
@@ -191,7 +203,9 @@
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src"
-            }
+            },
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Integration Test",
@@ -202,6 +216,8 @@
             "justMyCode": false,
             "preLaunchTask": "prepare-test-cluster",
             "postDebugTask": "cluster-teardown",
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/src",
                 "HC_URI": "mongodb://localhost:47017",
@@ -218,11 +234,14 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src",
-                "LOG_LEVEL": "INFO",
-                "ENV": "development"
+                // LOG_LEVEL and ENV come from .env: this block used to override
+                // them, which made edits to .env look like they were ignored.
+                "PYTHONPATH": "${workspaceFolder}/src"
             },
-            "envFile": "${workspaceFolder}/.env"
+            // `envFile` and `cwd` together mean the .env lookup also succeeds when
+            // VS Code starts the debuggee from a different directory.
+            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
