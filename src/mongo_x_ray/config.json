@@ -71,7 +71,7 @@
                 "sharding_imbalance_percentage": 0.1
             }
         },
-        "template": "healthcheck/full.html"
+        "template": "healthcheck/mongodb.html"
     },
     "log": {
         "sample_rate": 1.0,
@@ -102,7 +102,7 @@
                 "ai_support": "none"
             },
             "SlowItem": {
-                "top": 10,
+                "top": 15,
                 "query_targeting": 1000,
                 "query_targeting_obj": 1000,
                 "query_targeting_high": 5000
@@ -122,7 +122,7 @@
                 ]
             }
         },
-        "template": "log/full.html"
+        "template": "log/mongodb.html"
     },
     "gmd": {
         "gmdsets": {
@@ -177,7 +177,7 @@
                 "num_indexes": 7
             }
         },
-        "template": "gmd/full.html"
+        "template": "gmd/mongodb.html"
     },
     "ftdc": {
         "ftdcsets": {
@@ -195,6 +195,6 @@
                 "chart_height": 150
             }
         },
-        "template": "ftdc/full.html"
+        "template": "ftdc/mongodb.html"
     }
 }
