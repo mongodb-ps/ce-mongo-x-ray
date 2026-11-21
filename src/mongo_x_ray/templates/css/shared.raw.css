@@ -160,12 +160,23 @@ pre:hover .hljs-copy-button,
 }
 
 .table-copy-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 4px 10px;
     color: var(--fgColor-default, #1f2328);
     background: var(--bgColor-muted, #f6f8fa);
     border: 1px solid var(--borderColor-default, #d0d7de);
     border-radius: 6px;
     cursor: pointer;
+}
+
+/* the copy-table button is labelled with a table icon */
+.table-copy-button svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
 }
 
 .table-copy-button:hover {

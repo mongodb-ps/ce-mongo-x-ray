@@ -231,3 +231,21 @@ def test_shared_js_bundles_the_outline_toggle_and_no_section_tabs():
     assert not (js_dir / "post_tabs.raw.js").exists()
     template = "<html><head>{{ style }}{{ pre_script }}</head><body>{{ script }}</body></html>"
     assert "report-tabs" not in inject_assets(template, "healthcheck", theme="mongodb")
+
+
+def test_table_copy_button_carries_the_table_icon():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    templates = Path(get_script_path("templates"))
+    js = (templates / "js" / "post_table_copy.raw.js").read_text(encoding="utf-8")
+    # LeafyGreen "Table" glyph before the label, kept while the label changes.
+    assert "TABLE_COPY_ICON" in js
+    assert "M1 3.25C1 2.55964" in js
+    assert "table-copy-label" in js
+    assert 'setTableCopyLabel(button, "Copy Table")' in js
+
+    css = (templates / "css" / "shared.raw.css").read_text(encoding="utf-8")
+    assert ".table-copy-button svg {" in css
+    assert "width: 14px;" in css

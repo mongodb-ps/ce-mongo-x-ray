@@ -111,6 +111,24 @@ async function copyTable(table) {
     }
 }
 
+// LeafyGreen "Table" icon (mongodb/leafygreen-ui, packages/icon/src/glyphs/Table.svg)
+var TABLE_COPY_ICON =
+    '<svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">' +
+    '<path fill-rule="evenodd" clip-rule="evenodd" d="M1 3.25C1 2.55964 1.55964 2 2.25 2H13.75C14.4404 2 15 2.55964 15 3.25V12.75C15 13.4404 14.4404 14 13.75 14H2.25C1.55964 14 1 13.4404 1 12.75V3.25ZM3 7.37V4H7.37V7.37H3ZM3 8.62V12H7.37V8.62H3ZM8.62 12H13V8.62H8.62V12ZM13 7.37V4H8.62V7.37H13Z"/>' +
+    "</svg>";
+
+/**
+ * The button keeps its icon; only the label text changes.
+ */
+function setTableCopyLabel(button, text) {
+    var label = button.querySelector(".table-copy-label");
+    if (!label) {
+        button.innerHTML = TABLE_COPY_ICON + '<span class="table-copy-label"></span>';
+        label = button.querySelector(".table-copy-label");
+    }
+    label.textContent = text;
+}
+
 function addTableCopyButtons() {
     document.querySelectorAll("table").forEach(function (table, index) {
         var wrapper = document.createElement("div");
@@ -123,15 +141,15 @@ function addTableCopyButtons() {
         var button = document.createElement("button");
         button.type = "button";
         button.className = "table-copy-button";
-        button.textContent = "Copy Table";
+        setTableCopyLabel(button, "Copy Table");
         button.setAttribute("aria-label", "Copy table " + (index + 1));
         toolbar.appendChild(button);
         wrapper.insertBefore(toolbar, table);
 
         button.addEventListener("click", async function () {
             var copied = await copyTable(table);
-            button.textContent = copied ? "Copied!" : "Copy failed";
-            setTimeout(function () { button.textContent = "Copy Table"; }, 2000);
+            setTableCopyLabel(button, copied ? "Copied!" : "Copy failed");
+            setTimeout(function () { setTableCopyLabel(button, "Copy Table"); }, 2000);
         });
     });
 }
