@@ -209,6 +209,9 @@ def test_mongodb_theme_uses_the_leafygreen_tokens():
     assert "--lg-side-nav-width: 220px;" in css
     assert "outline-h3" in css
     assert "report-tabs" in css
+    # MongoDB black page with a light content card, like mongodb.design
+    assert "background: var(--lg-black)" in css
+    assert ".outline-header" in css
 
 
 def test_shared_js_bundles_the_section_tabs_and_the_outline_toggle_uses_a_class():

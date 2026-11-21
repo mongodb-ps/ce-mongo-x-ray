@@ -96,8 +96,10 @@
 
 /* --- Page --------------------------------------------------------------- */
 
+/* Like https://www.mongodb.design/, the page is MongoDB black and the content
+   sits on a light panel. */
 html {
-    background: var(--lg-gray-light3);
+    background: var(--lg-black);
 }
 
 body {
@@ -107,7 +109,7 @@ body {
     font-size: var(--lg-body2-size);
     line-height: var(--lg-body2-line);
     color: var(--lg-black);
-    background: var(--lg-gray-light3);
+    background: var(--lg-black);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -251,23 +253,32 @@ body {
     font-family: var(--lg-font-sans);
     font-size: var(--lg-body1-size);
     line-height: var(--lg-body1-line);
-    background: var(--lg-gray-light3);
-    border-right: 1px solid var(--lg-gray-light2);
+    background: var(--lg-gray-dark4);
+    border-right: 1px solid var(--lg-gray-dark2);
     transition: box-shadow 150ms ease-in-out;
 }
 
 #outline:hover {
-    box-shadow: 2px 0 4px rgba(0, 30, 43, 0.1);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.35);
+}
+
+/* Header row: the title and the collapse toggle, never overlapping */
+.outline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--lg-space-200);
+    padding: 0 var(--lg-space-200) var(--lg-space-300) var(--lg-space-400);
 }
 
 #outline b {
     display: block;
-    padding: 0 var(--lg-space-400) var(--lg-space-300);
+    padding: 0;
     font-size: var(--lg-disclaimer-size);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
 }
 
 #outline ul {
@@ -290,14 +301,15 @@ body {
     min-height: 32px;
     padding: 6px var(--lg-space-400);
     font-weight: 400;
-    color: var(--lg-black);
+    color: var(--lg-gray-light2);
     text-decoration: none;
     background: transparent;
     transition: background-color 100ms ease-in-out;
 }
 
 #outline a:hover {
-    background-color: var(--lg-gray-light2);
+    color: var(--lg-white);
+    background-color: var(--lg-gray-dark3);
     text-decoration: none;
 }
 
@@ -317,13 +329,17 @@ body {
 }
 
 #outline a.in-view {
-    color: var(--lg-green-dark2);
+    color: var(--lg-white);
     font-weight: 600;
-    background-color: var(--lg-green-light3);
+    background-color: var(--lg-green-dark3);
+}
+
+#outline a.in-view:hover {
+    color: var(--lg-white);
 }
 
 #outline a.in-view::before {
-    background-color: var(--lg-green-dark1);
+    background-color: var(--lg-green-base);
     transform: scaleY(1);
 }
 
@@ -331,7 +347,7 @@ body {
    text pushed further in. */
 #outline li.outline-h3 {
     margin-left: var(--lg-space-400);
-    border-left: 3px solid var(--lg-gray-light1);
+    border-left: 3px solid var(--lg-gray-dark2);
 }
 
 #outline li.outline-h3 a {
@@ -339,15 +355,17 @@ body {
 }
 
 /* Collapse / expand toggles: LeafyGreen icon buttons */
-#collapse-outline,
+#outline #collapse-outline,
 #expand-outline {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
     width: 28px;
+    min-height: 28px;
     height: 28px;
     padding: 0;
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
@@ -358,29 +376,28 @@ body {
         box-shadow 150ms ease-in-out;
 }
 
-#collapse-outline svg,
+#outline #collapse-outline svg,
 #expand-outline svg {
     width: 16px;
     height: 16px;
     fill: currentColor;
 }
 
-#collapse-outline:hover,
+#outline #collapse-outline:hover,
 #expand-outline:hover {
-    color: var(--lg-black);
-    background: var(--lg-gray-light2);
+    color: var(--lg-white);
+    background: var(--lg-gray-dark3);
 }
 
-#collapse-outline:focus-visible,
+#outline #collapse-outline:focus-visible,
 #expand-outline:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--lg-white), 0 0 0 4px var(--lg-blue-base);
 }
 
-#collapse-outline {
-    position: absolute;
-    top: var(--lg-space-400);
-    right: var(--lg-space-200);
+/* sits in the header row, so it can never cover the title */
+#outline #collapse-outline {
+    position: static;
 }
 
 #expand-outline {
@@ -388,8 +405,8 @@ body {
     top: var(--lg-space-400);
     left: var(--lg-space-400);
     z-index: 20;
-    background: var(--lg-white);
-    border-color: var(--lg-gray-light2);
+    background: var(--lg-gray-dark4);
+    border-color: var(--lg-gray-dark2);
 }
 
 /* --- Headings and text -------------------------------------------------- */
@@ -913,6 +930,7 @@ code.code-copyable:hover .code-copy-btn,
 }
 
 @media print {
+    html,
     body {
         padding: 0;
         background: var(--lg-white);
