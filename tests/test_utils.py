@@ -166,3 +166,31 @@ def test_inject_assets_ignores_an_unknown_theme():
 
     assert "--mongo-green-base" not in output
     assert "<style>" in output
+
+
+def test_print_styles_hide_the_outline_without_reserving_its_column():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    templates = Path(get_script_path("templates"))
+    for name in ("shared.raw.css", "mongodb.raw.css"):
+        css = (templates / "css" / name).read_text(encoding="utf-8")
+        print_block = css[css.index("@media print") :]
+        assert "#outline," in print_block, name
+        # Hidden and out of the layout: no renderer may keep its 280px column.
+        assert "display: none !important" in print_block, name
+        assert "width: 0 !important" in print_block, name
+        # The content must start at the page edge, not after the sidebar.
+        assert "margin: 0 !important" in print_block, name
+
+
+def test_shared_js_removes_the_outline_while_printing():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    js = (Path(get_script_path("templates")) / "js" / "post_common.raw.js").read_text(encoding="utf-8")
+
+    assert 'addEventListener("beforeprint"' in js
+    assert 'addEventListener("afterprint"' in js

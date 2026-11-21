@@ -1,3 +1,36 @@
+// Print engines do not agree on how they treat `position: fixed` elements
+// (Safari keeps painting them, others drop them after the first page), so take
+// the report outline out of the layout while printing and put it back
+// afterwards. The print stylesheet hides it as well.
+(function () {
+    var hidden = [];
+    var OUTLINE_IDS = ["outline", "expand-outline", "collapse-outline"];
+
+    function hideOutlineForPrint() {
+        OUTLINE_IDS.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el || el.style.display === "none") return;
+            hidden.push([el, el.getAttribute("style")]);
+            el.style.display = "none";
+        });
+    }
+
+    function restoreOutlineAfterPrint() {
+        hidden.forEach(function (entry) {
+            var el = entry[0];
+            if (entry[1] === null) {
+                el.removeAttribute("style");
+            } else {
+                el.setAttribute("style", entry[1]);
+            }
+        });
+        hidden = [];
+    }
+
+    window.addEventListener("beforeprint", hideOutlineForPrint);
+    window.addEventListener("afterprint", restoreOutlineAfterPrint);
+})();
+
 function formatSize(sizeBytes, decimal = 2) {
     const units = ["B", "KB", "MB", "GB", "TB"];
     for (let unit of units) {

@@ -617,16 +617,27 @@ code.code-copyable:hover .code-copy-btn,
 
     .markdown-body {
         max-width: none;
-        margin: 0;
+        margin: 0 !important;
         padding: 0;
         border: 0;
         border-radius: 0;
         box-shadow: none;
     }
 
+    /* The outline is screen navigation: hide it and make sure no renderer keeps
+       painting it (or reserving its column) on paper. Safari in particular
+       prints `position: fixed` elements; post_common.js also removes it from the
+       layout on `beforeprint`. */
     #outline,
-    #expand-outline {
+    #expand-outline,
+    #collapse-outline {
         display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
     }
 
     .hljs-copy-button,
