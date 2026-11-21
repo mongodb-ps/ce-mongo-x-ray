@@ -236,22 +236,34 @@ def test_shared_js_bundles_the_outline_toggle_and_no_section_tabs():
     assert "report-tabs" not in inject_assets(template, "healthcheck", theme="mongodb")
 
 
-def test_table_copy_button_carries_the_table_icon():
+def test_table_copy_button_uses_the_leafygreen_default_button():
     from pathlib import Path
 
     from mongo_x_ray.utils import get_script_path
 
     templates = Path(get_script_path("templates"))
     js = (templates / "js" / "post_table_copy.raw.js").read_text(encoding="utf-8")
-    # LeafyGreen "Table" glyph before the label, kept while the label changes.
-    assert "TABLE_COPY_ICON" in js
-    assert "M1 3.25C1 2.55964" in js
+    # LeafyGreen "Copy" glyph before the label, a "Checkmark" once copied.
+    assert "COPY_ICON" in js
+    assert "M1 5.71428V10.2857" in js
+    assert "CHECKMARK_ICON" in js
     assert "table-copy-label" in js
-    assert 'setTableCopyLabel(button, "Copy Table")' in js
+    assert '"Copy Table"' in js
 
-    css = (templates / "css" / "shared.raw.css").read_text(encoding="utf-8")
-    assert ".table-copy-button svg {" in css
-    assert "width: 14px;" in css
+    shared = (templates / "css" / "shared.raw.css").read_text(encoding="utf-8")
+    # Button "default" variant: 36px tall, 6px radius, gray.light3 on gray.base.
+    block = shared[shared.index(".table-copy-button {") :]
+    block = block[: block.index("}")]
+    for declaration in (
+        "height: 36px;",
+        "border-radius: 6px;",
+        "background-color: #f9fbfa;",
+        "border: 1px solid #889397;",
+    ):
+        assert declaration in block, declaration
+
+    theme = (templates / "css" / "mongodb.raw.css").read_text(encoding="utf-8")
+    assert "background-color: var(--lg-gray-dark2);" in theme
 
 
 def test_env_file_is_loaded_without_overriding_the_environment(monkeypatch, tmp_path):

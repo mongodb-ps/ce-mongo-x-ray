@@ -865,14 +865,36 @@ code.code-copyable:hover .code-copy-btn,
     mask: var(--lg-icon-checkmark) center / 16px 16px no-repeat;
 }
 
-/* Buttons (LeafyGreen Button, primary) */
+/* Buttons: the copy-table button is the Button "default" variant, the report's
+   own <input type="button"> controls stay primary green. */
 .table-copy-toolbar {
     display: flex;
     justify-content: flex-start;
     margin: 0 0 var(--lg-space-100);
 }
 
-.table-copy-button,
+/* default variant, dark theme: gray.dark2 on gray.base, gray.dark1 on hover */
+.table-copy-button {
+    color: var(--lg-white);
+    background-color: var(--lg-gray-dark2);
+    border-color: var(--lg-gray-base);
+}
+
+.table-copy-button:hover,
+.table-copy-button:active {
+    color: var(--lg-white);
+    background-color: var(--lg-gray-dark1);
+    border-color: var(--lg-gray-base);
+    box-shadow: 0 0 0 3px var(--lg-gray-dark2);
+}
+
+.table-copy-button:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px var(--lg-black),
+        0 0 0 4px var(--lg-blue-light1);
+}
+
 .markdown-body input[type="button"] {
     padding: 6px var(--lg-space-300);
     font-family: var(--lg-font-sans);
@@ -890,13 +912,11 @@ code.code-copyable:hover .code-copy-btn,
         box-shadow 150ms ease-in-out;
 }
 
-.table-copy-button:hover,
 .markdown-body input[type="button"]:hover {
     background: var(--lg-green-light1);
     border-color: var(--lg-green-light1);
 }
 
-.table-copy-button:focus-visible,
 .markdown-body input[type="button"]:focus-visible {
     outline: none;
     box-shadow:

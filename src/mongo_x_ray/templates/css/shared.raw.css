@@ -159,19 +159,30 @@ pre:hover .hljs-copy-button,
     margin-bottom: 4px;
 }
 
+/* Copy-table button: the LeafyGreen Button, "default" variant
+   (36px tall, 6px radius, gray.light3 on gray.base, white + 3px ring on hover) */
 .table-copy-button {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
-    color: var(--fgColor-default, #1f2328);
-    background: var(--bgColor-muted, #f6f8fa);
-    border: 1px solid var(--borderColor-default, #d0d7de);
+    box-sizing: border-box;
+    height: 36px;
+    padding: 0 12px;
+    font-family: "Euclid Circular A", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #001e2b;
+    background-color: #f9fbfa;
+    border: 1px solid #889397;
     border-radius: 6px;
     cursor: pointer;
+    transition:
+        background-color 150ms ease-in-out,
+        border-color 150ms ease-in-out,
+        box-shadow 150ms ease-in-out;
 }
 
-/* the copy-table button is labelled with a table icon */
 .table-copy-button svg {
     flex: 0 0 auto;
     width: 14px;
@@ -179,8 +190,19 @@ pre:hover .hljs-copy-button,
     fill: currentColor;
 }
 
-.table-copy-button:hover {
-    background: var(--button-default-bgColor-hover, #f3f4f6);
+.table-copy-button:hover,
+.table-copy-button:active {
+    color: #001e2b;
+    background-color: #ffffff;
+    border-color: #889397;
+    box-shadow: 0 0 0 3px #e8edeb;
+}
+
+.table-copy-button:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 0 0 4px #0498ec;
 }
 
 .markdown-body table {
