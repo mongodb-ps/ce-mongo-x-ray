@@ -318,3 +318,38 @@ def test_ai_client_loads_the_env_before_it_snapshots_the_model():
     assert "load_env_file()" in source
     assert source.index("load_env_file()") < source.index("_AI_MODEL = os.getenv")
     assert ai_client.GPT_MODEL == ai_client._AI_MODEL
+
+
+def test_severity_badge_markup_follows_the_severity_level():
+    from mongo_x_ray.shared import SEVERITY, severity_badge
+
+    assert severity_badge(SEVERITY.HIGH) == '<span class="severity-badge severity-high">HIGH</span>'
+    assert severity_badge(SEVERITY.MEDIUM) == '<span class="severity-badge severity-medium">MEDIUM</span>'
+    assert severity_badge(SEVERITY.LOW) == '<span class="severity-badge severity-low">LOW</span>'
+    assert severity_badge(SEVERITY.INFO) == '<span class="severity-badge severity-info">INFO</span>'
+
+
+def test_severity_badges_are_styled_in_both_templates():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    css_dir = Path(get_script_path("templates")) / "css"
+    shared = (css_dir / "shared.raw.css").read_text(encoding="utf-8")
+    # Badge geometry from the MongoDB Badge component.
+    assert "border-radius: 24px;" in shared
+    assert "font-size: 12px;" in shared
+    assert "text-transform: uppercase;" in shared
+    for level, colour in (
+        ("high", "#970606"),
+        ("medium", "#944f01"),
+        ("low", "#00684a"),
+        ("info", "#5c6c75"),
+    ):
+        assert f".severity-{level} {{" in shared
+        assert colour in shared
+
+    theme = (css_dir / "mongodb.raw.css").read_text(encoding="utf-8")
+    assert ".severity-high {" in theme
+    assert "--lg-red-dark2" in theme
+    assert "--lg-yellow-light3" in theme

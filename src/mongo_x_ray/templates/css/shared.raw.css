@@ -327,6 +327,51 @@ pre:hover .hljs-copy-button,
     }
 }
 
+/* Severity badges (MongoDB Badge component): 18px pill, 12/16 semibold,
+   uppercase. High is red, medium yellow, low green, info light gray. */
+.severity-badge {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 18px;
+    padding: 0 6px;
+    font-family: "Euclid Circular A", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border: 1px solid;
+    border-radius: 24px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.severity-high {
+    color: #970606;
+    background-color: #ffeae5;
+    border-color: #ffcdc7;
+}
+
+.severity-medium {
+    color: #944f01;
+    background-color: #fef7db;
+    border-color: #ffec9e;
+}
+
+.severity-low {
+    color: #00684a;
+    background-color: #e3fcf7;
+    border-color: #c0fae6;
+}
+
+.severity-info {
+    color: #5c6c75;
+    background-color: #f9fbfa;
+    border-color: #e8edeb;
+}
+
 .risk-badge {
     display: inline-block;
     padding: 0 4px;

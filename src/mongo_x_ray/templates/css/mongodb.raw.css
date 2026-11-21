@@ -902,6 +902,33 @@ code.code-copyable:hover .code-copy-btn,
 
 /* --- Badges (LeafyGreen Badge) ------------------------------------------ */
 
+/* Severity badges reuse the shared geometry; the colours come from the tokens.
+   High = red, medium = yellow, low = green, info = light gray. */
+.severity-high {
+    color: var(--lg-red-dark2);
+    background-color: var(--lg-red-light3);
+    border-color: var(--lg-red-light2);
+}
+
+.severity-medium {
+    color: var(--lg-yellow-dark2);
+    background-color: var(--lg-yellow-light3);
+    border-color: var(--lg-yellow-light2);
+}
+
+.severity-low {
+    color: var(--lg-green-dark2);
+    background-color: var(--lg-green-light3);
+    border-color: var(--lg-green-light2);
+}
+
+.severity-info {
+    color: var(--lg-gray-dark1);
+    background-color: var(--lg-gray-light3);
+    border-color: var(--lg-gray-light2);
+}
+
+
 .risk-badge {
     padding: 0 var(--lg-space-100) 1px;
     font-size: var(--lg-disclaimer-size);

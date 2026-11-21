@@ -28,6 +28,15 @@ class SEVERITY(Enum):
     INFO = 1
 
 
+def severity_badge(severity: SEVERITY) -> str:
+    """Render a severity as an inline Badge (MongoDB design system).
+
+    High is red, medium yellow, low green and info light gray; the look lives in
+    `.severity-badge` in the report stylesheets so a template can restyle it.
+    """
+    return f'<span class="severity-badge severity-{severity.name.lower()}">{severity.name}</span>'
+
+
 def to_json(obj, indent: Optional[int] = 0):
     cls_maps = [
         {"class": SEVERITY, "func": lambda o: o.name},
