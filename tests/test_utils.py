@@ -213,6 +213,9 @@ def test_mongodb_theme_uses_the_leafygreen_tokens():
     # MongoDB black page with a light content card, like mongodb.design
     assert "background: var(--lg-black)" in css
     assert ".outline-header" in css
+    # AI notes carry the LeafyGreen sparkle icon
+    assert ".ai-label" in css
+    assert "ai-icon" in css
 
 
 def test_shared_js_bundles_the_outline_toggle_and_no_section_tabs():

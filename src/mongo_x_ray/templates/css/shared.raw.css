@@ -327,6 +327,22 @@ pre:hover .hljs-copy-button,
     }
 }
 
+/* AI notes (FTDC): the LeafyGreen Sparkle icon and its label sit above the
+   generated text, inside a blockquote. */
+.ai-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.ai-label svg.ai-icon {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
 /* Severity badges (MongoDB Badge component): 18px pill, 12/16 semibold,
    uppercase. High is red, medium yellow, low green, info light gray. */
 .severity-badge {

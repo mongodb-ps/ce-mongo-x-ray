@@ -902,6 +902,17 @@ code.code-copyable:hover .code-copy-btn,
 
 /* --- Badges (LeafyGreen Badge) ------------------------------------------ */
 
+/* AI notes: the sparkle and its label in the MongoDB green */
+.ai-label {
+    color: var(--lg-green-dark2);
+}
+
+.ai-label svg.ai-icon {
+    width: 16px;
+    height: 16px;
+    fill: var(--lg-green-dark1);
+}
+
 /* Severity badges reuse the shared geometry; the colours come from the tokens.
    High = red, medium = yellow, low = green, info = light gray. */
 .severity-high {
