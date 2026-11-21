@@ -261,6 +261,15 @@ pre:hover .hljs-copy-button,
     }
 }
 
+@media screen {
+    /* Collapsing the outline (post_outline.js) reclaims its column: the report
+       card centres itself, whichever template is in use. */
+    body.outline-collapsed {
+        margin-right: auto;
+        margin-left: auto;
+    }
+}
+
 @page {
     size: landscape;
 }

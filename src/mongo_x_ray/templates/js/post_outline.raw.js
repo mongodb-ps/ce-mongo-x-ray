@@ -27,18 +27,21 @@ function highlightOutline() {
     links.forEach((link, index) => link.classList.toggle("in-view", index === current));
 }
 
+// The CSS owns the layout of both report templates, so collapsing only flips a
+// class on the body (`body.outline-collapsed` in shared.css) instead of writing
+// margins here.
 collapse.addEventListener("click", (event) => {
     event.preventDefault();
+    document.body.classList.add("outline-collapsed");
     outline.style.display = "none";
-    document.body.style.margin = "0 auto";
-    expand.style.display = "inline";
+    expand.style.display = "inline-flex";
     window.dispatchEvent(new Event("resize"));
 });
 
 expand.addEventListener("click", (event) => {
     event.preventDefault();
+    document.body.classList.remove("outline-collapsed");
     outline.style.display = "block";
-    document.body.style.margin = "0 auto 0 300px";
     expand.style.display = "none";
     window.dispatchEvent(new Event("resize"));
 });

@@ -145,8 +145,8 @@ def test_inject_assets_applies_the_theme_stylesheet():
 
     # templates/css/mongodb.css is appended after the shared styles so it can
     # restyle them.
-    assert "--mongo-green-base" in output
-    assert output.index("--bgColor-muted") < output.index("--mongo-green-base")
+    assert "--lg-green-base" in output
+    assert output.index("--bgColor-muted") < output.index("--lg-green-base")
 
 
 def test_inject_assets_without_theme_keeps_the_default_look():
@@ -155,7 +155,7 @@ def test_inject_assets_without_theme_keeps_the_default_look():
     template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
     output = inject_assets(template, "healthcheck")
 
-    assert "--mongo-green-base" not in output
+    assert "--lg-green-base" not in output
 
 
 def test_inject_assets_ignores_an_unknown_theme():
@@ -164,7 +164,7 @@ def test_inject_assets_ignores_an_unknown_theme():
     template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
     output = inject_assets(template, "healthcheck", theme="no-such-theme")
 
-    assert "--mongo-green-base" not in output
+    assert "--lg-green-base" not in output
     assert "<style>" in output
 
 
@@ -194,3 +194,37 @@ def test_shared_js_removes_the_outline_while_printing():
 
     assert 'addEventListener("beforeprint"' in js
     assert 'addEventListener("afterprint"' in js
+
+
+def test_mongodb_theme_uses_the_leafygreen_tokens():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    css = (Path(get_script_path("templates")) / "css" / "mongodb.raw.css").read_text(encoding="utf-8")
+
+    # Values taken from mongodb/leafygreen-ui (palette, side-nav, table, tabs).
+    assert "--lg-green-dark2: #00684a;" in css
+    assert "--lg-green-green" not in css
+    assert "--lg-side-nav-width: 220px;" in css
+    assert "outline-h3" in css
+    assert "report-tabs" in css
+
+
+def test_shared_js_bundles_the_section_tabs_and_the_outline_toggle_uses_a_class():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path, inject_assets
+
+    js_dir = Path(get_script_path("templates")) / "js"
+    tabs = (js_dir / "post_tabs.raw.js").read_text(encoding="utf-8")
+    assert '"mongodb-report"' in tabs
+    assert "report-tabs" in tabs
+
+    outline = (js_dir / "post_outline.raw.js").read_text(encoding="utf-8")
+    # The layout belongs to the stylesheets, not to inline margins.
+    assert 'classList.add("outline-collapsed")' in outline
+    assert "document.body.style.margin" not in outline
+
+    template = "<html><head>{{ style }}{{ pre_script }}</head><body>{{ script }}</body></html>"
+    assert "report-tabs" in inject_assets(template, "healthcheck", theme="mongodb")
