@@ -135,3 +135,34 @@ def test_inject_assets_injects_pie_label_settings():
     assert "PIE_LABEL_LENGTH || 0" in output or "PIE_LABEL_LENGTH||0" in output
     assert "PIE_LABEL_PER_SIDE || 15" in output or "PIE_LABEL_PER_SIDE||15" in output
     assert "PIE_LABEL_THRESHOLD" not in output
+
+
+def test_inject_assets_applies_the_theme_stylesheet():
+    from mongo_x_ray.utils import inject_assets
+
+    template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
+    output = inject_assets(template, "healthcheck", theme="mongodb")
+
+    # templates/css/mongodb.css is appended after the shared styles so it can
+    # restyle them.
+    assert "--mongo-green-base" in output
+    assert output.index("--bgColor-muted") < output.index("--mongo-green-base")
+
+
+def test_inject_assets_without_theme_keeps_the_default_look():
+    from mongo_x_ray.utils import inject_assets
+
+    template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
+    output = inject_assets(template, "healthcheck")
+
+    assert "--mongo-green-base" not in output
+
+
+def test_inject_assets_ignores_an_unknown_theme():
+    from mongo_x_ray.utils import inject_assets
+
+    template = "<html><head>{{ style }}{{ pre_script }}{{ script }}</head><body></body></html>"
+    output = inject_assets(template, "healthcheck", theme="no-such-theme")
+
+    assert "--mongo-green-base" not in output
+    assert "<style>" in output

@@ -93,7 +93,7 @@ def html_to_pdf(html_file: Union[str, Path], pdf_file: Union[str, Path]) -> None
     HTML(filename=str(html_path), base_url=str(html_path.parent)).write_pdf(str(pdf_file))
 
 
-def inject_assets(template: str, module: str, template_root: Optional[Path] = None) -> str:
+def inject_assets(template: str, module: str, template_root: Optional[Path] = None, theme: Optional[str] = None) -> str:
     """Inject CSS and JS assets into a template by replacing placeholders.
 
     The template must contain ``{{ style }}``, ``{{ script }}`` and
@@ -113,6 +113,10 @@ def inject_assets(template: str, module: str, template_root: Optional[Path] = No
         template_root: The root directory containing the module's templates
             (``{module}/style.css``, ``{module}/script.js``). Defaults to the
             core package's ``templates`` directory; plugins pass their own.
+        theme: Optional theme name. ``templates/css/{theme}.css`` is appended
+            after the shared and module styles, so it can restyle both. The
+            report templates select it through their file name
+            (``mongodb.html`` → theme ``mongodb``).
     """
     core_dir = Path(get_script_path("templates"))
     module_dir = template_root if template_root is not None else core_dir
@@ -122,11 +126,15 @@ def inject_assets(template: str, module: str, template_root: Optional[Path] = No
     if is_dev:
         css_parts = [core_dir / "css" / "shared.raw.css"]
         module_css = module_dir / module / "style.raw.css"
+        theme_css = core_dir / "css" / f"{theme}.raw.css" if theme else None
     else:
         css_parts = [core_dir / "css" / "shared.css"]
         module_css = module_dir / module / "style.css"
+        theme_css = core_dir / "css" / f"{theme}.css" if theme else None
     if module_css.exists():
         css_parts.append(module_css)
+    if theme_css is not None and theme_css.exists():
+        css_parts.append(theme_css)
     style_content = "\n".join(p.read_text(encoding="utf-8") for p in css_parts)
     template = template.replace("{{ style }}", f"<style>\n{style_content}\n</style>")
 

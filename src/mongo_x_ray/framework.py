@@ -78,7 +78,14 @@ class BaseFramework(ABC):
         if fmt in {"html", "pdf"}:
             template_root = Path(str(files(self.template_package) / "templates"))
             default_template = f"{self.template_module}/full.html"
-            template_file = template_root / self._config.get("template", default_template)
+            template_name = self._config.get("template", default_template)
+            template_file = template_root / template_name
+            # The template file name selects the theme: `mongodb.html` pulls in
+            # templates/css/mongodb.css on top of the shared styles, `full.html`
+            # keeps the default look.
+            theme = Path(template_name).stem
+            if theme == "full":
+                theme = None
             html_content = markdown.markdown(
                 markdown_file.read_text(encoding="utf-8"),
                 extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],
@@ -87,6 +94,7 @@ class BaseFramework(ABC):
                 template_file.read_text(encoding="utf-8"),
                 self.template_module,
                 template_root=template_root,
+                theme=theme,
             )
             html_file.write_text(template_content.replace("{{ content }}", html_content), encoding="utf-8")
 

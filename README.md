@@ -118,6 +118,34 @@ Besides, you can use environment variables to control some behaviors:
   - The output will not create a new folder for each run but overwrite the same files.
 - `LOG_LEVEL`: Can be `DEBUG`, `ERROR` or `INFO` (default).
 
+### 2.1 Report templates
+
+Every plugin renders its report with a template from its `templates/` folder. The
+template is chosen per module in the config file (`-c`, or the built-in
+`config.json`):
+
+```json
+{
+    "healthcheck": { "template": "healthcheck/mongodb.html" },
+    "log": { "template": "log/mongodb.html" },
+    "ftdc": { "template": "ftdc/mongodb.html" },
+    "gmd": { "template": "gmd/mongodb.html" }
+}
+```
+
+Two templates ship with each plugin:
+
+| Template                     | Look                                                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `<module>/full.html` (default) | GitHub-style markdown report                                                                                      |
+| `<module>/mongodb.html`        | [MongoDB design](https://www.mongodb.design/): LeafyGreen palette, forest-green outline, green accents, uppercase table headers, dark code blocks |
+
+The `mongodb.html` template is self-contained: its theme lives in
+`templates/css/mongodb.css`, is appended after the shared styles and is inlined
+into the report, so no remote stylesheet or webfont is requested. The charting
+and syntax highlighting libraries come from the same CDNs as the default
+template.
+
 For information about using each plugin, please refer to their Github repos:
 - [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc)
 - [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc)
