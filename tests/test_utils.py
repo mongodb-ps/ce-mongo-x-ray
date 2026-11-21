@@ -353,6 +353,11 @@ def test_severity_badges_are_styled_in_both_templates():
         assert colour in shared
 
     theme = (css_dir / "mongodb.raw.css").read_text(encoding="utf-8")
+    # The theme is dark, so the badges use the dark Badge variants ...
     assert ".severity-high {" in theme
-    assert "--lg-red-dark2" in theme
-    assert "--lg-yellow-light3" in theme
+    assert "--lg-red-dark3" in theme
+    assert "--lg-yellow-dark3" in theme
+    # ... and print restores the light ones.
+    print_block = theme[theme.index("@media print") :]
+    assert ".severity-high {" in print_block
+    assert "#ffeae5" in print_block

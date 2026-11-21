@@ -34,6 +34,7 @@
     --lg-green-light2: #c0fae6;
     --lg-green-light3: #e3fcf7;
 
+    --lg-blue-dark3: #0c2657;
     --lg-blue-dark2: #083c90;
     --lg-blue-dark1: #1254b7;
     --lg-blue-base: #016bf8;
@@ -41,17 +42,20 @@
     --lg-blue-light2: #c3e7fe;
     --lg-blue-light3: #e1f7ff;
 
+    --lg-yellow-dark3: #4c2100;
     --lg-yellow-dark2: #944f01;
     --lg-yellow-base: #ffc010;
     --lg-yellow-light2: #ffec9e;
     --lg-yellow-light3: #fef7db;
 
+    --lg-red-dark3: #5b0000;
     --lg-red-dark2: #970606;
     --lg-red-base: #db3030;
     --lg-red-light1: #ff6960;
     --lg-red-light2: #ffcdc7;
     --lg-red-light3: #ffeae5;
 
+    --lg-purple-dark3: #2d0b59;
     --lg-purple-dark2: #5e0c9e;
     --lg-purple-base: #b45af2;
     --lg-purple-light2: #f1d4fd;
@@ -108,8 +112,9 @@ body {
     font-family: var(--lg-font-sans);
     font-size: var(--lg-body2-size);
     line-height: var(--lg-body2-line);
-    color: var(--lg-black);
+    color: var(--lg-gray-light2);
     background: var(--lg-black);
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -119,10 +124,11 @@ body {
     min-width: 200px;
     margin: 24px 32px 0 calc(var(--lg-side-nav-width) + 40px);
     padding: 36px 44px;
-    background: var(--lg-white);
-    border: 1px solid var(--lg-gray-light2);
+    /* the report is a dark panel on the black page, like the design site */
+    background: var(--lg-gray-dark4);
+    border: 1px solid var(--lg-gray-dark2);
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 30, 43, 0.04);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* Report masthead inside the page: MongoDB wordmark, report name and a green
@@ -142,7 +148,7 @@ body {
     font-size: 20px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: var(--lg-black);
+    color: var(--lg-white);
 }
 
 .mongo-header .mongo-report-title {
@@ -150,7 +156,7 @@ body {
     font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
 }
 
 /* Collapsed outline (post_outline.js): the card centres itself */
@@ -178,7 +184,7 @@ body {
     font-size: 0;
     background: transparent;
     border: 0;
-    border-bottom: 1px solid var(--lg-gray-light2);
+    border-bottom: 1px solid var(--lg-gray-dark2);
     border-radius: 0;
     box-shadow: none;
     scrollbar-width: thin;
@@ -197,7 +203,7 @@ body {
     font-size: var(--lg-body1-size);
     font-weight: 500;
     line-height: var(--lg-body1-line);
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
     text-decoration: none;
     white-space: nowrap;
     background: transparent;
@@ -225,12 +231,12 @@ body {
 
 .chart-tabs a:hover,
 .metadata-tab-btn:hover {
-    color: var(--lg-gray-dark3);
+    color: var(--lg-white);
 }
 
 .chart-tabs a:hover::after,
 .metadata-tab-btn:hover::after {
-    background-color: var(--lg-gray-light2);
+    background-color: var(--lg-gray-dark2);
     transform: scaleX(0.95);
 }
 
@@ -242,7 +248,7 @@ body {
 
 .chart-tabs a.in-view,
 .metadata-tab-btn.active {
-    color: var(--lg-green-dark2);
+    color: var(--lg-gray-light2);
     font-weight: 600;
 }
 
@@ -448,7 +454,7 @@ body {
 .markdown-body h6 {
     font-family: var(--lg-font-sans);
     font-weight: 600;
-    color: var(--lg-black);
+    color: var(--lg-white);
     line-height: 1.25;
     margin: 32px 0 16px;
     /* the tabs and the outline scroll to headings: keep them clear of the bar */
@@ -470,12 +476,12 @@ body {
 
 .markdown-body h3 {
     font-size: 19px;
-    color: var(--lg-green-dark3);
+    color: var(--lg-green-light1);
 }
 
 .markdown-body h4 {
     font-size: var(--lg-body2-size);
-    color: var(--lg-green-dark2);
+    color: var(--lg-green-light2);
 }
 
 .markdown-body h5,
@@ -483,7 +489,7 @@ body {
     font-size: var(--lg-body1-size);
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
 }
 
 .markdown-body p {
@@ -491,25 +497,25 @@ body {
 }
 
 .markdown-body a {
-    color: var(--lg-green-dark2);
+    color: var(--lg-green-light1);
     text-decoration: underline;
     text-underline-offset: 2px;
     text-decoration-thickness: 1px;
 }
 
 .markdown-body a:hover {
-    color: var(--lg-green-dark1);
+    color: var(--lg-green-base);
     text-decoration-thickness: 2px;
 }
 
 .markdown-body strong {
     font-weight: 600;
-    color: var(--lg-black);
+    color: var(--lg-white);
 }
 
 .markdown-body small {
     font-size: var(--lg-disclaimer-size);
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
 }
 
 .markdown-body ul,
@@ -531,7 +537,7 @@ body {
     height: 0;
     margin: 32px 0;
     border: 0;
-    border-top: 1px solid var(--lg-gray-light2);
+    border-top: 1px solid var(--lg-gray-dark2);
 }
 
 .markdown-body img {
@@ -542,8 +548,8 @@ body {
 .markdown-body blockquote {
     margin: 0 0 16px;
     padding: 12px 16px;
-    color: var(--lg-gray-dark2);
-    background: var(--lg-gray-light3);
+    color: var(--lg-gray-light2);
+    background: var(--lg-gray-dark3);
     border-left: 4px solid var(--lg-green-base);
     border-radius: 0 8px 8px 0;
 }
@@ -562,7 +568,7 @@ body {
     font-family: var(--lg-font-sans);
     font-size: var(--lg-body1-size);
     line-height: var(--lg-body1-line);
-    color: var(--lg-gray-dark3);
+    color: var(--lg-gray-light2);
     table-layout: auto;
     /* Sticky headers render seams with border-collapse: collapse (the shared
        borders do not move with the sticky cells), so keep separate borders with
@@ -590,10 +596,10 @@ body {
     letter-spacing: 0;
     text-transform: none;
     text-align: left;
-    color: var(--lg-gray-dark1);
-    background: var(--lg-white);
+    color: var(--lg-gray-light1);
+    background: var(--lg-black);
     border: 0;
-    box-shadow: inset 0 -1px 0 var(--lg-gray-light2);
+    box-shadow: inset 0 -1px 0 var(--lg-gray-dark2);
 }
 
 .markdown-body table th:first-child,
@@ -616,11 +622,11 @@ body {
 
 /* Zebra rows and a hover state, like the LeafyGreen table */
 .markdown-body table tbody tr:nth-child(even) {
-    background-color: var(--lg-gray-light3);
+    background-color: var(--lg-gray-dark3);
 }
 
 .markdown-body table tbody tr:hover {
-    background-color: var(--lg-gray-light2);
+    background-color: var(--lg-gray-dark2);
 }
 
 .markdown-body td pre,
@@ -634,7 +640,7 @@ body {
 }
 
 .markdown-body th[data-sortable="true"]:hover {
-    color: var(--lg-gray-dark3);
+    color: var(--lg-white);
 }
 
 .markdown-body th[data-sortable="true"]::after {
@@ -669,8 +675,8 @@ body {
     font-family: var(--lg-font-mono);
     font-size: var(--lg-code1-size);
     padding: 2px 6px;
-    color: var(--lg-green-dark2);
-    background: var(--lg-green-light3);
+    color: var(--lg-green-light1);
+    background: var(--lg-green-dark3);
     border-radius: 4px;
 }
 
@@ -682,7 +688,7 @@ body {
     line-height: 1.55;
     color: var(--lg-gray-light2);
     background: var(--lg-black);
-    border: 1px solid var(--lg-gray-dark3);
+    border: 1px solid var(--lg-gray-dark2);
     border-radius: 8px;
 }
 
@@ -707,7 +713,7 @@ body {
     margin: 4px 0;
     padding: var(--lg-space-200) 10px;
     background: var(--lg-black);
-    border: 1px solid var(--lg-gray-dark3);
+    border: 1px solid var(--lg-gray-dark2);
     border-radius: 6px;
 }
 
@@ -829,7 +835,7 @@ pre:hover .hljs-copy-button,
     margin-left: 0.25em;
     vertical-align: -0.2em;
     padding: 0;
-    color: var(--lg-gray-dark1);
+    color: var(--lg-gray-light1);
     background: transparent;
     border: none;
     border-radius: 4px;
@@ -842,7 +848,7 @@ pre:hover .hljs-copy-button,
 
 code.code-copyable:hover .code-copy-btn,
 .code-copy-btn:hover {
-    color: var(--lg-green-dark2);
+    color: var(--lg-green-light1);
 }
 
 .hljs-copy-button.code-copied svg,
@@ -875,9 +881,9 @@ code.code-copyable:hover .code-copy-btn,
     font-size: var(--lg-body1-size);
     font-weight: 500;
     line-height: var(--lg-body1-line);
-    color: var(--lg-white);
-    background: var(--lg-green-dark2);
-    border: 1px solid var(--lg-green-dark2);
+    color: var(--lg-black);
+    background: var(--lg-green-base);
+    border: 1px solid var(--lg-green-base);
     border-radius: 6px;
     cursor: pointer;
     transition:
@@ -888,15 +894,15 @@ code.code-copyable:hover .code-copy-btn,
 
 .table-copy-button:hover,
 .markdown-body input[type="button"]:hover {
-    background: var(--lg-green-dark1);
-    border-color: var(--lg-green-dark1);
+    background: var(--lg-green-light1);
+    border-color: var(--lg-green-light1);
 }
 
 .table-copy-button:focus-visible,
 .markdown-body input[type="button"]:focus-visible {
     outline: none;
     box-shadow:
-        0 0 0 2px var(--lg-white),
+        0 0 0 2px var(--lg-black),
         0 0 0 4px var(--lg-blue-base);
 }
 
@@ -904,39 +910,39 @@ code.code-copyable:hover .code-copy-btn,
 
 /* AI notes: the sparkle and its label in the MongoDB green */
 .ai-label {
-    color: var(--lg-green-dark2);
+    color: var(--lg-green-light1);
 }
 
 .ai-label svg.ai-icon {
     width: 16px;
     height: 16px;
-    fill: var(--lg-green-dark1);
+    fill: var(--lg-green-base);
 }
 
 /* Severity badges reuse the shared geometry; the colours come from the tokens.
    High = red, medium = yellow, low = green, info = light gray. */
 .severity-high {
-    color: var(--lg-red-dark2);
-    background-color: var(--lg-red-light3);
-    border-color: var(--lg-red-light2);
+    color: var(--lg-red-light2);
+    background-color: var(--lg-red-dark3);
+    border-color: var(--lg-red-dark2);
 }
 
 .severity-medium {
-    color: var(--lg-yellow-dark2);
-    background-color: var(--lg-yellow-light3);
-    border-color: var(--lg-yellow-light2);
+    color: var(--lg-yellow-light2);
+    background-color: var(--lg-yellow-dark3);
+    border-color: var(--lg-yellow-dark2);
 }
 
 .severity-low {
-    color: var(--lg-green-dark2);
-    background-color: var(--lg-green-light3);
-    border-color: var(--lg-green-light2);
+    color: var(--lg-green-light1);
+    background-color: var(--lg-green-dark3);
+    border-color: var(--lg-green-dark2);
 }
 
 .severity-info {
-    color: var(--lg-gray-dark1);
-    background-color: var(--lg-gray-light3);
-    border-color: var(--lg-gray-light2);
+    color: var(--lg-gray-light2);
+    background-color: var(--lg-gray-dark3);
+    border-color: var(--lg-gray-dark2);
 }
 
 
@@ -945,9 +951,9 @@ code.code-copyable:hover .code-copy-btn,
     font-size: var(--lg-disclaimer-size);
     font-weight: 600;
     line-height: 1.4;
-    color: var(--lg-green-dark2);
-    background: var(--lg-green-light3);
-    border: 1px solid var(--lg-green-light2);
+    color: var(--lg-green-light1);
+    background: var(--lg-green-dark3);
+    border: 1px solid var(--lg-green-dark2);
     border-radius: 4px;
 }
 
@@ -965,8 +971,12 @@ code.code-copyable:hover .code-copy-btn,
 
 /* --- Charts ------------------------------------------------------------- */
 
-.markdown-body canvas {
+/* charts are drawn on a white surface: keep them on a light panel */
+.markdown-body canvas,
+.markdown-body img {
     max-width: 100%;
+    background: var(--lg-white);
+    border-radius: 8px;
 }
 
 /* --- Responsive --------------------------------------------------------- */
@@ -996,11 +1006,15 @@ code.code-copyable:hover .code-copy-btn,
     size: landscape;
 }
 
+/* The report is dark on screen; paper (and the PDF) always uses the light
+   variant, so every dark surface is undone here. */
 @media print {
     html,
     body {
         padding: 0;
+        color: var(--lg-black);
         background: var(--lg-white);
+        color-scheme: light;
     }
 
     .mongo-header {
@@ -1010,13 +1024,148 @@ code.code-copyable:hover .code-copy-btn,
         print-color-adjust: exact;
     }
 
+    .mongo-header .mongo-wordmark {
+        color: var(--lg-black);
+    }
+
+    .mongo-header .mongo-report-title {
+        color: var(--lg-gray-dark1);
+    }
+
     .markdown-body {
         max-width: none;
         margin: 0 !important;
         padding: 0;
+        color: var(--lg-black);
+        background: var(--lg-white);
         border: 0;
         border-radius: 0;
         box-shadow: none;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h6 {
+        color: var(--lg-black);
+    }
+
+    .markdown-body h3 {
+        color: var(--lg-green-dark3);
+    }
+
+    .markdown-body h4 {
+        color: var(--lg-green-dark2);
+    }
+
+    .markdown-body h5 {
+        color: var(--lg-gray-dark1);
+    }
+
+    .markdown-body a {
+        color: var(--lg-green-dark2);
+    }
+
+    .markdown-body strong {
+        color: var(--lg-black);
+    }
+
+    .markdown-body small {
+        color: var(--lg-gray-dark1);
+    }
+
+    .markdown-body hr {
+        border-top-color: var(--lg-gray-light2);
+    }
+
+    .markdown-body blockquote {
+        color: var(--lg-gray-dark2);
+        background: var(--lg-gray-light3);
+    }
+
+    /* tables: light header, hairlines instead of the zebra tint */
+    .markdown-body table {
+        color: var(--lg-gray-dark3);
+        page-break-inside: auto;
+    }
+
+    .markdown-body table th {
+        color: var(--lg-gray-dark1);
+        background: var(--lg-white);
+        box-shadow: inset 0 -1px 0 var(--lg-gray-light2);
+    }
+
+    .markdown-body table tbody tr:nth-child(even),
+    .markdown-body table tbody tr:hover {
+        background-color: transparent;
+    }
+
+    .markdown-body table td {
+        border-bottom: 1px solid var(--lg-gray-light2);
+    }
+
+    .markdown-body code,
+    .markdown-body tt {
+        color: var(--lg-green-dark2);
+        background: var(--lg-green-light3);
+    }
+
+    /* badges use the light variants again */
+    .severity-high {
+        color: #970606;
+        background-color: #ffeae5;
+        border-color: #ffcdc7;
+    }
+
+    .severity-medium {
+        color: #944f01;
+        background-color: #fef7db;
+        border-color: #ffec9e;
+    }
+
+    .severity-low {
+        color: #00684a;
+        background-color: #e3fcf7;
+        border-color: #c0fae6;
+    }
+
+    .severity-info {
+        color: #5c6c75;
+        background-color: #f9fbfa;
+        border-color: #e8edeb;
+    }
+
+    .risk-badge {
+        color: var(--lg-green-dark2);
+        background: var(--lg-green-light3);
+        border-color: var(--lg-green-light2);
+    }
+
+    .ai-label {
+        color: var(--lg-green-dark2);
+    }
+
+    .ai-label svg.ai-icon {
+        fill: var(--lg-green-dark1);
+    }
+
+    .chart-tabs,
+    .metadata-tab-bar {
+        border-bottom-color: var(--lg-gray-light2);
+    }
+
+    .chart-tabs a,
+    .metadata-tab-btn {
+        color: var(--lg-gray-dark1);
+    }
+
+    .chart-tabs a.in-view,
+    .metadata-tab-btn.active {
+        color: var(--lg-green-dark2);
+    }
+
+    .chart-tabs a.in-view::after,
+    .metadata-tab-btn.active::after {
+        background-color: var(--lg-green-dark1);
     }
 
     /* The outline is screen navigation: hide it and make sure no renderer keeps
@@ -1045,11 +1194,6 @@ code.code-copyable:hover .code-copy-btn,
     th[data-sortable]::after,
     th[data-sort-dir]::after {
         content: none !important;
-    }
-
-    /* Rows lose their zebra tint on paper, so draw a hairline instead */
-    .markdown-body table td {
-        border-bottom: 1px solid var(--lg-gray-light2);
     }
 
     /* Dark code blocks waste ink and lose contrast on paper */
@@ -1101,8 +1245,10 @@ code.code-copyable:hover .code-copy-btn,
         color: var(--lg-blue-dark2);
     }
 
-    .markdown-body table {
-        page-break-inside: auto;
+    /* charts keep their own white background */
+    .markdown-body canvas,
+    .markdown-body img {
+        background: transparent;
     }
 
     .markdown-body tr,

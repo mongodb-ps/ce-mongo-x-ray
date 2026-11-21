@@ -146,6 +146,12 @@ into the report, so no remote stylesheet or webfont is requested. The charting
 and syntax highlighting libraries come from the same CDNs as the default
 template.
 
+The MongoDB template is a **dark report** — MongoDB black page (`#001E2B`) with
+the report on a `#112733` panel and `#E8EDEB` text. Printing (and the PDF
+output) switches back to the light variant, so paper output stays ink-friendly.
+Charts keep their own white surface, which is why they appear as light panels in
+the dark report.
+
 For information about using each plugin, please refer to their Github repos:
 - [mongo-x-ray-hc](https://github.com/zhangyaoxing/mongo-x-ray-hc)
 - [mongo-x-ray-ftdc](https://github.com/zhangyaoxing/mongo-x-ray-ftdc)
