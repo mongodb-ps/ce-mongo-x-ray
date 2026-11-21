@@ -361,3 +361,31 @@ def test_severity_badges_are_styled_in_both_templates():
     print_block = theme[theme.index("@media print") :]
     assert ".severity-high {" in print_block
     assert "#ffeae5" in print_block
+
+
+def test_every_module_gets_the_shared_outline_script():
+    from mongo_x_ray.utils import inject_assets
+
+    # No module may ship its own outline implementation (gmd used to skip
+    # post_outline.js and build a divergent one).
+    template = "<html><body>{{ content }}{{ script }}</body></html>"
+    for module in ("healthcheck", "log", "ftdc", "gmd"):
+        assert "outline-collapsed" in inject_assets(template, module, theme="mongodb"), module
+
+
+def test_outline_highlight_uses_a_small_offset():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    outline = (Path(get_script_path("templates")) / "js" / "post_outline.raw.js").read_text(encoding="utf-8")
+
+    # A large threshold made the heading the anchor had just scrolled to count as
+    # "not reached yet", so the previous section stayed highlighted.
+    assert "HIGHLIGHT_OFFSET = 8" in outline
+    assert "<= 80" not in outline
+
+    theme = (Path(get_script_path("templates")) / "css" / "mongodb.raw.css").read_text(encoding="utf-8")
+    # Nothing sticky is left at the top of the report, so an anchor offset would
+    # only stop the jump short of the heading.
+    assert "scroll-margin-top" not in theme

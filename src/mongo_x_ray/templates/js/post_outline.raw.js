@@ -17,10 +17,16 @@ headings.forEach((heading) => {
 });
 outline.appendChild(list);
 
+// The active item is the last heading whose top edge is above the viewport top
+// (plus a small tolerance so it still matches when the browser lands a pixel or
+// two off). The old 80px threshold also swallowed the heading that the anchor
+// jump had just placed at the top edge, which made the highlight lag behind.
+const HIGHLIGHT_OFFSET = 8;
+
 function highlightOutline() {
     let current = 0;
     headings.forEach((heading, index) => {
-        if (heading.getBoundingClientRect().top <= 80) {
+        if (heading.getBoundingClientRect().top <= HIGHLIGHT_OFFSET) {
             current = index;
         }
     });

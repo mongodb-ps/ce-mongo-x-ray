@@ -457,8 +457,6 @@ body {
     color: var(--lg-white);
     line-height: 1.25;
     margin: 32px 0 16px;
-    /* the tabs and the outline scroll to headings: keep them clear of the bar */
-    scroll-margin-top: 64px;
 }
 
 .markdown-body h1 {

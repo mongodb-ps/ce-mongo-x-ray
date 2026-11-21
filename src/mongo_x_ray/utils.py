@@ -155,8 +155,6 @@ def inject_assets(template: str, module: str, template_root: Optional[Path] = No
         post_parts = sorted(js_dir.glob("post_*.raw.js"))
     else:
         post_parts = sorted(p for p in js_dir.glob("post_*.js") if ".raw." not in p.name)
-    if module == "gmd":
-        post_parts = [p for p in post_parts if "outline" not in p.name]
     if is_dev:
         module_js = module_dir / module / "script.raw.js"
     else:
