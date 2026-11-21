@@ -208,26 +208,26 @@ def test_mongodb_theme_uses_the_leafygreen_tokens():
     assert "--lg-green-green" not in css
     assert "--lg-side-nav-width: 220px;" in css
     assert "outline-h3" in css
-    assert "report-tabs" in css
+    assert ".chart-tabs" in css
+    assert ".metadata-tab-btn" in css
     # MongoDB black page with a light content card, like mongodb.design
     assert "background: var(--lg-black)" in css
     assert ".outline-header" in css
 
 
-def test_shared_js_bundles_the_section_tabs_and_the_outline_toggle_uses_a_class():
+def test_shared_js_bundles_the_outline_toggle_and_no_section_tabs():
     from pathlib import Path
 
     from mongo_x_ray.utils import get_script_path, inject_assets
 
     js_dir = Path(get_script_path("templates")) / "js"
-    tabs = (js_dir / "post_tabs.raw.js").read_text(encoding="utf-8")
-    assert '"mongodb-report"' in tabs
-    assert "report-tabs" in tabs
-
     outline = (js_dir / "post_outline.raw.js").read_text(encoding="utf-8")
     # The layout belongs to the stylesheets, not to inline margins.
     assert 'classList.add("outline-collapsed")' in outline
     assert "document.body.style.margin" not in outline
 
+    # No generic section tabs: the modules keep their own tab widgets (log chart
+    # tabs, ftdc metadata tabs) and the theme styles those.
+    assert not (js_dir / "post_tabs.raw.js").exists()
     template = "<html><head>{{ style }}{{ pre_script }}</head><body>{{ script }}</body></html>"
-    assert "report-tabs" in inject_assets(template, "healthcheck", theme="mongodb")
+    assert "report-tabs" not in inject_assets(template, "healthcheck", theme="mongodb")

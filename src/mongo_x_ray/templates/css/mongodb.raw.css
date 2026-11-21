@@ -160,24 +160,32 @@ body {
     }
 }
 
-/* --- Tabs (LeafyGreen Tabs) --------------------------------------------- */
+/* --- Tabs (LeafyGreen Tabs) ---------------------------------------------
+   The reports keep their module tab widgets - `log` renders `.chart-tabs`
+   (anchors, active class `in-view`) and `ftdc` renders `.metadata-tabs`
+   (buttons, active class `active`) - and get the LeafyGreen tab treatment:
+   44px tall, 13/20 label, 4px indicator, green selected state. */
 
-.report-tabs {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+.chart-tabs,
+.metadata-tab-bar {
     display: flex;
     align-items: stretch;
     gap: 0;
-    margin: 0 0 20px;
+    margin: 0 0 16px;
+    padding: 0;
     overflow-x: auto;
-    background: var(--lg-white);
+    /* log separates its links with text nodes (" | "); collapse them */
+    font-size: 0;
+    background: transparent;
+    border: 0;
     border-bottom: 1px solid var(--lg-gray-light2);
-    box-shadow: 0 2px 4px -2px rgba(0, 30, 43, 0.16);
+    border-radius: 0;
+    box-shadow: none;
     scrollbar-width: thin;
 }
 
-.report-tabs .report-tab {
+.chart-tabs a,
+.metadata-tab-btn {
     position: relative;
     display: inline-flex;
     flex: 0 0 auto;
@@ -188,18 +196,19 @@ body {
     font-family: var(--lg-font-sans);
     font-size: var(--lg-body1-size);
     font-weight: 500;
+    line-height: var(--lg-body1-line);
     color: var(--lg-gray-dark1);
     text-decoration: none;
     white-space: nowrap;
     background: transparent;
     border: 0;
-    transition:
-        color 150ms ease-in-out,
-        font-weight 150ms ease-in-out;
+    border-radius: 0;
+    cursor: pointer;
+    transition: color 150ms ease-in-out;
 }
 
-/* 4px indicator under the tab, widening on interaction */
-.report-tabs .report-tab::after {
+.chart-tabs a::after,
+.metadata-tab-btn::after {
     content: "";
     position: absolute;
     right: 0;
@@ -214,29 +223,49 @@ body {
         transform 150ms ease-in-out;
 }
 
-.report-tabs .report-tab:hover {
+.chart-tabs a:hover,
+.metadata-tab-btn:hover {
     color: var(--lg-gray-dark3);
 }
 
-.report-tabs .report-tab:hover::after {
+.chart-tabs a:hover::after,
+.metadata-tab-btn:hover::after {
     background-color: var(--lg-gray-light2);
     transform: scaleX(0.95);
 }
 
-.report-tabs .report-tab:focus-visible {
+.chart-tabs a:focus-visible,
+.metadata-tab-btn:focus-visible {
     color: var(--lg-blue-base);
     outline: none;
 }
 
-.report-tabs .report-tab.is-active,
-.report-tabs .report-tab.is-active:hover {
+.chart-tabs a.in-view,
+.metadata-tab-btn.active {
     color: var(--lg-green-dark2);
     font-weight: 600;
 }
 
-.report-tabs .report-tab.is-active::after {
+.chart-tabs a.in-view::after,
+.metadata-tab-btn.active::after {
     background-color: var(--lg-green-dark1);
     transform: scaleX(1);
+}
+
+/* the module widget used to draw a bordered box around the tabs and panes */
+.metadata-tabs {
+    margin: 16px 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+}
+
+.metadata-tab-pane {
+    padding: 0;
+}
+
+.metadata-tab-pane pre {
+    margin: 0;
 }
 
 /* --- Side nav (LeafyGreen SideNav) -------------------------------------- */
@@ -966,11 +995,6 @@ code.code-copyable:hover .code-copy-btn,
         padding: 0 !important;
         margin: 0 !important;
         overflow: hidden !important;
-    }
-
-    /* The tab bar is screen navigation as well */
-    .report-tabs {
-        display: none !important;
     }
 
     .hljs-copy-button,
