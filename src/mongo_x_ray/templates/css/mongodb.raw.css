@@ -902,6 +902,24 @@ code.code-copyable:hover .code-copy-btn,
         0 0 0 4px var(--lg-blue-light1);
 }
 
+/* --- AI badges ---------------------------------------------------------- */
+
+/* index recommendation badge next to a slow query hash */
+.ai-index {
+    color: var(--lg-green-light1);
+}
+
+.ai-index .ai-index-tooltip {
+    color: var(--lg-gray-light2);
+    background: var(--lg-black);
+    border: 1px solid var(--lg-gray-dark2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.ai-index .ai-index-tooltip .ai-index-title {
+    color: var(--lg-green-base);
+}
+
 /* --- Badges (LeafyGreen Badge) ------------------------------------------ */
 
 /* AI notes: the sparkle and its label in the MongoDB green */

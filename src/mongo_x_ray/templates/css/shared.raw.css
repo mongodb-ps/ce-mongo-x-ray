@@ -353,6 +353,7 @@ pre:hover .hljs-copy-button,
     /* Hide interactive elements in print/PDF */
     .hljs-copy-button,
     .table-copy-toolbar,
+    .ai-index,
     button,
     input[type="button"] {
         display: none !important;
@@ -383,6 +384,60 @@ pre:hover .hljs-copy-button,
     width: 14px;
     height: 14px;
     fill: currentColor;
+}
+
+/* AI index recommendation: a Sparkle right after the query hash; hovering it
+   shows the createIndex command the model suggests. */
+.ai-index {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    vertical-align: middle;
+    color: #00684a;
+    cursor: help;
+}
+
+.ai-index svg.ai-icon {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.ai-index .ai-index-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    z-index: 1000;
+    box-sizing: border-box;
+    width: 320px;
+    padding: 6px 8px;
+    transform: translateX(-50%);
+    font-family: "Source Code Pro", Menlo, monospace;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: normal;
+    word-break: break-word;
+    color: #ffffff;
+    background: #333333;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.ai-index .ai-index-tooltip .ai-index-title {
+    display: block;
+    margin-bottom: 4px;
+    font-family: "Euclid Circular A", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #00ed64;
+}
+
+.ai-index:hover .ai-index-tooltip,
+.ai-index:focus-within .ai-index-tooltip {
+    display: block;
 }
 
 /* Severity badges (MongoDB Badge component): 18px pill, 12/16 semibold,
