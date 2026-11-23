@@ -411,8 +411,10 @@ pre:hover .hljs-copy-button,
     left: 50%;
     z-index: 1000;
     box-sizing: border-box;
-    width: 320px;
-    padding: 6px 8px;
+    width: 340px;
+    max-height: 260px;
+    padding: 8px 10px;
+    overflow-y: auto;
     transform: translateX(-50%);
     font-family: "Source Code Pro", Menlo, monospace;
     font-size: 12px;
@@ -424,6 +426,13 @@ pre:hover .hljs-copy-button,
     background: #333333;
     border-radius: 4px;
     pointer-events: none;
+}
+
+.ai-index .ai-index-tooltip .ai-index-command {
+    display: block;
+    margin-top: 4px;
+    white-space: pre;
+    overflow-x: auto;
 }
 
 .ai-index .ai-index-tooltip .ai-index-title {
