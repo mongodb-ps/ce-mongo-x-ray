@@ -430,3 +430,29 @@ def test_chart_blocks_get_their_own_spacing_class():
     assert ".chart-container {" in css
     block = css[css.index(".chart-container {") :]
     assert "margin: 0 0 16px;" in block[: block.index("}")]
+
+
+def test_mongodb_theme_follows_the_leafygreen_typography_scale():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    css = (Path(get_script_path("templates")) / "css" / "mongodb.raw.css").read_text(encoding="utf-8")
+
+    # H1 / H2 are MongoDB Value Serif regular, H3 is medium, H5/H6 are Overline.
+    assert '--lg-font-serif: "MongoDB Value Serif", "Times New Roman", serif;' in css
+    for value in (
+        "font-size: 48px;",
+        "line-height: 64px;",
+        "font-size: 32px;",
+        "line-height: 40px;",
+        "font-size: 24px;",
+        "line-height: 32px;",
+        "font-size: var(--lg-subtitle-size);",
+        "letter-spacing: 0.4px;",
+    ):
+        assert value in css, value
+
+    h1 = css[css.index(".markdown-body h1 {") :]
+    assert "font-family: var(--lg-font-serif);" in h1[: h1.index("}")]
+    assert "font-weight: 400;" in h1[: h1.index("}")]
