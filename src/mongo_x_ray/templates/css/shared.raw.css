@@ -159,6 +159,17 @@ pre:hover .hljs-copy-button,
     margin-bottom: 4px;
 }
 
+/* Charts are emitted one after another; give each block room so stacked charts
+   and the AI note below them do not run into each other. */
+.chart-container {
+    margin: 0 0 16px;
+}
+
+.chart-container > canvas,
+.chart-container > div > canvas {
+    display: block;
+}
+
 /* Report buttons - "Copy Table" and the modules' own controls (e.g. the log
    Reset buttons) - are the LeafyGreen Button "default" variant: 36px tall,
    6px radius, gray.light3 on gray.base, white + 3px ring on hover. */

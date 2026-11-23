@@ -407,3 +407,26 @@ def test_outline_highlight_uses_a_small_offset():
     # Nothing sticky is left at the top of the report, so an anchor offset would
     # only stop the jump short of the heading.
     assert "scroll-margin-top" not in theme
+
+
+def test_chart_blocks_get_their_own_spacing_class():
+    from mongo_x_ray.parsers.base_parser import BaseParser
+
+    class DummyParser(BaseParser):
+        def parse(self, data, **kwargs):
+            return [{"type": "chart", "data": {}}]
+
+    markup = DummyParser().markdown({})
+
+    # Charts are emitted as an empty div plus a script; the class lets the
+    # stylesheets put space between stacked charts and before the AI note.
+    assert 'class="chart-container"' in markup
+
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    css = (Path(get_script_path("templates")) / "css" / "shared.raw.css").read_text(encoding="utf-8")
+    assert ".chart-container {" in css
+    block = css[css.index(".chart-container {") :]
+    assert "margin: 0 0 16px;" in block[: block.index("}")]

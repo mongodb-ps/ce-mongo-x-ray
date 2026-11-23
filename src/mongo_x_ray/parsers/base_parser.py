@@ -122,7 +122,7 @@ class BaseParser(ABC):
         """
         uniq_name: str = f"{uuid4().hex}"
         output = ""
-        output += f'<div id="{uniq_name}"></div>'
+        output += f'<div id="{uniq_name}" class="chart-container"></div>'
         output += "<script type='text/javascript'>\n"
         output += f"// {self.__class__.__name__}\n"
         output += "(function() {\n"
