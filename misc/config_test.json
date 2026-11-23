@@ -77,9 +77,6 @@
             }
         },
         "item_config": {
-            "WEFItem": {
-                "ai_support": "none"
-            },
             "SlowItem": {
                 "top": 10
             }

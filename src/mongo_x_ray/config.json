@@ -98,9 +98,6 @@
                 "slow_rate_medium": 100,
                 "slow_rate_high": 500
             },
-            "WEFItem": {
-                "ai_support": "none"
-            },
             "SlowItem": {
                 "top": 15,
                 "query_targeting": 1000,
