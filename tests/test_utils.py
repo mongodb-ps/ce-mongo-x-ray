@@ -456,3 +456,17 @@ def test_mongodb_theme_follows_the_leafygreen_typography_scale():
     h1 = css[css.index(".markdown-body h1 {") :]
     assert "font-family: var(--lg-font-serif);" in h1[: h1.index("}")]
     assert "font-weight: 400;" in h1[: h1.index("}")]
+
+
+def test_ai_index_tooltip_is_left_aligned():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    css = (Path(get_script_path("templates")) / "css" / "shared.raw.css").read_text(encoding="utf-8")
+    block = css[css.index(".ai-index .ai-index-tooltip {") :]
+    block = block[: block.index("}")]
+
+    # the badge sits in a centred table cell; the command must not inherit that
+    assert "text-align: left;" in block
+    assert "white-space: " in block

@@ -411,6 +411,8 @@ pre:hover .hljs-copy-button,
     left: 50%;
     z-index: 1000;
     box-sizing: border-box;
+    /* the table cell is centred; the command itself must read left aligned */
+    text-align: left;
     width: 340px;
     max-height: 260px;
     padding: 8px 10px;
