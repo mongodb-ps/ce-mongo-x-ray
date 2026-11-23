@@ -252,7 +252,7 @@ def test_table_copy_button_uses_the_leafygreen_default_button():
 
     shared = (templates / "css" / "shared.raw.css").read_text(encoding="utf-8")
     # Button "default" variant: 36px tall, 6px radius, gray.light3 on gray.base.
-    block = shared[shared.index(".table-copy-button {") :]
+    block = shared[shared.index('.table-copy-button,\n.markdown-body input[type="button"],') :]
     block = block[: block.index("}")]
     for declaration in (
         "height: 36px;",
@@ -262,8 +262,14 @@ def test_table_copy_button_uses_the_leafygreen_default_button():
     ):
         assert declaration in block, declaration
 
+    # Every labelled report button shares the style (e.g. the log Reset inputs).
+    assert '.markdown-body input[type="button"],' in shared
+    assert '.markdown-body input[type="submit"] {' in shared
+
     theme = (templates / "css" / "mongodb.raw.css").read_text(encoding="utf-8")
     assert "background-color: var(--lg-gray-dark2);" in theme
+    assert '.markdown-body input[type="button"],' in theme
+    assert '.markdown-body input[type="submit"] {' in theme
 
 
 def test_env_file_is_loaded_without_overriding_the_environment(monkeypatch, tmp_path):

@@ -159,9 +159,12 @@ pre:hover .hljs-copy-button,
     margin-bottom: 4px;
 }
 
-/* Copy-table button: the LeafyGreen Button, "default" variant
-   (36px tall, 6px radius, gray.light3 on gray.base, white + 3px ring on hover) */
-.table-copy-button {
+/* Report buttons - "Copy Table" and the modules' own controls (e.g. the log
+   Reset buttons) - are the LeafyGreen Button "default" variant: 36px tall,
+   6px radius, gray.light3 on gray.base, white + 3px ring on hover. */
+.table-copy-button,
+.markdown-body input[type="button"],
+.markdown-body input[type="submit"] {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -191,14 +194,20 @@ pre:hover .hljs-copy-button,
 }
 
 .table-copy-button:hover,
-.table-copy-button:active {
+.table-copy-button:active,
+.markdown-body input[type="button"]:hover,
+.markdown-body input[type="button"]:active,
+.markdown-body input[type="submit"]:hover,
+.markdown-body input[type="submit"]:active {
     color: #001e2b;
     background-color: #ffffff;
     border-color: #889397;
     box-shadow: 0 0 0 3px #e8edeb;
 }
 
-.table-copy-button:focus-visible {
+.table-copy-button:focus-visible,
+.markdown-body input[type="button"]:focus-visible,
+.markdown-body input[type="submit"]:focus-visible {
     outline: none;
     box-shadow:
         0 0 0 2px #ffffff,
