@@ -451,6 +451,43 @@ pre:hover .hljs-copy-button,
     display: block;
 }
 
+/* Copy button next to the "AI Analysis" label (issue #378) */
+.ai-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 6px;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    opacity: 0.6;
+    cursor: pointer;
+    transition:
+        opacity 120ms ease-in-out,
+        background-color 120ms ease-in-out;
+}
+
+.ai-copy-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}
+
+.ai-copy-btn:hover,
+.ai-copy-btn:focus-visible {
+    opacity: 1;
+    background: rgba(127, 127, 127, 0.16);
+    outline: none;
+}
+
+.ai-copy-btn.ai-copied {
+    opacity: 1;
+}
+
 /* Severity badges (MongoDB Badge component): 18px pill, 12/16 semibold,
    uppercase. High is red, medium yellow, low green, info light gray. */
 .severity-badge {

@@ -13,6 +13,7 @@ in the core ``mongo_x_ray`` package so that the analysis modules (healthcheck, g
 log, ftdc) do not have to import from each other.
 """
 
+import html
 import re
 from datetime import datetime
 from enum import Enum
@@ -26,6 +27,33 @@ class SEVERITY(Enum):
     MEDIUM = 3
     LOW = 2
     INFO = 1
+
+
+def ai_note_markdown(text: str, title: str = "AI Analysis") -> str:
+    """Render an AI note as a blockquote with a copy button (issue #378).
+
+    The blockquote carries the Sparkle label, a copy icon to its right, then the
+    note itself. The raw note is kept in ``data-ai-note`` (newlines as ``&#10;``)
+    so `post_ai_copy.js` can copy exactly the note - without the title - instead
+    of reconstructing it from the rendered HTML.
+
+    Returns an empty string when there is nothing to show.
+    """
+    note = (text or "").strip()
+    if not note:
+        return ""
+
+    attribute = html.escape(note, quote=True).replace("\r\n", "\n").replace("\n", "&#10;")
+    label = (
+        f'<span class="ai-label" data-ai-note="{attribute}">{AI_ICON} {title}'
+        f'<button type="button" class="ai-copy-btn" aria-label="Copy AI analysis" title="Copy"></button>'
+        "</span>"
+    )
+
+    lines = [f"> {label}", ">"]
+    lines.extend(f"> {line}" for line in note.split("\n"))
+    lines.append("")
+    return "\n".join(lines)
 
 
 # LeafyGreen "Sparkle" icon (mongodb/leafygreen-ui, packages/icon/src/glyphs),

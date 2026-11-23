@@ -936,6 +936,18 @@ code.code-copyable:hover .code-copy-btn,
 
 /* --- AI badges ---------------------------------------------------------- */
 
+.ai-copy-btn {
+    color: var(--lg-green-light1);
+}
+
+.ai-copy-btn:hover,
+.ai-copy-btn:focus-visible,
+.ai-copy-btn.ai-copied {
+    color: var(--lg-green-base);
+    background: rgba(0, 237, 100, 0.16);
+}
+
+
 /* index recommendation badge next to a slow query hash */
 .ai-index {
     color: var(--lg-green-light1);

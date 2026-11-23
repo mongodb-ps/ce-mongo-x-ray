@@ -470,3 +470,36 @@ def test_ai_index_tooltip_is_left_aligned():
     # the badge sits in a centred table cell; the command must not inherit that
     assert "text-align: left;" in block
     assert "white-space: " in block
+
+
+def test_ai_note_carries_a_copy_button_and_the_exact_note():
+    from mongo_x_ray.shared import ai_note_markdown
+
+    assert ai_note_markdown("") == ""
+    assert ai_note_markdown("   ") == ""
+
+    note = ai_note_markdown("First line.\nSecond line.", title="AI Overview")
+
+    assert 'class="ai-label"' in note
+    assert 'class="ai-copy-btn"' in note
+    assert "AI Overview" in note
+    # the copied text is the note only: newlines escaped, no title
+    assert 'data-ai-note="First line.&#10;Second line."' in note
+    assert "AI Overview" not in note.split('data-ai-note="', 1)[1].split('"', 1)[0]
+    # the rendered note keeps one quoted line per line
+    assert "> First line." in note
+    assert "> Second line." in note
+
+
+def test_shared_copy_script_targets_the_ai_notes():
+    from pathlib import Path
+
+    from mongo_x_ray.utils import get_script_path
+
+    js_dir = Path(get_script_path("templates")) / "js"
+    assert (js_dir / "post_ai_copy.raw.js").exists()
+
+    js = (js_dir / "post_ai_copy.raw.js").read_text(encoding="utf-8")
+    assert ".ai-copy-btn" in js
+    assert "data-ai-note" in js
+    assert "navigator.clipboard.writeText" in js
