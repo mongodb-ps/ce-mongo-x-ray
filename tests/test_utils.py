@@ -503,3 +503,26 @@ def test_shared_copy_script_targets_the_ai_notes():
     assert ".ai-copy-btn" in js
     assert "data-ai-note" in js
     assert "navigator.clipboard.writeText" in js
+
+
+def test_select_template_falls_back_when_the_plugin_lacks_the_theme(tmp_path):
+    from mongo_x_ray.framework import select_template
+
+    (tmp_path / "gmd").mkdir()
+    (tmp_path / "gmd" / "full.html").write_text("<html></html>", encoding="utf-8")
+
+    # plugin releases before 2.1.4 ship no mongodb.html ...
+    path, theme = select_template(tmp_path, "gmd", "gmd/mongodb.html")
+    assert path.name == "full.html"
+    assert theme is None
+
+    # ... while a plugin that has it keeps the theme
+    (tmp_path / "gmd" / "mongodb.html").write_text("<html></html>", encoding="utf-8")
+    path, theme = select_template(tmp_path, "gmd", "gmd/mongodb.html")
+    assert path.name == "mongodb.html"
+    assert theme == "mongodb"
+
+    # and the configured default is used when nothing is set
+    path, theme = select_template(tmp_path, "gmd", None)
+    assert path.name == "full.html"
+    assert theme is None

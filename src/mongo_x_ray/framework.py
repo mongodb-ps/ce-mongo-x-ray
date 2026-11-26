@@ -26,7 +26,27 @@ from typing import TextIO
 import markdown
 
 from mongo_x_ray.table_width_extension import TableWidthExtension
-from mongo_x_ray.utils import env, green, html_to_pdf, inject_assets
+from mongo_x_ray.utils import env, green, html_to_pdf, inject_assets, yellow
+
+
+def select_template(template_root: Path, module: str, template_name: str | None) -> tuple[Path, str | None]:
+    """Return the report template to render and the theme it selects.
+
+    Falls back to ``<module>/full.html`` when the configured template does not
+    exist: plugin releases older than x-ray 2.1.4 do not ship ``mongodb.html``,
+    while the default configuration already points at it, so an older plugin with
+    a newer core would otherwise fail on a missing file.
+    """
+    default_name = f"{module}/full.html"
+    name = template_name or default_name
+    path = template_root / name
+    if not path.is_file() and name != default_name:
+        fallback = template_root / default_name
+        if fallback.is_file():
+            logging.getLogger(__name__).warning(yellow(f"Template '{name}' not found; using '{default_name}' instead."))
+            name, path = default_name, fallback
+    theme = Path(name).stem
+    return path, (None if theme == "full" else theme)
 
 
 class BaseFramework(ABC):
@@ -77,15 +97,10 @@ class BaseFramework(ABC):
         html_file = batch_folder / "report.html"
         if fmt in {"html", "pdf"}:
             template_root = Path(str(files(self.template_package) / "templates"))
-            default_template = f"{self.template_module}/full.html"
-            template_name = self._config.get("template", default_template)
-            template_file = template_root / template_name
             # The template file name selects the theme: `mongodb.html` pulls in
             # templates/css/mongodb.css on top of the shared styles, `full.html`
             # keeps the default look.
-            theme = Path(template_name).stem
-            if theme == "full":
-                theme = None
+            template_file, theme = select_template(template_root, self.template_module, self._config.get("template"))
             html_content = markdown.markdown(
                 markdown_file.read_text(encoding="utf-8"),
                 extensions=[TableWidthExtension(), "fenced_code", "toc", "md_in_html"],

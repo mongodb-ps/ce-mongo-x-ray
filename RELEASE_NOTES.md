@@ -1,12 +1,13 @@
-# mongo-x-ray 2.1.4 — Release Notes
+# mongo-x-ray 2.1.5 — Release Notes
 
-**Scope**: v2.1.2 → 2.1.4 (2026-11-26)
-**TL;DR**: 2.1.3 shipped without the MongoDB theme stylesheet, so every report using the default template rendered unstyled. 2.1.4 fixes the packaging and carries the same features.
+**Scope**: v2.1.2 → 2.1.5 (2026-11-26)
+**TL;DR**: two compatibility fixes after the 2.1.4 release — a plugin older than 2.1.4 no longer fails on the missing MongoDB template, and the health check brings back a helper the older gmd imports. 2.1.3 remains broken on PyPI (see below); use 2.1.5.
 
-## Packaging fix
+## Compatibility fixes
 
-- **`mongodb.css` is in the wheel again**: `pyproject.toml` listed `templates/css/shared.css` explicitly, so the new theme stylesheet was left out of the wheel and sdist — and the MongoDB template, which is the default, rendered without its CSS. The package data now ships every non-raw stylesheet (`templates/css/*[!w].css`). Verified on the built wheel: `mongo_x_ray/templates/css/mongodb.css` and `shared.css`.
-- ⚠️ **`mongo-x-ray==2.1.3` on PyPI is affected** — upgrade to 2.1.4.
+- **Older plugins fall back to their `full.html` template**: the default configuration points at `<module>/mongodb.html`, which only ships with plugin releases from 2.1.4 on. A newer core with an older plugin (e.g. `mongo-x-ray-gmd` 2.1.0) failed with `FileNotFoundError`; `select_template()` now warns and renders `<module>/full.html` instead.
+- `mongo-x-ray-hc` 2.1.5 restores `colorize_severity`, which `mongo-x-ray-gmd` releases before 2.1.4 import (`ImportError: cannot import name 'colorize_severity'` when only the health check plugin was upgraded).
+- ⚠️ **`mongo-x-ray==2.1.3` on PyPI is broken** (its wheel is missing `templates/css/mongodb.css`); 2.1.4 restored the file and 2.1.5 adds these compatibility fixes.
 
 ## New Features ✨
 
