@@ -1,26 +1,32 @@
-# mongo-x-ray 2.1.2 — Release Notes
+# mongo-x-ray 2.1.3 — Release Notes
 
-**Scope**: v2.1.1 → 2.1.2 (2026-11-05)
-**TL;DR**: MongoDB 9.0 support in the driver compatibility matrix, and a configurable snapshot history window threshold. Reports, CLI and API are unchanged.
+**Scope**: v2.1.2 → 2.1.3 (2026-11-26)
+**TL;DR**: the optional MongoDB report template became a full LeafyGreen implementation (and the default), the report outline and printing were fixed, `.env` now loads reliably, and every AI note gained a copy button.
 
 ## New Features ✨
 
-- **MongoDB 9.0 in the driver compatibility matrix**: the log plugin's client metadata check now knows the minimum driver versions for 9.0, so a 9.0 deployment flags drivers that are too old for it
-- The matrix is written with version strings (`"mongoc": "1.15"`) instead of arrays (`[1, 15]`), matching how the [driver compatibility table](https://www.mongodb.com/docs/drivers/compatibility/) quotes versions, which keeps 100+ entries maintainable by hand
+- **MongoDB report template** (`<module>/mongodb.html`) for every plugin: a dark report — MongoDB black page, `#112733` panel, `#E8EDEB` text — built from the design system, with the LeafyGreen **SideNav** outline, **Table**, **Badge**, **Tabs**, **Button** (default variant) and **Typography** scale, and the LeafyGreen icons (Copy, Checkmark, Sort, Chevron) inlined as SVG masks. It replaces the two stylesheets the default template fetches from a CDN, so the themed report requests no remote stylesheet and no webfont. The template is now the shipped default (`config.json`).
+- **Severity badges**: `mongo_x_ray.shared.severity_badge()` renders HIGH/MEDIUM/LOW/INFO as MongoDB Badges (red / yellow / green / light gray) everywhere a severity is shown, replacing the per-plugin bold coloured text.
+- **AI notes**: `mongo_x_ray.shared.ai_note_markdown()` renders the Sparkle label, the note and a **copy button** that copies exactly the note (title excluded); the new shared `post_ai_copy.js` wires it up. The Sparkle glyph is exported as `shared.AI_ICON`.
+- **`.env` loading** (`mongo_x_ray.env`): loaded when the package is imported, searching the working directory and its parents, then the package location; values already in the environment (VS Code `envFile`, CI, shell exports) win. Previously the file was only read as a side effect of importing `mongo_x_ray.utils`, so runs started elsewhere — and `AI_MODEL` in particular — silently used defaults.
+- **Chart blocks** carry a `chart-container` class with a 16px bottom margin, so stacked charts and the notes below them no longer touch.
+
+## Fixed 🐛
+
+- **Printing**: the report outline is hidden *and* out of the layout on paper (no reserved column); the whole dark theme falls back to the light variant, so the PDF is ink friendly.
+- **Outline**: clicking an entry lands the heading at the top and highlights that same entry. The stray `scroll-margin-top` (a leftover from the removed sticky tabs) and gmd's divergent outline implementation are gone.
+- **Every labelled report button** (Copy Table, the log Reset controls) is the MongoDB Button default variant; the Copy Table button shows the Copy icon and a Checkmark while copied.
 
 ## Changed 🔧
 
-- **Snapshot history window threshold is configurable**: the health check compared `minSnapshotHistoryWindowInSeconds` against a constant. It now reads `min_snapshot_history_window_seconds` from the check item configuration — `healthcheck.item_config.ServerParametersItem` for the health check, and `gmd.item_config.ServerStatusItem` for the gmd plugin, which reuses the rule. The default is unchanged (5 seconds) and the recommendation quoted in the finding follows the configured value
+- `item_config` gained `ai_analysis` (`false` disables the AI analysis, `true` opts a test run in); the old log `WEFItem.ai_support` switch was removed.
+- `.vscode` launch configurations let `.env` own `LOG_LEVEL`/`ENV`, pin the working directory, and read the same file for the test configurations; `python.envFile` is set so Test Explorer and terminal runs see it too.
 
-## Documentation
-
-- README: install and plugin notes revised, and the `x-ray` usage line corrected to `{hc,log,ftdc}`
-
-## Upgrade Guide (2.1.1 → 2.1.2)
+## Upgrade Guide (2.1.2 → 2.1.3)
 
 ```bash
-pip install -U mongo-x-ray mongo-x-ray-hc mongo-x-ray-log mongo-x-ray-ftdc mongo-x-ray-gmd mongo-x-ray-risk
+pip install -U mongo-x-ray mongo-x-ray-hc mongo-x-ray-log mongo-x-ray-ftdc mongo-x-ray-gmd
 ```
 
-- Drop-in release: no CLI, API or report changes, and no configuration changes are required (the new key defaults to the previous behaviour)
-- Upgrade `mongo-x-ray-log` together with `mongo-x-ray`: this release writes the compatibility matrix with version strings, and a log release older than 2.1.2 fails to read it (`ValueError: Invalid version array`)
+- Upgrade the plugins together with `mongo-x-ray`: the 2.1.3 plugins import helpers added in this core release (`severity_badge`, `ai_note_markdown`, `AI_ICON`) and rely on its stylesheets, so they require `mongo-x-ray>=2.1.3`.
+- Reports now default to the MongoDB template. Restore the original look per module with `"template": "<module>/full.html"` in the config file.
