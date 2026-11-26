@@ -7,6 +7,7 @@
 
 - **Older plugins fall back to their `full.html` template**: the default configuration points at `<module>/mongodb.html`, which only ships with plugin releases from 2.1.4 on. A newer core with an older plugin (e.g. `mongo-x-ray-gmd` 2.1.0) failed with `FileNotFoundError`; `select_template()` now warns and renders `<module>/full.html` instead.
 - `mongo-x-ray-hc` 2.1.5 restores `colorize_severity`, which `mongo-x-ray-gmd` releases before 2.1.4 import (`ImportError: cannot import name 'colorize_severity'` when only the health check plugin was upgraded).
+- **macOS binaries are built again**: GitHub stopped offering the `macos-14` image to this repository (the job was cancelled with `The configuration 'macos-14-arm64-us-default' is not supported`), which is why the 2.1.3 and 2.1.4 releases shipped only Linux and Windows artifacts. The workflow now builds the macOS artifact on `macos-15`, whose image is `macos-15-arm64`; v2.1.5 ships `x-ray-macos-arm64-v2.1.5.tar.gz` (Mach-O arm64, reports 2.1.5).
 - ⚠️ **`mongo-x-ray==2.1.3` on PyPI is broken** (its wheel is missing `templates/css/mongodb.css`); 2.1.4 restored the file and 2.1.5 adds these compatibility fixes.
 
 ## New Features ✨
