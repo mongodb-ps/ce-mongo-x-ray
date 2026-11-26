@@ -1,0 +1,18 @@
+name: Runner probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15, macos-14]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    steps:
+      - run: uname -m && sw_vers
