@@ -25,7 +25,10 @@ jobs:
             artifact_name: x-ray
             platform: linux
             arch: amd64
-          - os: macos-14
+          # macos-14 is no longer offered to this repository (the job is cancelled
+          # with "The configuration 'macos-14-arm64-us-default' is not supported").
+          # macos-15 is the arm64 image the macOS artifact is built on.
+          - os: macos-15
             artifact_name: x-ray
             platform: macos
             arch: arm64
