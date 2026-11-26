@@ -1,7 +1,12 @@
-# mongo-x-ray 2.1.3 — Release Notes
+# mongo-x-ray 2.1.4 — Release Notes
 
-**Scope**: v2.1.2 → 2.1.3 (2026-11-26)
-**TL;DR**: the optional MongoDB report template became a full LeafyGreen implementation (and the default), the report outline and printing were fixed, `.env` now loads reliably, and every AI note gained a copy button.
+**Scope**: v2.1.2 → 2.1.4 (2026-11-26)
+**TL;DR**: 2.1.3 shipped without the MongoDB theme stylesheet, so every report using the default template rendered unstyled. 2.1.4 fixes the packaging and carries the same features.
+
+## Packaging fix
+
+- **`mongodb.css` is in the wheel again**: `pyproject.toml` listed `templates/css/shared.css` explicitly, so the new theme stylesheet was left out of the wheel and sdist — and the MongoDB template, which is the default, rendered without its CSS. The package data now ships every non-raw stylesheet (`templates/css/*[!w].css`). Verified on the built wheel: `mongo_x_ray/templates/css/mongodb.css` and `shared.css`.
+- ⚠️ **`mongo-x-ray==2.1.3` on PyPI is affected** — upgrade to 2.1.4.
 
 ## New Features ✨
 
